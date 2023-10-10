@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite::resource:db/demo.db
+    username:
+    password:

@@ -7,11 +7,10 @@
     <groupId>io.github.qmjy</groupId>
     <artifactId>mapbox-offline-server</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <name>${project.artifactId}</name>
     <description>Mapbox GL offline server with java.</description>
     <url>https://github.com/qmjy/mapbox-offline-server</url>
-
 
     <!-- license -->
     <licenses>
@@ -67,6 +66,11 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
@@ -108,23 +112,28 @@
         </plugins>
     </build>
 
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>true</uniqueVersion>
+            <id>ossrh</id>
+            <name>Repository</name>
+            <layout>default</layout>
+            <url>https://s01.oss.sonatype.orgservice/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>Snapshot Repository</name>
+            <layout>legacy</layout>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <profiles>
         <profile>
-            <id>release</id>
-            <distributionManagement>
-                <repository>
-                    <id>release</id>
-                    <name>Repository</name>
-                    <layout>default</layout>
-                    <url>https://s01.oss.sonatype.orgservice/local/staging/deploy/maven2/</url>
-                </repository>
-                <snapshotRepository>
-                    <id>snapshots</id>
-                    <name>Snapshot Repository</name>
-                    <layout>legacy</layout>
-                    <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-                </snapshotRepository>
-            </distributionManagement>
+            <id>ossrh</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
                 <plugins>
                     <plugin>

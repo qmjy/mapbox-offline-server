@@ -1,6 +1,6 @@
 spring:
+  mvc:
+    static-path-pattern: /**
   datasource:
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite::resource:db/demo.db
-    username:
-    password:
+    url: jdbc:sqlite:C:/Users/Administrator/.devkits/devkits.db

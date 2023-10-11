@@ -3,4 +3,14 @@ spring:
     static-path-pattern: /**
   datasource:
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite:C:/Users/Administrator/.devkits/devkits.db
+    url: jdbc:sqlite:default.db
+
+server:
+  port: 6666
+
+mapbox:
+  styles:
+  tilesets:
+  sprites:
+  fonts:
+  assets:

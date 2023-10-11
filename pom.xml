@@ -16,7 +16,7 @@
     <licenses>
         <license>
             <name>Apache-2.0</name>
-            <url>https://github.com/qmjy/mapbox-offline-server/blob/main/LICENSE</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
 
@@ -80,6 +80,15 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.43.0.0</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

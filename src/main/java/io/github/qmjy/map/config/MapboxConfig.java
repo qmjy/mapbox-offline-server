@@ -14,18 +14,22 @@
  *   limitations under the License.
  */
 
-package io.github.qmjy.map;
+package io.github.qmjy.map.config;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * 程序启动入口
- * @author Shaofeng Liu
+ * Mapbox 数据配置
  */
-@SpringBootApplication
-public class Application {
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
+@Data
+@Component
+@ConfigurationProperties(prefix = "mapbox")
+public class MapboxConfig {
+    private String styles;
+    private String tilesets;
+    private String sprites;
+    private String fonts;
+    private String assets;
 }

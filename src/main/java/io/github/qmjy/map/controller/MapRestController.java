@@ -14,18 +14,21 @@
  *   limitations under the License.
  */
 
-package io.github.qmjy.map;
+package io.github.qmjy.map.controller;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.github.qmjy.map.config.MapboxConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 程序启动入口
- * @author Shaofeng Liu
- */
-@SpringBootApplication
-public class Application {
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+@RestController
+public class MapRestController {
+
+    @Autowired
+    private MapboxConfig mapboxConfig;
+
+    @GetMapping("/say")
+    public String say() {
+        return "Hello World:" + mapboxConfig.getStyles();
     }
 }

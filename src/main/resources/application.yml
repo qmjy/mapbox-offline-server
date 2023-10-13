@@ -1,3 +1,6 @@
+server:
+  port: 10101
+
 spring:
   mvc:
     static-path-pattern: /**
@@ -5,8 +8,9 @@ spring:
     driver-class-name: org.sqlite.JDBC
     url: jdbc:sqlite:default.db
 
-server:
-  port: 6666
+logging:
+  level:
+    org.springframework.web: trace
 
 mapbox:
   styles:

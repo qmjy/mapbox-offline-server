@@ -14,22 +14,12 @@
  *   limitations under the License.
  */
 
-package io.github.qmjy.mapbox.config;
+package io.github.qmjy.mapbox.controller;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Mapbox 数据配置
- */
-@Data
-@Component
-@ConfigurationProperties(prefix = "mapbox")
-public class MapboxConfig {
-    private String styles;
-    private String tilesets;
-    private String sprites;
-    private String fonts;
-    private String assets;
+@RestController
+@RequestMapping("/api/sprites")
+public class MapRestSpritesController {
 }

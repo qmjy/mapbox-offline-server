@@ -16,24 +16,40 @@
 
 package io.github.qmjy.mapbox.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.sql.DataSource;
+
 @RestController
-@RequestMapping("/api/styles")
-public class MapRestStyleController {
+@RequestMapping("/api/tilesets")
+public class MapRestTilesetsController {
+    @Autowired
+    private DataSource dataSource;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-    /**
-     * 展示style列表
-     *
-     * @return style列表
-     */
     @GetMapping("")
     @ResponseBody
     public String listStyles() {
+        //Create the database table:
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS beers(name VARCHAR(100))");
+
+        //Insert a record:
+        jdbcTemplate.execute("INSERT INTO beers VALUES ('Stella')");
+
+        //Read records:
+//        List<Beer> beers = jdbcTemplate.query("SELECT * FROM beers",
+//                (resultSet, rowNum) -> new Beer(resultSet.getString("name")));
+//
+//        //Print read records:
+//        beers.forEach(System.out::println);
+
         return "Hello World:";
     }
 }

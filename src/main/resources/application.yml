@@ -6,15 +6,12 @@ spring:
     static-path-pattern: /**
   datasource:
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite:default.db
+    url: jdbc:sqlite::resource:tilesets/default.mbtiles
 
 logging:
   level:
-    org.springframework.web: trace
+    #    org.springframework.web: trace
+    org.springframework.web: info
 
-mapbox:
-  styles:
-  tilesets:
-  sprites:
-  fonts:
-  assets:
+# 数据存放目录
+config: /test

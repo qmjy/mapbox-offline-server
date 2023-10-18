@@ -4,9 +4,14 @@ server:
 spring:
   mvc:
     static-path-pattern: /**
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    cache: false
   datasource:
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite::resource:tilesets/default.mbtiles
+    url: jdbc:sqlite::resource:mapbox/tilesets/default.mbtiles
 
 logging:
   level:
@@ -14,4 +19,4 @@ logging:
     org.springframework.web: info
 
 # 数据存放目录
-config: /test
+data:

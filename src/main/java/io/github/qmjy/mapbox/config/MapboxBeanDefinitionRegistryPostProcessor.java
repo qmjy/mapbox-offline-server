@@ -34,12 +34,13 @@ public class MapboxBeanDefinitionRegistryPostProcessor implements BeanDefinition
 
     @Value("${spring.datasource.driver-class-name}")
     private String driverClassName;
-    private String config;
+    @Value("${data}")
+    private String data;
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        if (!StringUtils.hasLength(config)) {
-            File dataFolder = new File(config);
+        if (!StringUtils.hasLength(data)) {
+            File dataFolder = new File(data);
             if (dataFolder.isDirectory() && dataFolder.exists()) {
                 File tilesetsFolder = new File(dataFolder, "tilesets");
                 File[] files = tilesetsFolder.listFiles(new FileFilter() {

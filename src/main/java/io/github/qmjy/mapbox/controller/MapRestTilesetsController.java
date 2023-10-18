@@ -17,15 +17,22 @@
 package io.github.qmjy.mapbox.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.sql.DataSource;
 
-@RestController
+/**
+ * MBTiles 1.3 规范定义：
+ * <a href="https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md">MBTiles 1.3</a>
+ */
+@Controller
 @RequestMapping("/api/tilesets")
 public class MapRestTilesetsController {
     @Autowired
@@ -34,14 +41,18 @@ public class MapRestTilesetsController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Value("${data}")
+    private String data;
+
     @GetMapping("")
     @ResponseBody
     public String listStyles() {
         //Create the database table:
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS beers(name VARCHAR(100))");
-
-        //Insert a record:
-        jdbcTemplate.execute("INSERT INTO beers VALUES ('Stella')");
+//        jdbcTemplate.execute("CREATE TABLE tiles (zoom_level integer, tile_column integer, tile_row integer, tile_data blob);");
+//        jdbcTemplate.execute("CREATE UNIQUE INDEX tile_index on tiles (zoom_level, tile_column, tile_row);");
+//
+//        //Insert a record:
+//        jdbcTemplate.execute("INSERT INTO beers VALUES ('Stella')");
 
         //Read records:
 //        List<Beer> beers = jdbcTemplate.query("SELECT * FROM beers",
@@ -50,6 +61,18 @@ public class MapRestTilesetsController {
 //        //Print read records:
 //        beers.forEach(System.out::println);
 
-        return "Hello World:";
+        return "Hello World:" + data;
+    }
+
+    /**
+     * 提供地图页面预览页面
+     *
+     * @param tileset 待预览的地图瓦片数据库库名称，默认为mbtiles扩展名
+     * @return 地图预览页面
+     */
+    @GetMapping("/{tileset}")
+    public String preview(@PathVariable("tileset") String tileset, Model model) {
+        model.addAttribute("tileset", tileset);
+        return "mapbox";
     }
 }

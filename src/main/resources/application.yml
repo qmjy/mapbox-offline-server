@@ -1,5 +1,8 @@
 server:
   port: 10101
+  compression:
+    enabled: true
+    mime-types: application/x-protobuf
 
 spring:
   mvc:

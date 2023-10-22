@@ -25,7 +25,7 @@
 <div id="map"></div>
 <script>
     var basePath = `[[${#httpServletRequest.getScheme() + "://" + #httpServletRequest.getServerName() + ":" + #httpServletRequest.getServerPort() + #httpServletRequest.getContextPath()}]]`;
-    var tiles = [basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}.pbf"]
+    var tiles = [basePath + "/api/tilesets/[[${tilesetName}]]/{z}/{x}/{y}.pbf"]
 
     var map = new mapboxgl.Map({
         container: 'map',

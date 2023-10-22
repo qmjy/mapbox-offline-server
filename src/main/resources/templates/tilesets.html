@@ -24,9 +24,8 @@
 <h1>瓦片数据库列表</h1>
 <hr>
 <div th:each="file,fileStat:${tileFiles}">
-    <a th:href="@{fileStat.current}">
-        <th:block th:text="${file.name}"/>
-    </a>
+    <!--     produce  '/prodction/1'    -->
+    <h3><a th:href="@{'/api/tilesets/'+${file.name}}" th:text="${file.name}"></a></h3>
 </div>
 </body>
 </html>

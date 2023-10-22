@@ -16,25 +16,33 @@
 
 package io.github.qmjy.mapbox.controller;
 
-import com.zaxxer.hikari.HikariDataSource;
+import io.github.qmjy.mapbox.Application;
 import io.github.qmjy.mapbox.config.AppConfig;
+import io.github.qmjy.mapbox.util.MapDbServerUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.MimeType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Optional;
+
 
 /**
  * Mbtiles支持的数据库访问API。<br/>
@@ -43,12 +51,10 @@ import java.io.FileFilter;
 @Controller
 @RequestMapping("/api/tilesets")
 public class MapRestTilesetsController {
-    @Autowired
-    private DataSource dataSource;
 
+    private final Logger logger = LoggerFactory.getLogger(MapRestTilesetsController.class);
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-
+    private MapDbServerUtils mapDbServerUtils;
     @Autowired
     private AppConfig appConfig;
 
@@ -64,13 +70,26 @@ public class MapRestTilesetsController {
      */
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.pbf", produces = "application/x-protobuf")
     @ResponseBody
-    public byte[] loadPbfTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
-                               @PathVariable("x") String x, @PathVariable("y") String y) {
-        System.out.printf("load tileset z: " + z + " x:" + x + " y:" + y);
+    public ResponseEntity<ByteArrayResource> loadPbfTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
+                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
+        Optional<JdbcTemplate> jdbcTemplateOpt = mapDbServerUtils.getDataSource(tileset);
+        if (jdbcTemplateOpt.isPresent()) {
+            JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-//        ImageIO.write(bufferedImage, "pbf", out);
-        return out.toByteArray();
+            String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
+            try {
+                byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
+                if (bytes != null) {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.valueOf("application/x-protobuf"));
+                    ByteArrayResource resource = new ByteArrayResource(bytes);
+                    return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
+                }
+            } catch (EmptyResultDataAccessException e) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -84,13 +103,26 @@ public class MapRestTilesetsController {
      */
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.png", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
-    public byte[] loadPngTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
-                               @PathVariable("x") String x, @PathVariable("y") String y, HttpServletResponse response) {
-        System.out.printf("load tileset z: " + z + " x:" + x + " y:" + y);
+    public ResponseEntity<ByteArrayResource> loadPngTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
+                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
+        Optional<JdbcTemplate> jdbcTemplateOpt = mapDbServerUtils.getDataSource(tileset);
+        if (jdbcTemplateOpt.isPresent()) {
+            JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-//        ImageIO.write(bufferedImage, "png", out);
-        return out.toByteArray();
+            String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
+            try {
+                byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
+                if (bytes != null) {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.IMAGE_PNG);
+                    ByteArrayResource resource = new ByteArrayResource(bytes);
+                    return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
+                }
+            } catch (EmptyResultDataAccessException e) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 
@@ -109,7 +141,7 @@ public class MapRestTilesetsController {
                 File[] files = tilesetsFolder.listFiles(new FileFilter() {
                     @Override
                     public boolean accept(File pathname) {
-                        return pathname.getName().endsWith("admin.mbtiles");
+                        return pathname.getName().endsWith(".mbtiles");
                     }
                 });
 

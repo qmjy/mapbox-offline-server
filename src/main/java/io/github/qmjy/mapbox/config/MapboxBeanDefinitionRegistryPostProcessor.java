@@ -18,29 +18,29 @@ package io.github.qmjy.mapbox.config;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.FileFilter;
 
-@ConfigurationProperties
-public class MapboxBeanDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
-
-    @Value("${spring.datasource.driver-class-name}")
-    private String driverClassName;
-    @Value("${data}")
-    private String data;
+/**
+ * 按照用户数据库动态设置数据源
+ */
+@Component
+public class MapboxBeanDefinitionRegistryPostProcessor implements EnvironmentAware, BeanDefinitionRegistryPostProcessor {
+    private AppConfig appConfig;
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        if (!StringUtils.hasLength(data)) {
-            File dataFolder = new File(data);
+        if (StringUtils.hasLength(appConfig.getDataPath())) {
+            File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
                 File tilesetsFolder = new File(dataFolder, "tilesets");
                 File[] files = tilesetsFolder.listFiles(new FileFilter() {
@@ -54,7 +54,7 @@ public class MapboxBeanDefinitionRegistryPostProcessor implements BeanDefinition
                     for (File dbFile : files) {
                         BeanDefinitionBuilder datasourceBean = BeanDefinitionBuilder.rootBeanDefinition(HikariDataSource.class);
                         datasourceBean.addPropertyValue("jdbcUrl", "jdbc:sqlite:" + dbFile.getAbsolutePath());
-                        datasourceBean.addPropertyValue("driverClassName", driverClassName);
+                        datasourceBean.addPropertyValue("driverClassName", appConfig.getDriverClassName());
                         registry.registerBeanDefinition(dbFile.getName(), datasourceBean.getBeanDefinition());
                     }
                 }
@@ -65,5 +65,13 @@ public class MapboxBeanDefinitionRegistryPostProcessor implements BeanDefinition
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
+    }
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        AppConfig appConfig = new AppConfig();
+        appConfig.setDataPath(environment.getProperty("data-path"));
+        appConfig.setDriverClassName(environment.getProperty("spring.datasource.driver-class-name"));
+        this.appConfig = appConfig;
     }
 }

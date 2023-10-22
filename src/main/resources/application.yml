@@ -19,4 +19,4 @@ logging:
     org.springframework.web: info
 
 # 数据存放目录
-data:
+data-path:

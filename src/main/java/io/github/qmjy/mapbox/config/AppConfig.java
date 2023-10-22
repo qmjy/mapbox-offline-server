@@ -17,12 +17,19 @@
 package io.github.qmjy.mapbox.config;
 
 
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-@Configuration
+@Data
+@Component
 @ConfigurationProperties
-public class AutoConfig {
+public class AppConfig {
 
+    @Value("${spring.datasource.driver-class-name}")
+    private String driverClassName;
 
+    @Value("${data-path}")
+    private String dataPath = "";
 }

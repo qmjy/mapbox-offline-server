@@ -66,6 +66,22 @@ public class MapDbServerUtils {
     }
 
 
+    /**
+     * 返回瓦片数据库文件的元数据
+     *
+     * @param fileName 瓦片数据库文件名
+     * @return 瓦片元数据
+     */
+    public Map<String, Object> getMetaData(String fileName) {
+        if (StringUtils.hasLength(fileName)) {
+            DbFileModel model = map.get(fileName);
+            return model.getMetaDataMap();
+        } else {
+            return new HashMap<>();
+        }
+    }
+
+
     public String getFilePathMd5(String filePath) {
         return DigestUtils.md5DigestAsHex(filePath.getBytes());
     }

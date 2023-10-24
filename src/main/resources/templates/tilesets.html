@@ -23,9 +23,20 @@
 <body>
 <h1>瓦片数据库列表</h1>
 <hr>
-<div th:each="file,fileStat:${tileFiles}">
-    <!--     produce  '/prodction/1'    -->
-    <h3><a th:href="@{'/api/tilesets/'+${file.name}}" th:text="${file.name}"></a></h3>
-</div>
+
+<table th:if="${tileFiles}" cellspacing="10">
+    <tr>
+        <th>名称</th>
+    </tr>
+    <tr th:each="file:${tileFiles}">
+        <td><a th:href="@{'/api/tilesets/'+${file.name}}" th:text="${file.name}"></a></td>
+    </tr>
+</table>
+
+<!--/* tileFiles为空时显示 */-->
+<div th:unless="${tileFiles}">未检测到瓦片数据库文件</div>
+
+<hr>
+未检测到瓦片数据库文件，则请检查服务器启动参数：“--dataPath=xxx”
 </body>
 </html>

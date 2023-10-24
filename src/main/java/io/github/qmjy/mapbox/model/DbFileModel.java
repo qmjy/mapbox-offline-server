@@ -17,20 +17,34 @@
 package io.github.qmjy.mapbox.model;
 
 import lombok.Data;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 public class DbFileModel {
     private String name;
     private String filePath;
     private JdbcTemplate jdbcTemplate;
+    private Map<String, Object> metaDataMap;
 
     public DbFileModel(File file, DataSource ds) {
         this.name = file.getName();
         this.filePath = file.getAbsolutePath();
         this.jdbcTemplate = new JdbcTemplate(ds);
+
+        loadMetaData();
+    }
+
+    private void loadMetaData() {
+        try {
+            metaDataMap = jdbcTemplate.queryForMap("SELECT * FROM metadata");
+        } catch (DataAccessException e) {
+            this.metaDataMap = new HashMap<>();
+        }
     }
 }

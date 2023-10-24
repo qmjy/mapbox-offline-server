@@ -37,22 +37,67 @@
             "glyphs": basePath + "/fonts/{fontstack}/{range}.pbf",
             "sources": {
                 "osm-tiles": {
-                    "type": "raster",
+                    "scheme":"tms",
+                    "type": "vector",
                     "tiles": tiles,
-                    "tileSize": 256
+                    "minzoom": 8,
+                    "maxzoom": 14,
                 }
             },
-            "layers": [{
-                "id": "123",
-                "type": "raster",
+            "layers": [
+            {
+                "id": "building",
+                "type": "fill",
                 "source": "osm-tiles",
-                "source-layer": "osmtiles"
-            }]
+                "source-layer": "building",
+                "paint": {
+                  "fill-color": "#eeeeee"
+                }
+            },
+            {
+                "id": "waterway",
+                "type": "fill",
+                "source": "osm-tiles",
+                "source-layer": "waterway",
+                "paint": {
+                  "fill-color": "#00ffff"
+                }
+            },
+            {
+                "id": "transportation",
+                "type": "line",
+                "source": "osm-tiles",
+                "source-layer": "transportation",
+                "paint": {
+                  "line-color": "#f2934a",
+                  "line-opacity": 1,
+                  "line-width": 3,
+                },
+            }
+            ]
         },
-        center: [130, 40],
+        center: [116.425000,39.930000],
         zoom: 14,
         hash: true
     })
+
+    map.on('load', () => {
+        map.addSource('China', {
+            type: 'geojson',
+            data: '/static/China.json'
+        });
+
+        map.addLayer({
+            'id': 'China',
+            'type': 'line',
+            'source': 'China',
+            "paint": {
+              "line-color": "#ff0000",
+              "line-opacity": 0.5,
+              "line-width": 3,
+            },
+        });
+    });
 
     map.addControl(new mapboxgl.NavigationControl())
     map.addControl(new mapboxgl.FullscreenControl())

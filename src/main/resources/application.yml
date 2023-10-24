@@ -6,7 +6,10 @@ server:
 
 spring:
   mvc:
-    static-path-pattern: /**
+    static-path-pattern: /static/**
+  web:
+    resources:
+      static-locations: classpath:/static/
   thymeleaf:
     prefix: classpath:/templates/
     suffix: .html

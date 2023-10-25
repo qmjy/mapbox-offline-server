@@ -32,7 +32,7 @@ import java.util.Optional;
  * 地图数据库服务工具
  */
 @Component
-public class MapDbServerUtils {
+public class MapServerUtils {
     private static final Map<String, DbFileModel> map = new HashMap<>();
 
     /**
@@ -72,7 +72,7 @@ public class MapDbServerUtils {
      * @param fileName 瓦片数据库文件名
      * @return 瓦片元数据
      */
-    public Map<String, Object> getMetaData(String fileName) {
+    public Map<String, String> getMetaData(String fileName) {
         if (StringUtils.hasLength(fileName)) {
             DbFileModel model = map.get(fileName);
             return model.getMetaDataMap();

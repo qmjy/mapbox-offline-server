@@ -14,45 +14,51 @@
  *   limitations under the License.
  */
 
-package io.github.qmjy.mapbox.config;
+package io.github.qmjy.mapbox.controller;
 
-import io.github.qmjy.mapbox.util.MapServerUtils;
+import io.github.qmjy.mapbox.config.AppConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.FileFilter;
 
-@Component
-@Order(value = 1)
-public class DataSourceApplicationRunner implements ApplicationRunner {
-
+/**
+ * 支持的字体访问API。
+ */
+@RestController
+@RequestMapping("/api/fonts")
+public class MapServerFontsController {
     @Autowired
     private AppConfig appConfig;
 
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
+    /**
+     * 字体文件目录
+     *
+     * @param model 前端页面数据模型
+     * @return 字体文件展示页面
+     */
+    @GetMapping("")
+    public String listFonts(Model model) {
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
-                File tilesetsFolder = new File(dataFolder, "tilesets");
-                File[] files = tilesetsFolder.listFiles(new FileFilter() {
+                File tilesetsFolder = new File(dataFolder, "fonts");
+                File[] folders = tilesetsFolder.listFiles(new FileFilter() {
                     @Override
                     public boolean accept(File pathname) {
-                        return pathname.getName().endsWith(".mbtiles");
+                        return pathname.isDirectory();
                     }
                 });
-
-                if (files != null) {
-                    for (File dbFile : files) {
-                        MapServerUtils.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
-                    }
-                }
+                model.addAttribute("fonts", folders);
             }
+        } else {
+            System.out.println("请在data目录配置字体数据...");
         }
+        return "fonts";
     }
 }

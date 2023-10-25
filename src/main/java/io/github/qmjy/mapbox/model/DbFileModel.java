@@ -23,6 +23,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.sql.DataSource;
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -30,7 +32,7 @@ public class DbFileModel {
     private String name;
     private String filePath;
     private JdbcTemplate jdbcTemplate;
-    private Map<String, Object> metaDataMap;
+    private Map<String, String> metaDataMap = new HashMap<>();
 
     public DbFileModel(File file, DataSource ds) {
         this.name = file.getName();
@@ -42,9 +44,12 @@ public class DbFileModel {
 
     private void loadMetaData() {
         try {
-            metaDataMap = jdbcTemplate.queryForMap("SELECT * FROM metadata");
+            List<Map<String, Object>> mapList = jdbcTemplate.queryForList("SELECT * FROM metadata");
+            for (Map<String, Object> map : mapList) {
+                metaDataMap.put(String.valueOf(map.get("name")), String.valueOf(map.get("value")));
+            }
         } catch (DataAccessException e) {
-            this.metaDataMap = new HashMap<>();
+
         }
     }
 }

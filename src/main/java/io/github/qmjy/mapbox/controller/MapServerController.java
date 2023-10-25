@@ -16,24 +16,21 @@
 
 package io.github.qmjy.mapbox.controller;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequestMapping("/api/styles")
-public class MapRestStyleController {
-
-
+/**
+ * 系统主页
+ */
+@Controller
+public class MapServerController {
     /**
-     * 展示style列表
+     * 系统首页
      *
-     * @return style列表
+     * @return 系统首页
      */
     @GetMapping("")
-    @ResponseBody
-    public String listStyles() {
-        return "Hello World:";
+    public String index() {
+        return "index";
     }
 }

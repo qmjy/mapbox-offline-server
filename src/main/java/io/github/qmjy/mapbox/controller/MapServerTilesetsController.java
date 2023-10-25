@@ -17,7 +17,7 @@
 package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
-import io.github.qmjy.mapbox.util.MapDbServerUtils;
+import io.github.qmjy.mapbox.util.MapServerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,11 +47,11 @@ import java.util.Optional;
  */
 @Controller
 @RequestMapping("/api/tilesets")
-public class MapRestTilesetsController {
+public class MapServerTilesetsController {
 
-    private final Logger logger = LoggerFactory.getLogger(MapRestTilesetsController.class);
+    private final Logger logger = LoggerFactory.getLogger(MapServerTilesetsController.class);
     @Autowired
-    private MapDbServerUtils mapDbServerUtils;
+    private MapServerUtils mapServerUtils;
     @Autowired
     private AppConfig appConfig;
 
@@ -69,7 +69,7 @@ public class MapRestTilesetsController {
     @ResponseBody
     public ResponseEntity<ByteArrayResource> loadPbfTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                           @PathVariable("x") String x, @PathVariable("y") String y) {
-        Optional<JdbcTemplate> jdbcTemplateOpt = mapDbServerUtils.getDataSource(tileset);
+        Optional<JdbcTemplate> jdbcTemplateOpt = mapServerUtils.getDataSource(tileset);
         if (jdbcTemplateOpt.isPresent()) {
             JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
 
@@ -82,6 +82,7 @@ public class MapRestTilesetsController {
                     ByteArrayResource resource = new ByteArrayResource(bytes);
                     return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
                 }
+
             } catch (EmptyResultDataAccessException e) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
@@ -112,7 +113,7 @@ public class MapRestTilesetsController {
                 model.addAttribute("tileFiles", files);
             }
         } else {
-            System.out.println("未配置data数据目录...");
+            System.out.println("请在data目录配置瓦片数据...");
         }
         return "tilesets";
     }
@@ -128,7 +129,7 @@ public class MapRestTilesetsController {
     @GetMapping("/{tileset}")
     public String preview(@PathVariable("tileset") String tileset, Model model) {
         model.addAttribute("tilesetName", tileset);
-        model.addAttribute("metaData", mapDbServerUtils.getMetaData(tileset));
+        model.addAttribute("metaData", mapServerUtils.getMetaData(tileset));
         return "mapbox";
     }
 }

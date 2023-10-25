@@ -21,5 +21,5 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/assets")
-public class MapRestAssetsController {
+public class MapServerAssetsController {
 }

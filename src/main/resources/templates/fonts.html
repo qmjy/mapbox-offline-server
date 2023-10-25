@@ -18,33 +18,25 @@
 <html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>瓦片数据库列表</title>
-    <style>
-        .notice{
-            font-size: 12px;
-            color: gray;
-        }
-    </style>
+    <title>字体文件列表</title>
 </head>
 <body>
-<h1>瓦片数据库列表</h1>
+<h1>字体文件列表</h1>
 <hr>
 
-<table th:if="${tileFiles}" cellspacing="10">
+<table th:if="${fonts}" cellspacing="10">
     <tr>
         <th>名称</th>
-        <th>元数据</th>
     </tr>
-    <tr th:each="file:${tileFiles}">
-        <td><a th:href="@{'/api/tilesets/'+${file.name}}" th:text="${file.name}"></a></td>
-        <td></td>
+    <tr th:each="font:${fonts}">
+        <td><a th:href="@{'/api/fonts/'+${font.name}}" th:text="${font.name}"></a></td>
     </tr>
 </table>
 
 <!--/* tileFiles为空时显示 */-->
-<div th:unless="${tileFiles}">未检测到瓦片数据库文件</div>
+<div th:unless="${fonts}">未检测到字体文件目录</div>
 
 <hr>
-<span class="notice">未检测到瓦片数据库文件，则请检查服务器启动参数：“--dataPath=xxx”</span>
+未检测到字体文件目录，则请检查服务器启动参数：“--dataPath=xxx”
 </body>
 </html>

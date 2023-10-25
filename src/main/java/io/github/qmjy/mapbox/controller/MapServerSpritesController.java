@@ -20,6 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/fonts")
-public class MapRestFontsController {
+@RequestMapping("/api/sprites")
+public class MapServerSpritesController {
 }

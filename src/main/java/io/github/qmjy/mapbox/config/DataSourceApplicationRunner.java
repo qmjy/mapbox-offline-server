@@ -39,19 +39,36 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
-                File tilesetsFolder = new File(dataFolder, "tilesets");
-                File[] files = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        return pathname.getName().endsWith(".mbtiles");
-                    }
-                });
+                wrapTilesFile(dataFolder);
+                wrapFontsFile(dataFolder);
+            }
+        }
+    }
 
-                if (files != null) {
-                    for (File dbFile : files) {
-                        MapServerUtils.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
-                    }
+    private void wrapFontsFile(File dataFolder) {
+        File tilesetsFolder = new File(dataFolder, "fonts");
+        File[] files = tilesetsFolder.listFiles();
+        if (files != null) {
+            for (File fontFolder : files) {
+                if (fontFolder.isDirectory()) {
+                    MapServerUtils.initFontsFile(fontFolder);
                 }
+            }
+        }
+    }
+
+    private void wrapTilesFile(File dataFolder) {
+        File tilesetsFolder = new File(dataFolder, "tilesets");
+        File[] files = tilesetsFolder.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".mbtiles");
+            }
+        });
+
+        if (files != null) {
+            for (File dbFile : files) {
+                MapServerUtils.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
             }
         }
     }

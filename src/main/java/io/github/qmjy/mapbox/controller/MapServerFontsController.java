@@ -17,15 +17,27 @@
 package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
+import io.github.qmjy.mapbox.model.FontsFileModel;
+import io.github.qmjy.mapbox.util.MapServerUtils;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Optional;
 
 /**
  * 支持的字体访问API。
@@ -33,6 +45,9 @@ import java.io.FileFilter;
 @RestController
 @RequestMapping("/api/fonts")
 public class MapServerFontsController {
+    private final Logger logger = LoggerFactory.getLogger(MapServerFontsController.class);
+    @Autowired
+    private MapServerUtils mapServerUtils;
     @Autowired
     private AppConfig appConfig;
 
@@ -60,5 +75,34 @@ public class MapServerFontsController {
             System.out.println("请在data目录配置字体数据...");
         }
         return "fonts";
+    }
+
+    /**
+     * 返回字体文件二进制流
+     *
+     * @param fontName 文件名
+     * @param range    文件数据区间
+     * @return 字体文件的pbf数据
+     */
+    @GetMapping(value = "/{fontName}/{range}.pbf", produces = "application/x-protobuf")
+    @ResponseBody
+    public ResponseEntity<ByteArrayResource> loadPbfFont(@PathVariable("fontName") String fontName, @PathVariable("range") String range) {
+        Optional<FontsFileModel> fontFolder = mapServerUtils.getFontFolder(fontName);
+        if (fontFolder.isPresent()) {
+            FontsFileModel fontsFileModel = fontFolder.get();
+            String fileName = fontsFileModel.getFolder().getAbsolutePath() + File.separator + range + ".pbf";
+            try {
+                File file = new File(fileName);
+                byte[] buffer = FileCopyUtils.copyToByteArray(file);
+                IOUtils.readFully(Files.newInputStream(file.toPath()), buffer);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.valueOf("application/x-protobuf"));
+                ByteArrayResource resource = new ByteArrayResource(buffer);
+                return ResponseEntity.ok().headers(headers).contentLength(buffer.length).body(resource);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }

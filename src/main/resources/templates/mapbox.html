@@ -35,7 +35,7 @@
             "version": 8,
             "name": "Mapbox",
             "sprite": basePath + "/static/sprites/streets/sprite",
-            "glyphs": basePath + "/static/fonts/{fontstack}/{range}.pbf",
+            "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
             "sources": {
                 "osm-tiles": {
                     "scheme":"tms",
@@ -83,6 +83,34 @@
                 "source-layer": "building",
                 "paint": {
                   "fill-color": "#eeeeee"
+                }
+            },
+            {
+                "id": "place",
+                "type": "symbol",
+                "source": "osm-tiles",
+                "source-layer": "place",
+                "layout": {
+                    "text-field": [
+                        "get",
+                        "name"
+                    ],
+                    "text-size": 12,
+                    "text-allow-overlap": false,
+                    "text-offset": [
+                        0,
+                        0
+                    ],
+                    "text-anchor": "center",
+                    "text-justify": "center",
+                    "text-font": [
+                        "Arial Unicode MS Regular"
+                    ]
+                },
+                "paint": {
+                    "text-halo-color": "#444444",
+                    "text-halo-width": 1,
+                    "text-color": "#FFFFFF"
                 }
             }
             ]

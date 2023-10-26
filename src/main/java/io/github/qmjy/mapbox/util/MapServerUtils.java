@@ -16,7 +16,8 @@
 
 package io.github.qmjy.mapbox.util;
 
-import io.github.qmjy.mapbox.model.DbFileModel;
+import io.github.qmjy.mapbox.model.FontsFileModel;
+import io.github.qmjy.mapbox.model.TilesFileModel;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,14 @@ import java.util.Optional;
  */
 @Component
 public class MapServerUtils {
-    private static final Map<String, DbFileModel> map = new HashMap<>();
+    /**
+     * 瓦片数据库文件模型
+     */
+    private static final Map<String, TilesFileModel> tilesMap = new HashMap<>();
+    /**
+     * 字体文件模型
+     */
+    private static final Map<String, FontsFileModel> fontsMap = new HashMap<>();
 
     /**
      * 初始化数据源
@@ -46,8 +54,17 @@ public class MapServerUtils {
         DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
         dataSourceBuilder.driverClassName(className);
         dataSourceBuilder.url(dbUrl);
-        DbFileModel dbFileModel = new DbFileModel(file, dataSourceBuilder.build());
-        map.put(file.getName(), dbFileModel);
+        TilesFileModel dbFileModel = new TilesFileModel(file, dataSourceBuilder.build());
+        tilesMap.put(file.getName(), dbFileModel);
+    }
+
+    /**
+     * 初始化字体库文件
+     *
+     * @param fontFolder 字体文件目录
+     */
+    public static void initFontsFile(File fontFolder) {
+        fontsMap.put(fontFolder.getName(), new FontsFileModel(fontFolder));
     }
 
     /**
@@ -58,7 +75,7 @@ public class MapServerUtils {
      */
     public Optional<JdbcTemplate> getDataSource(String fileName) {
         if (StringUtils.hasLength(fileName)) {
-            DbFileModel model = map.get(fileName);
+            TilesFileModel model = tilesMap.get(fileName);
             return Optional.of(model.getJdbcTemplate());
         } else {
             return Optional.empty();
@@ -72,12 +89,27 @@ public class MapServerUtils {
      * @param fileName 瓦片数据库文件名
      * @return 瓦片元数据
      */
-    public Map<String, String> getMetaData(String fileName) {
+    public Map<String, String> getTileMetaData(String fileName) {
         if (StringUtils.hasLength(fileName)) {
-            DbFileModel model = map.get(fileName);
+            TilesFileModel model = tilesMap.get(fileName);
             return model.getMetaDataMap();
         } else {
             return new HashMap<>();
+        }
+    }
+
+    /**
+     * 获取字符文件目录
+     *
+     * @param fontName 字体文件名
+     * @return 字体文件目录
+     */
+    public Optional<FontsFileModel> getFontFolder(String fontName) {
+        if (StringUtils.hasLength(fontName)) {
+            FontsFileModel fontsFileModel = fontsMap.get(fontName);
+            return Optional.of(fontsFileModel);
+        } else {
+            return Optional.empty();
         }
     }
 

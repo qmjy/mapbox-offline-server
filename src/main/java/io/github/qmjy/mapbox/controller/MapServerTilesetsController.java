@@ -129,7 +129,7 @@ public class MapServerTilesetsController {
     @GetMapping("/{tileset}")
     public String preview(@PathVariable("tileset") String tileset, Model model) {
         model.addAttribute("tilesetName", tileset);
-        model.addAttribute("metaData", mapServerUtils.getMetaData(tileset));
+        model.addAttribute("metaData", mapServerUtils.getTileMetaData(tileset));
         return "mapbox";
     }
 }

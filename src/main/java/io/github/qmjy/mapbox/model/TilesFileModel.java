@@ -23,18 +23,20 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.sql.DataSource;
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Mbtiles瓦片数据文件模型
+ */
 @Data
-public class DbFileModel {
+public class TilesFileModel {
     private String name;
     private String filePath;
     private JdbcTemplate jdbcTemplate;
     private Map<String, String> metaDataMap = new HashMap<>();
 
-    public DbFileModel(File file, DataSource ds) {
+    public TilesFileModel(File file, DataSource ds) {
         this.name = file.getName();
         this.filePath = file.getAbsolutePath();
         this.jdbcTemplate = new JdbcTemplate(ds);

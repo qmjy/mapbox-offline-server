@@ -157,14 +157,16 @@
             }
         });
 
-        setTimeout(function(){
-            var center =  metaData.center.split(",")
-            map.setZoom(center[2])
-            map.flyTo({
-                center: [center[0], center[1]],
-                essential: true
-            });
-        }, 2000 )
+        if(metaData.center){
+            setTimeout(function(){
+                var center = metaData.center.split(",")
+                map.setZoom(center[2])
+                map.flyTo({
+                    center: [center[0], center[1]],
+                    essential: true
+                });
+            }, 2000 )
+        }
     });
 
     map.addControl(new mapboxgl.NavigationControl())

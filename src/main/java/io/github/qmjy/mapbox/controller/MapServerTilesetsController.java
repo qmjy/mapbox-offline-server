@@ -18,6 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.util.MapServerUtils;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +40,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Optional;
 
 
@@ -69,25 +74,45 @@ public class MapServerTilesetsController {
     @ResponseBody
     public ResponseEntity<ByteArrayResource> loadPbfTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                           @PathVariable("x") String x, @PathVariable("y") String y) {
-        Optional<JdbcTemplate> jdbcTemplateOpt = mapServerUtils.getDataSource(tileset);
-        if (jdbcTemplateOpt.isPresent()) {
-            JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
+        if (tileset.endsWith(".mbtiles")) {
+            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerUtils.getDataSource(tileset);
+            if (jdbcTemplateOpt.isPresent()) {
+                JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
 
-            String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
-            try {
-                byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
-                if (bytes != null) {
+                String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
+                try {
+                    byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
+                    if (bytes != null) {
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.valueOf("application/x-protobuf"));
+                        ByteArrayResource resource = new ByteArrayResource(bytes);
+                        return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
+                    }
+
+                } catch (EmptyResultDataAccessException e) {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else {
+            StringBuilder sb = new StringBuilder(appConfig.getDataPath());
+            sb.append(File.separator).append(tileset).append(File.separator)
+                    .append(z).append(File.separator).append(x).append(File.separator).append(y).append(".pbf");
+            File pbfFile = new File(sb.toString());
+            if (pbfFile.exists()) {
+                try {
+                    byte[] buffer = FileCopyUtils.copyToByteArray(pbfFile);
+                    IOUtils.readFully(Files.newInputStream(pbfFile.toPath()), buffer);
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(MediaType.valueOf("application/x-protobuf"));
-                    ByteArrayResource resource = new ByteArrayResource(bytes);
-                    return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
+                    ByteArrayResource resource = new ByteArrayResource(buffer);
+                    return ResponseEntity.ok().headers(headers).contentLength(buffer.length).body(resource);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-
-            } catch (EmptyResultDataAccessException e) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 
@@ -106,10 +131,21 @@ public class MapServerTilesetsController {
                 File[] files = tilesetsFolder.listFiles(new FileFilter() {
                     @Override
                     public boolean accept(File pathname) {
-                        return pathname.getName().endsWith(".mbtiles");
+                        if (pathname.isDirectory()) {
+                            File[] subFiles = pathname.listFiles();
+                            if (subFiles != null) {
+                                for (File subFile : subFiles) {
+                                    if ("metadata.json".equals(subFile.getName())) {
+                                        return true;
+                                    }
+                                }
+                            }
+                            return false;
+                        } else {
+                            return pathname.getName().endsWith(".mbtiles");
+                        }
                     }
                 });
-
                 model.addAttribute("tileFiles", files);
             }
         } else {
@@ -128,8 +164,21 @@ public class MapServerTilesetsController {
      */
     @GetMapping("/{tileset}")
     public String preview(@PathVariable("tileset") String tileset, Model model) {
-        model.addAttribute("tilesetName", tileset);
-        model.addAttribute("metaData", mapServerUtils.getTileMetaData(tileset));
-        return "mapbox";
+        if (tileset.endsWith(".mbtiles")) {
+            model.addAttribute("tilesetName", tileset);
+            model.addAttribute("metaData", mapServerUtils.getTileMetaData(tileset));
+            return "mapbox-mbtiles";
+        } else {
+            StringBuilder sb = new StringBuilder(appConfig.getDataPath());
+            sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");
+            try {
+                String metaData = FileCopyUtils.copyToString(new FileReader(new File(sb.toString())));
+                model.addAttribute("tilesetName", tileset);
+                model.addAttribute("metaData", metaData);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return "mapbox-pbf";
+        }
     }
 }

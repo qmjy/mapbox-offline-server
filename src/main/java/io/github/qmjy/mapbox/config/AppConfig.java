@@ -30,6 +30,9 @@ public class AppConfig {
     @Value("${spring.datasource.driver-class-name}")
     private String driverClassName;
 
+    /**
+     * 数据文件存放路径
+     */
     @Value("${data-path}")
     private String dataPath = "";
 }

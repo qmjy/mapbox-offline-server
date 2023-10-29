@@ -28,6 +28,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -42,7 +43,7 @@ import java.util.Optional;
 /**
  * 支持的字体访问API。
  */
-@RestController
+@Controller
 @RequestMapping("/api/fonts")
 public class MapServerFontsController {
     private final Logger logger = LoggerFactory.getLogger(MapServerFontsController.class);
@@ -90,13 +91,13 @@ public class MapServerFontsController {
         Optional<FontsFileModel> fontFolder = mapServerUtils.getFontFolder(fontName);
         if (fontFolder.isPresent()) {
             FontsFileModel fontsFileModel = fontFolder.get();
-            String fileName = fontsFileModel.getFolder().getAbsolutePath() + File.separator + range + ".pbf";
+            String fileName = fontsFileModel.getFolder().getAbsolutePath() + File.separator + range + AppConfig.FILE_EXTENSION_NAME_PBF;
             try {
                 File file = new File(fileName);
                 byte[] buffer = FileCopyUtils.copyToByteArray(file);
                 IOUtils.readFully(Files.newInputStream(file.toPath()), buffer);
                 HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.valueOf("application/x-protobuf"));
+                headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
                 ByteArrayResource resource = new ByteArrayResource(buffer);
                 return ResponseEntity.ok().headers(headers).contentLength(buffer.length).body(resource);
             } catch (IOException e) {

@@ -74,7 +74,7 @@ public class MapServerTilesetsController {
     @ResponseBody
     public ResponseEntity<ByteArrayResource> loadPbfTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                           @PathVariable("x") String x, @PathVariable("y") String y) {
-        if (tileset.endsWith(".mbtiles")) {
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             Optional<JdbcTemplate> jdbcTemplateOpt = mapServerUtils.getDataSource(tileset);
             if (jdbcTemplateOpt.isPresent()) {
                 JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
@@ -84,7 +84,7 @@ public class MapServerTilesetsController {
                     byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
                     if (bytes != null) {
                         HttpHeaders headers = new HttpHeaders();
-                        headers.setContentType(MediaType.valueOf("application/x-protobuf"));
+                        headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
                         ByteArrayResource resource = new ByteArrayResource(bytes);
                         return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
                     }
@@ -97,14 +97,14 @@ public class MapServerTilesetsController {
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append(tileset).append(File.separator)
-                    .append(z).append(File.separator).append(x).append(File.separator).append(y).append(".pbf");
+                    .append(z).append(File.separator).append(x).append(File.separator).append(y).append(AppConfig.FILE_EXTENSION_NAME_PBF);
             File pbfFile = new File(sb.toString());
             if (pbfFile.exists()) {
                 try {
                     byte[] buffer = FileCopyUtils.copyToByteArray(pbfFile);
                     IOUtils.readFully(Files.newInputStream(pbfFile.toPath()), buffer);
                     HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(MediaType.valueOf("application/x-protobuf"));
+                    headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
                     ByteArrayResource resource = new ByteArrayResource(buffer);
                     return ResponseEntity.ok().headers(headers).contentLength(buffer.length).body(resource);
                 } catch (IOException e) {
@@ -142,7 +142,7 @@ public class MapServerTilesetsController {
                             }
                             return false;
                         } else {
-                            return pathname.getName().endsWith(".mbtiles");
+                            return pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
                         }
                     }
                 });
@@ -164,7 +164,7 @@ public class MapServerTilesetsController {
      */
     @GetMapping("/{tileset}")
     public String preview(@PathVariable("tileset") String tileset, Model model) {
-        if (tileset.endsWith(".mbtiles")) {
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             model.addAttribute("tilesetName", tileset);
             model.addAttribute("metaData", mapServerUtils.getTileMetaData(tileset));
             return "mapbox-mbtiles";

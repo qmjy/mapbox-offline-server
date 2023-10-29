@@ -16,10 +16,106 @@
 
 package io.github.qmjy.mapbox.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import io.github.qmjy.mapbox.config.AppConfig;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 
-@RestController
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+
+@Controller
 @RequestMapping("/api/sprites")
 public class MapServerSpritesController {
+    @Autowired
+    private AppConfig appConfig;
+
+    /**
+     * 展示Sprites列表
+     *
+     * @return Sprites列表
+     */
+    @GetMapping("")
+    public String listSprites(Model model) {
+        if (StringUtils.hasLength(appConfig.getDataPath())) {
+            File dataFolder = new File(appConfig.getDataPath());
+            if (dataFolder.isDirectory() && dataFolder.exists()) {
+                File tilesetsFolder = new File(dataFolder, "sprites");
+                File[] styles = tilesetsFolder.listFiles(new FileFilter() {
+                    @Override
+                    public boolean accept(File pathname) {
+                        return pathname.isDirectory();
+                    }
+                });
+                model.addAttribute("sprites", styles);
+            }
+        } else {
+            System.out.println("请在data目录配置sprites数据...");
+        }
+        return "sprites";
+    }
+
+
+    /**
+     * 加载sprite的json内容
+     *
+     * @return sprite的json内容
+     */
+    @ResponseBody
+    @GetMapping(value = "/{spriteName}/{fileName}.json", produces = "application/json")
+    public ResponseEntity<String> loadStyle(@PathVariable("spriteName") String spriteName, @PathVariable("fileName") String fileName) {
+        if (StringUtils.hasLength(appConfig.getDataPath())) {
+            StringBuilder sb = new StringBuilder(appConfig.getDataPath());
+            sb.append(File.separator).append("sprites").append(File.separator).append(spriteName).append(File.separator).append(fileName).append(AppConfig.FILE_EXTENSION_NAME_JSON);
+            try {
+                String styleJson = FileCopyUtils.copyToString(new FileReader(sb.toString()));
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                return ResponseEntity.ok().headers(headers).contentLength(styleJson.getBytes().length).body(styleJson);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * 加载sprite的图片内容
+     *
+     * @return sprite的图片内容
+     */
+    @ResponseBody
+    @GetMapping(value = "/{spriteName}/{fileName}.png")
+    public ResponseEntity<ByteArrayResource> loadSpritePng(@PathVariable("spriteName") String spriteName, @PathVariable("fileName") String fileName) {
+        if (StringUtils.hasLength(appConfig.getDataPath())) {
+            StringBuilder sb = new StringBuilder(appConfig.getDataPath());
+            sb.append(File.separator).append("sprites").append(File.separator).append(spriteName).append(File.separator).append(fileName).append(AppConfig.FILE_EXTENSION_NAME_PNG);
+            try {
+                File file = new File(sb.toString());
+                byte[] buffer = FileCopyUtils.copyToByteArray(file);
+                IOUtils.readFully(Files.newInputStream(file.toPath()), buffer);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.IMAGE_PNG);
+                ByteArrayResource resource = new ByteArrayResource(buffer);
+                return ResponseEntity.ok().headers(headers).contentLength(buffer.length).body(resource);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }

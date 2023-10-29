@@ -62,7 +62,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         File[] files = tilesetsFolder.listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".mbtiles");
+                return pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
             }
         });
 

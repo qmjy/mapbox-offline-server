@@ -85,34 +85,6 @@ var map = new mapboxgl.Map({
             "paint": {
               "fill-color": "#eeeeee"
             }
-        },
-        {
-            "id": "pois",
-            "type": "symbol",
-            "source": "osm-tiles",
-            "source-layer": "pois",
-            "layout": {
-                "text-field": [
-                    "get",
-                    "name"
-                ],
-                "text-size": 12,
-                "text-allow-overlap": false,
-                "text-offset": [
-                    0,
-                    0
-                ],
-                "text-anchor": "center",
-                "text-justify": "center",
-                "text-font": [
-                    "Arial Unicode MS Regular"
-                ]
-            },
-            "paint": {
-                "text-halo-color": "#444444",
-                "text-halo-width": 1,
-                "text-color": "#FFFFFF"
-            }
         }
         ]
     },

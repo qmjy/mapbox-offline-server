@@ -96,7 +96,7 @@ public class MapServerTilesetsController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
-            sb.append(File.separator).append(tileset).append(File.separator)
+            sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator)
                     .append(z).append(File.separator).append(x).append(File.separator).append(y).append(AppConfig.FILE_EXTENSION_NAME_PBF);
             File pbfFile = new File(sb.toString());
             if (pbfFile.exists()) {

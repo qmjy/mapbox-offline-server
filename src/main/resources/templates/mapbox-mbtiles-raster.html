@@ -30,31 +30,30 @@
 
     var map = new mapboxgl.Map({
         container: 'map',
-        attributionControl: false,
         style: {
-            "version": 8,
-            "name": "Mapbox",
-            "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
-            "sources": {
-                "raster-tiles": {
-                    "type": "raster",
-                    "tiles": [tiles],
+            'version': 8,
+            'glyphs': basePath + "/api/fonts/{fontstack}/{range}.pbf",
+            'sources': {
+                'raster-tiles': {
+                    'type': 'raster',
+                    'tiles': [tiles],
                     'tileSize': 256,
-                    "attribution": "",
+                    'attribution':
+                        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 }
             },
-            "layers": [
+            'layers': [
                 {
-                    'id': 'hongkong-tiles',
+                    'id': 'simple-tiles',
                     'type': 'raster',
                     'source': 'raster-tiles',
-                    'minzoom': parseInt(metaData.minzoom),
-                    'maxzoom': parseInt(metaData.maxzoom),
+                    'minzoom': 0,
+                    'maxzoom': 22,
                 }
             ]
         },
-        center: [110,30],
-        zoom: 3,
+        center: [114.139102,22.396835],
+        zoom: parseInt(metaData.minzoom),
         hash: true
     })
 

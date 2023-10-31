@@ -43,6 +43,7 @@ import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -59,6 +60,41 @@ public class MapServerTilesetsController {
     private MapServerUtils mapServerUtils;
     @Autowired
     private AppConfig appConfig;
+
+    /**
+     * 加载图片瓦片数据
+     *
+     * @param tileset 瓦片数据库名称
+     * @param z       地图缩放层级
+     * @param x       地图的x轴瓦片坐标
+     * @param y       地图的y轴瓦片坐标
+     * @return png格式的瓦片数据
+     */
+    @GetMapping(value = "/{tileset}/{z}/{x}/{y}.png", produces = "image/png")
+    @ResponseBody
+    public ResponseEntity<ByteArrayResource> loadPngTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
+                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerUtils.getDataSource(tileset);
+            if (jdbcTemplateOpt.isPresent()) {
+                JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
+
+                String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
+                try {
+                    byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
+                    if (bytes != null) {
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.IMAGE_PNG);
+                        ByteArrayResource resource = new ByteArrayResource(bytes);
+                        return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
+                    }
+                } catch (EmptyResultDataAccessException e) {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
 
 
     /**
@@ -166,8 +202,9 @@ public class MapServerTilesetsController {
     public String preview(@PathVariable("tileset") String tileset, Model model) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             model.addAttribute("tilesetName", tileset);
-            model.addAttribute("metaData", mapServerUtils.getTileMetaData(tileset));
-            return "mapbox-mbtiles";
+            Map<String, String> tileMetaData = mapServerUtils.getTileMetaData(tileset);
+            model.addAttribute("metaData", tileMetaData);
+            return "pbf".equals(tileMetaData.get("format")) ? "mapbox-mbtiles-vector" : "mapbox-mbtiles-raster";
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");

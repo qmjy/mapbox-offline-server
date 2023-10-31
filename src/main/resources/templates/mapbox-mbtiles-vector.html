@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title><th:block th:text="${tilesetName}" />瓦片预览</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="/static/assets/mapbox-gl-js/v1.13.3/mapbox-gl.min.css" rel="stylesheet">
+    <script src="/static/assets/mapbox-gl-js/v1.13.3/mapbox-gl.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+<div id="map"></div>
+<script th:inline="javascript">
+    const metaData = /*[[${metaData}]]*/{};
+    var basePath = [[${#httpServletRequest.getScheme() + "://" + #httpServletRequest.getServerName() + ":" + #httpServletRequest.getServerPort() + #httpServletRequest.getContextPath()}]];
+    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
+
+    var map = new mapboxgl.Map({
+        container: 'map',
+        attributionControl: false,
+        style: {
+            "version": 8,
+            "name": "Mapbox",
+            "sprite": basePath + "/static/sprites/streets/sprite",
+            "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
+            "sources": {
+                "osm-tiles": {
+                    "scheme":"tms",
+                    "type": "vector",
+                    "tiles": [tiles],
+                    "bounds": metaData.bounds.split(",").map(Number),
+                    "minzoom": parseInt(metaData.minzoom),
+                    "maxzoom": parseInt(metaData.maxzoom),
+                }
+            },
+            "layers": [
+            {
+                "id": "background",
+                "type": "background",
+                "layout": {
+                    "visibility": "visible"
+                },
+                "paint": {
+                    "background-color": "hsl(200, 98%, 24%)"
+                }
+            },
+            {
+                "id": "waterway",
+                "type": "line",
+                "source": "osm-tiles",
+                "source-layer": "waterway",
+                "paint": {
+                  "line-color": "#00ffff"
+                }
+            },
+            {
+                "id": "transportation",
+                "type": "line",
+                "source": "osm-tiles",
+                "source-layer": "transportation",
+                "paint": {
+                  "line-color": "#f2934a",
+                  "line-opacity": 1,
+                  "line-width": 1,
+                },
+            },
+            {
+                "id": "building",
+                "type": "fill",
+                "source": "osm-tiles",
+                "source-layer": "building",
+                "paint": {
+                  "fill-color": "#eeeeee"
+                }
+            },
+            {
+                "id": "place",
+                "type": "symbol",
+                "source": "osm-tiles",
+                "source-layer": "place",
+                "layout": {
+                    "text-field": [
+                        "get",
+                        "name"
+                    ],
+                    "text-size": 12,
+                    "text-allow-overlap": false,
+                    "text-offset": [
+                        0,
+                        0
+                    ],
+                    "text-anchor": "center",
+                    "text-justify": "center",
+                    "text-font": [
+                        "Arial Unicode MS Regular"
+                    ]
+                },
+                "paint": {
+                    "text-halo-color": "#444444",
+                    "text-halo-width": 1,
+                    "text-color": "#FFFFFF"
+                }
+            }
+            ]
+        },
+        center: [110,30],
+        zoom: 3,
+        hash: true
+    })
+
+    map.on('load', () => {
+        map.addSource('China', {
+            type: 'geojson',
+            data: '/static/China.json'
+        });
+
+        map.addLayer({
+            'id': 'ChinaBounds',
+            'type': 'line',
+            'source': 'China',
+            "paint": {
+              "line-color": "hsl(202, 100%, 72%)",
+              "line-opacity": 0.5,
+              "line-width": 3,
+            },
+        });
+
+        map.addLayer({
+            'id': 'Provice',
+            'type': 'symbol',
+            source: 'China',
+            layout: {
+                'text-field': ['get', 'name'],
+                'text-size': 12,
+                "text-allow-overlap": false,
+                "text-offset": [0, 0],
+                "text-anchor": "center",
+                "text-justify": "center",
+                'text-font': ['Arial Unicode MS Regular'],
+            },
+            paint: {
+                "text-halo-color": "#444444",
+		        "text-halo-width": 1,
+                "text-color": '#FFFFFF'
+            }
+        });
+
+        if(metaData.center){
+            setTimeout(function(){
+                var center = metaData.center.split(",")
+                map.flyTo({
+                    center: [center[0], center[1]],
+                    zoom: center[2],
+                    essential: true
+                });
+            }, 2000 )
+        }else{
+            console.log("no center set!")
+        }
+    });
+
+    map.addControl(new mapboxgl.NavigationControl())
+    map.addControl(new mapboxgl.FullscreenControl())
+    map.addControl(new mapboxgl.ScaleControl())
+</script>
+</body>
+
+</html>

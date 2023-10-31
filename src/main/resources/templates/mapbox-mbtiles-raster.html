@@ -24,9 +24,9 @@
 <body>
 <div id="map"></div>
 <script th:inline="javascript">
-    var basePath = [[${#httpServletRequest.getScheme() + "://" + #httpServletRequest.getServerName() + ":" + #httpServletRequest.getServerPort() + #httpServletRequest.getContextPath()}]];
-    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}.pbf"
     const metaData = /*[[${metaData}]]*/{};
+    var basePath = [[${#httpServletRequest.getScheme() + "://" + #httpServletRequest.getServerName() + ":" + #httpServletRequest.getServerPort() + #httpServletRequest.getContextPath()}]];
+    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
 
     var map = new mapboxgl.Map({
         container: 'map',
@@ -34,85 +34,23 @@
         style: {
             "version": 8,
             "name": "Mapbox",
-            "sprite": basePath + "/static/sprites/streets/sprite",
             "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
             "sources": {
-                "osm-tiles": {
-                    "scheme":"tms",
-                    "type": "vector",
+                "raster-tiles": {
+                    "type": "raster",
                     "tiles": [tiles],
-                    "minzoom": 8,
-                    "maxzoom": 14,
+                    'tileSize': 256,
+                    "attribution": "",
                 }
             },
             "layers": [
-            {
-                "id": "background",
-                "type": "background",
-                "layout": {
-                    "visibility": "visible"
-                },
-                "paint": {
-                    "background-color": "hsl(200, 98%, 24%)"
+                {
+                    'id': 'hongkong-tiles',
+                    'type': 'raster',
+                    'source': 'raster-tiles',
+                    'minzoom': parseInt(metaData.minzoom),
+                    'maxzoom': parseInt(metaData.maxzoom),
                 }
-            },
-            {
-                "id": "waterway",
-                "type": "line",
-                "source": "osm-tiles",
-                "source-layer": "waterway",
-                "paint": {
-                  "line-color": "#00ffff"
-                }
-            },
-            {
-                "id": "transportation",
-                "type": "line",
-                "source": "osm-tiles",
-                "source-layer": "transportation",
-                "paint": {
-                  "line-color": "#f2934a",
-                  "line-opacity": 1,
-                  "line-width": 1,
-                },
-            },
-            {
-                "id": "building",
-                "type": "fill",
-                "source": "osm-tiles",
-                "source-layer": "building",
-                "paint": {
-                  "fill-color": "#eeeeee"
-                }
-            },
-            {
-                "id": "place",
-                "type": "symbol",
-                "source": "osm-tiles",
-                "source-layer": "place",
-                "layout": {
-                    "text-field": [
-                        "get",
-                        "name"
-                    ],
-                    "text-size": 12,
-                    "text-allow-overlap": false,
-                    "text-offset": [
-                        0,
-                        0
-                    ],
-                    "text-anchor": "center",
-                    "text-justify": "center",
-                    "text-font": [
-                        "Arial Unicode MS Regular"
-                    ]
-                },
-                "paint": {
-                    "text-halo-color": "#444444",
-                    "text-halo-width": 1,
-                    "text-color": "#FFFFFF"
-                }
-            }
             ]
         },
         center: [110,30],
@@ -160,12 +98,14 @@
         if(metaData.center){
             setTimeout(function(){
                 var center = metaData.center.split(",")
-                map.setZoom(center[2])
                 map.flyTo({
                     center: [center[0], center[1]],
+                    zoom: center[2],
                     essential: true
                 });
             }, 2000 )
+        }else{
+            console.log("no center set!")
         }
     });
 

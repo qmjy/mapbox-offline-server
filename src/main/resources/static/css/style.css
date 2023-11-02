@@ -1,3 +1,11 @@
+th{
+    text-align: left;
+}
+
+td>a, td{
+    font-size: 14px;
+}
+
 .notice{
     font-size: 12px;
     color: gray;

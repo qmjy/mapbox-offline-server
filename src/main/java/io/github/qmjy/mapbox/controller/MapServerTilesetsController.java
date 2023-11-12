@@ -29,21 +29,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Map;
 import java.util.Optional;
 
 
@@ -51,7 +42,7 @@ import java.util.Optional;
  * Mbtiles支持的数据库访问API。<br>
  * MBTiles 1.3 规范定义：<a href="https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md">MBTiles 1.3</a>
  */
-@Controller
+@RestController
 @RequestMapping("/api/tilesets")
 public class MapServerTilesetsController {
 
@@ -148,74 +139,6 @@ public class MapServerTilesetsController {
                 }
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-
-    /**
-     * 获取支持的瓦片数据库列表
-     *
-     * @param model 前端页面数据模型
-     * @return 瓦片数据库列表
-     */
-    @GetMapping("")
-    public String listTilesets(Model model) {
-        if (StringUtils.hasLength(appConfig.getDataPath())) {
-            File dataFolder = new File(appConfig.getDataPath());
-            if (dataFolder.isDirectory() && dataFolder.exists()) {
-                File tilesetsFolder = new File(dataFolder, "tilesets");
-                File[] files = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        if (pathname.isDirectory()) {
-                            File[] subFiles = pathname.listFiles();
-                            if (subFiles != null) {
-                                for (File subFile : subFiles) {
-                                    if ("metadata.json".equals(subFile.getName())) {
-                                        return true;
-                                    }
-                                }
-                            }
-                            return false;
-                        } else {
-                            return pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
-                        }
-                    }
-                });
-                model.addAttribute("tileFiles", files);
-            }
-        } else {
-            System.out.println("请在data目录配置瓦片数据...");
-        }
-        return "tilesets";
-    }
-
-
-    /**
-     * 提供指定瓦片数据库的地图页面预览页面
-     *
-     * @param tileset 待预览的地图瓦片数据库库名称，默认为mbtiles扩展名
-     * @param model   前端页面数据模型
-     * @return 地图预览页面
-     */
-    @GetMapping("/{tileset}")
-    public String preview(@PathVariable("tileset") String tileset, Model model) {
-        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
-            model.addAttribute("tilesetName", tileset);
-            Map<String, String> tileMetaData = mapServerUtils.getTileMetaData(tileset);
-            model.addAttribute("metaData", tileMetaData);
-            return "pbf".equals(tileMetaData.get("format")) ? "mapbox-mbtiles-vector" : "mapbox-mbtiles-raster";
-        } else {
-            StringBuilder sb = new StringBuilder(appConfig.getDataPath());
-            sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");
-            try {
-                String metaData = FileCopyUtils.copyToString(new FileReader(new File(sb.toString())));
-                model.addAttribute("tilesetName", tileset);
-                model.addAttribute("metaData", metaData);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return "mapbox-pbf";
         }
     }
 }

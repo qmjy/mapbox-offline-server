@@ -26,16 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Optional;
@@ -43,7 +38,7 @@ import java.util.Optional;
 /**
  * 支持的字体访问API。
  */
-@Controller
+@RestController
 @RequestMapping("/api/fonts")
 public class MapServerFontsController {
     private final Logger logger = LoggerFactory.getLogger(MapServerFontsController.class);
@@ -52,31 +47,6 @@ public class MapServerFontsController {
     @Autowired
     private AppConfig appConfig;
 
-    /**
-     * 字体文件目录
-     *
-     * @param model 前端页面数据模型
-     * @return 字体文件展示页面
-     */
-    @GetMapping("")
-    public String listFonts(Model model) {
-        if (StringUtils.hasLength(appConfig.getDataPath())) {
-            File dataFolder = new File(appConfig.getDataPath());
-            if (dataFolder.isDirectory() && dataFolder.exists()) {
-                File tilesetsFolder = new File(dataFolder, "fonts");
-                File[] folders = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        return pathname.isDirectory();
-                    }
-                });
-                model.addAttribute("fonts", folders);
-            }
-        } else {
-            System.out.println("请在data目录配置字体数据...");
-        }
-        return "fonts";
-    }
 
     /**
      * 返回字体文件二进制流

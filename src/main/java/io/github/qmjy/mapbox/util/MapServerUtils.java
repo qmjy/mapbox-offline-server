@@ -18,10 +18,8 @@ package io.github.qmjy.mapbox.util;
 
 import io.github.qmjy.mapbox.model.FontsFileModel;
 import io.github.qmjy.mapbox.model.TilesFileModel;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -50,11 +48,7 @@ public class MapServerUtils {
      * @param file      待链接的数据库文件
      */
     public static void initJdbcTemplate(String className, File file) {
-        String dbUrl = "jdbc:sqlite:" + file.getAbsolutePath();
-        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder.create();
-        dataSourceBuilder.driverClassName(className);
-        dataSourceBuilder.url(dbUrl);
-        TilesFileModel dbFileModel = new TilesFileModel(file, dataSourceBuilder.build());
+        TilesFileModel dbFileModel = new TilesFileModel(file, className);
         tilesMap.put(file.getName(), dbFileModel);
     }
 
@@ -111,10 +105,5 @@ public class MapServerUtils {
         } else {
             return Optional.empty();
         }
-    }
-
-
-    public String getFilePathMd5(String filePath) {
-        return DigestUtils.md5DigestAsHex(filePath.getBytes());
     }
 }

@@ -1,33 +1,31 @@
 # mapbox-offline-server
-Mapbox GL offline server with java
+Mapbox GL offline server with java(JDK 21).
 
 ## 资源结构
+
+> 本项目自带了WGS84、CGCS2000坐标系的Mapbox资源文件。
+
 mapbox离线服务至少需要包含四种资源文件，mapbox-gl、fonts、sprites、map。
 在运行本服务之前需要按照如下结构配置数据目录，然后通过“--dataPath=xxx”的方式启动服务。
 
 ```bash
 data
-│  
 ├─assets
 │      mapbox-gl.css
 │      mapbox-gl.js
-│      
 ├─fonts
 │  └─Arial Regular
 │         0-255.pbf
 │         15616-15871.pbf
 │         15872-16127.pbf
-│          
 ├─sprites
 │  └─streets
 │          sprite.json
 │          sprite.png
 │          sprite@2x.json
 │          sprite@2x.png
-│          
 ├─styles
 │      world.json
-│      
 └─tilesets
         Beijing.mbtiles
         Hongkong.mbtiles

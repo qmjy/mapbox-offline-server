@@ -17,10 +17,12 @@
 package io.github.qmjy.mapbox.model;
 
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.sql.DataSource;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -31,17 +33,28 @@ import java.util.Map;
  */
 @Data
 public class TilesFileModel {
+    private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
+
     private String name;
     private String filePath;
+    private long fileLastModifiedTime = 0;
     private JdbcTemplate jdbcTemplate;
     private Map<String, String> metaDataMap = new HashMap<>();
 
-    public TilesFileModel(File file, DataSource ds) {
+    public TilesFileModel(File file, String className) {
         this.name = file.getName();
         this.filePath = file.getAbsolutePath();
-        this.jdbcTemplate = new JdbcTemplate(ds);
+        this.fileLastModifiedTime = file.lastModified();
 
+        initJdbc(className, file);
         loadMetaData();
+    }
+
+    private void initJdbc(String className, File file) {
+        DataSourceBuilder<?> ds = DataSourceBuilder.create();
+        ds.driverClassName(className);
+        ds.url("jdbc:sqlite:" + file.getAbsolutePath());
+        this.jdbcTemplate = new JdbcTemplate(ds.build());
     }
 
     private void loadMetaData() {
@@ -51,7 +64,7 @@ public class TilesFileModel {
                 metaDataMap.put(String.valueOf(map.get("name")), String.valueOf(map.get("value")));
             }
         } catch (DataAccessException e) {
-
+            logger.error("Load map meta data failed: {}", filePath);
         }
     }
 }

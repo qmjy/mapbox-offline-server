@@ -25,7 +25,7 @@
 <div id="map"></div>
 <script th:inline="javascript">
     const metaData = /*[[${metaData}]]*/{};
-    var basePath = [[${#httpServletRequest.getScheme() + "://" + #httpServletRequest.getServerName() + ":" + #httpServletRequest.getServerPort() + #httpServletRequest.getContextPath()}]];
+    var basePath = [[${basePath}]];
     var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
 
     var map = new mapboxgl.Map({
@@ -52,7 +52,7 @@
             ]
         },
         center: [114.139102,22.396835],
-        zoom: parseInt(metaData.minzoom),
+        zoom: parseInt(metaData.minzoom?metaData.minzoom:"4"),
         hash: true
     })
 

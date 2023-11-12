@@ -25,7 +25,7 @@
 <div id="map"></div>
 <script th:inline="javascript">
     const metaData = /*[[${metaData}]]*/{};
-    var basePath = [[${#httpServletRequest.getScheme() + "://" + #httpServletRequest.getServerName() + ":" + #httpServletRequest.getServerPort() + #httpServletRequest.getContextPath()}]];
+    var basePath = [[${basePath}]];
     var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
 
     var map = new mapboxgl.Map({

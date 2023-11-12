@@ -18,52 +18,23 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 
-@Controller
+@RestController
 @RequestMapping("/api/styles")
 public class MapServerStyleController {
     @Autowired
     private AppConfig appConfig;
-
-    /**
-     * 展示style列表
-     *
-     * @return style列表
-     */
-    @GetMapping("")
-    public String listStyles(Model model) {
-        if (StringUtils.hasLength(appConfig.getDataPath())) {
-            File dataFolder = new File(appConfig.getDataPath());
-            if (dataFolder.isDirectory() && dataFolder.exists()) {
-                File tilesetsFolder = new File(dataFolder, "styles");
-                File[] styles = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        return !pathname.isDirectory() && pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_JSON);
-                    }
-                });
-                model.addAttribute("styles", styles);
-            }
-        } else {
-            System.out.println("请在data目录配置样式数据...");
-        }
-        return "styles";
-    }
 
 
     /**

@@ -24,48 +24,20 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 
-@Controller
+@RestController
 @RequestMapping("/api/sprites")
 public class MapServerSpritesController {
     @Autowired
     private AppConfig appConfig;
-
-    /**
-     * 展示Sprites列表
-     *
-     * @return Sprites列表
-     */
-    @GetMapping("")
-    public String listSprites(Model model) {
-        if (StringUtils.hasLength(appConfig.getDataPath())) {
-            File dataFolder = new File(appConfig.getDataPath());
-            if (dataFolder.isDirectory() && dataFolder.exists()) {
-                File tilesetsFolder = new File(dataFolder, "sprites");
-                File[] styles = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        return pathname.isDirectory();
-                    }
-                });
-                model.addAttribute("sprites", styles);
-            }
-        } else {
-            System.out.println("请在data目录配置sprites数据...");
-        }
-        return "sprites";
-    }
 
 
     /**

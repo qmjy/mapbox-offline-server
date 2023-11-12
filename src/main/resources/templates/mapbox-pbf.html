@@ -26,76 +26,76 @@
 <script th:inline="javascript">
     const metaDataStr = /*[[${metaData}]]*/{};
     var metaData = JSON.parse(metaDataStr)
-var basePath = [[${#httpServletRequest.getScheme() + "://" + #httpServletRequest.getServerName() + ":" + #httpServletRequest.getServerPort() + #httpServletRequest.getContextPath()}]];
-var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
+    var basePath = [[${basePath}]];
+    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
 
-var map = new mapboxgl.Map({
-    container: 'map',
-    attributionControl: false,
-    style: {
-        "version": 8,
-        "name": "Mapbox",
-        "sprite": basePath + "/static/sprites/streets/sprite",
-        "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
-        "sources": {
-            "osm-tiles": {
-                "scheme": metaData.scheme,
-                "type": "vector",
-                "tiles": [tiles],
-                "minzoom": metaData.minzoom,
-                "maxzoom": metaData.maxzoom,
-            }
-        },
-        "layers": [
-        {
-            "id": "background",
-            "type": "background",
-            "layout": {
-                "visibility": "visible"
+    var map = new mapboxgl.Map({
+        container: 'map',
+        attributionControl: false,
+        style: {
+            "version": 8,
+            "name": "Mapbox",
+            "sprite": basePath + "/static/sprites/streets/sprite",
+            "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
+            "sources": {
+                "osm-tiles": {
+                    "scheme": metaData.scheme,
+                    "type": "vector",
+                    "tiles": [tiles],
+                    "minzoom": metaData.minzoom,
+                    "maxzoom": metaData.maxzoom,
+                }
             },
-            "paint": {
-                "background-color": "hsl(200, 98%, 24%)"
-            }
-        },
-        {
-            "id": "boundaries",
-            "type": "line",
-            "source": "osm-tiles",
-            "source-layer": "boundaries",
-            "paint": {
-              "line-color": "#00ffff"
-            }
-        },
-        {
-            "id": "transportation",
-            "type": "line",
-            "source": "osm-tiles",
-            "source-layer": "transportation",
-            "paint": {
-              "line-color": "#f2934a",
-              "line-opacity": 1,
-              "line-width": 1,
+            "layers": [
+            {
+                "id": "background",
+                "type": "background",
+                "layout": {
+                    "visibility": "visible"
+                },
+                "paint": {
+                    "background-color": "hsl(200, 98%, 24%)"
+                }
             },
-        },
-        {
-            "id": "buildings",
-            "type": "fill",
-            "source": "osm-tiles",
-            "source-layer": "buildings",
-            "paint": {
-              "fill-color": "#eeeeee"
+            {
+                "id": "boundaries",
+                "type": "line",
+                "source": "osm-tiles",
+                "source-layer": "boundaries",
+                "paint": {
+                  "line-color": "#00ffff"
+                }
+            },
+            {
+                "id": "transportation",
+                "type": "line",
+                "source": "osm-tiles",
+                "source-layer": "transportation",
+                "paint": {
+                  "line-color": "#f2934a",
+                  "line-opacity": 1,
+                  "line-width": 1,
+                },
+            },
+            {
+                "id": "buildings",
+                "type": "fill",
+                "source": "osm-tiles",
+                "source-layer": "buildings",
+                "paint": {
+                  "fill-color": "#eeeeee"
+                }
             }
-        }
-        ]
-    },
-    center: [73.229304,3.203067],
-    zoom: 12,
-    hash: true
-})
+            ]
+        },
+        center: [73.229304,3.203067],
+        zoom: 12,
+        hash: true
+    })
 
-map.addControl(new mapboxgl.NavigationControl())
-map.addControl(new mapboxgl.FullscreenControl())
-map.addControl(new mapboxgl.ScaleControl())
+    map.addControl(new mapboxgl.NavigationControl())
+    map.addControl(new mapboxgl.FullscreenControl())
+    map.addControl(new mapboxgl.ScaleControl())
 </script>
 </body>
 

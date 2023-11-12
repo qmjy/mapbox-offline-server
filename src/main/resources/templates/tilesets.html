@@ -30,8 +30,8 @@
         <th>名称</th>
         <th>元数据</th>
     </tr>
-    <tr th:each="file:${tileFiles}">
-        <td><a th:href="@{'/api/tilesets/'+${file.name}}" th:text="${file.name}"></a></td>
+    <tr th:each="file : ${tileFiles}">
+        <td><a th:href="@{'/tilesets/'+${file.getName()}}" th:text="${file.getName()}"></a></td>
         <td></td>
     </tr>
 </table>

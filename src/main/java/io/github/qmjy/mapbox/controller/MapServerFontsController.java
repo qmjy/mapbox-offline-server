@@ -18,7 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.FontsFileModel;
-import io.github.qmjy.mapbox.util.MapServerUtils;
+import io.github.qmjy.mapbox.util.MapServerDataCenter;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ import java.util.Optional;
 public class MapServerFontsController {
     private final Logger logger = LoggerFactory.getLogger(MapServerFontsController.class);
     @Autowired
-    private MapServerUtils mapServerUtils;
+    private MapServerDataCenter mapServerDataCenter;
     @Autowired
     private AppConfig appConfig;
 
@@ -58,7 +58,7 @@ public class MapServerFontsController {
     @GetMapping(value = "/{fontName}/{range}.pbf", produces = "application/x-protobuf")
     @ResponseBody
     public ResponseEntity<ByteArrayResource> loadPbfFont(@PathVariable("fontName") String fontName, @PathVariable("range") String range) {
-        Optional<FontsFileModel> fontFolder = mapServerUtils.getFontFolder(fontName);
+        Optional<FontsFileModel> fontFolder = mapServerDataCenter.getFontFolder(fontName);
         if (fontFolder.isPresent()) {
             FontsFileModel fontsFileModel = fontFolder.get();
             String fileName = fontsFileModel.getFolder().getAbsolutePath() + File.separator + range + AppConfig.FILE_EXTENSION_NAME_PBF;

@@ -17,10 +17,8 @@
 package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
-import io.github.qmjy.mapbox.util.MapServerUtils;
+import io.github.qmjy.mapbox.util.MapServerDataCenter;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -46,9 +44,8 @@ import java.util.Optional;
 @RequestMapping("/api/tilesets")
 public class MapServerTilesetsController {
 
-    private final Logger logger = LoggerFactory.getLogger(MapServerTilesetsController.class);
     @Autowired
-    private MapServerUtils mapServerUtils;
+    private MapServerDataCenter mapServerDataCenter;
     @Autowired
     private AppConfig appConfig;
 
@@ -66,7 +63,7 @@ public class MapServerTilesetsController {
     public ResponseEntity<ByteArrayResource> loadPngTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                           @PathVariable("x") String x, @PathVariable("y") String y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
-            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerUtils.getDataSource(tileset);
+            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
             if (jdbcTemplateOpt.isPresent()) {
                 JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
 
@@ -102,7 +99,7 @@ public class MapServerTilesetsController {
     public ResponseEntity<ByteArrayResource> loadPbfTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                           @PathVariable("x") String x, @PathVariable("y") String y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
-            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerUtils.getDataSource(tileset);
+            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
             if (jdbcTemplateOpt.isPresent()) {
                 JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
 

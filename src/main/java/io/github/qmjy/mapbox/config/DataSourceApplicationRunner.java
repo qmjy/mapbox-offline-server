@@ -16,7 +16,7 @@
 
 package io.github.qmjy.mapbox.config;
 
-import io.github.qmjy.mapbox.util.MapServerUtils;
+import io.github.qmjy.mapbox.util.MapServerDataCenter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -51,7 +51,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         if (files != null) {
             for (File fontFolder : files) {
                 if (fontFolder.isDirectory()) {
-                    MapServerUtils.initFontsFile(fontFolder);
+                    MapServerDataCenter.initFontsFile(fontFolder);
                 }
             }
         }
@@ -59,16 +59,11 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
 
     private void wrapTilesFile(File dataFolder) {
         File tilesetsFolder = new File(dataFolder, "tilesets");
-        File[] files = tilesetsFolder.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
-            }
-        });
+        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES));
 
         if (files != null) {
             for (File dbFile : files) {
-                MapServerUtils.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
+                MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
             }
         }
     }

@@ -18,7 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.TilesViewModel;
-import io.github.qmjy.mapbox.util.MapServerUtils;
+import io.github.qmjy.mapbox.util.MapServerDataCenter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -42,7 +42,7 @@ import java.util.Map;
 @Controller
 public class MapServerController {
     @Autowired
-    private MapServerUtils mapServerUtils;
+    private MapServerDataCenter mapServerDataCenter;
     @Autowired
     private AppConfig appConfig;
 
@@ -110,7 +110,7 @@ public class MapServerController {
 
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             model.addAttribute("tilesetName", tileset);
-            Map<String, String> tileMetaData = mapServerUtils.getTileMetaData(tileset);
+            Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);
             model.addAttribute("metaData", tileMetaData);
 
             return "pbf".equals(tileMetaData.get("format")) ? "mapbox-mbtiles-vector" : "mapbox-mbtiles-raster";

@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,7 +32,7 @@ import java.util.Optional;
  * 地图数据库服务工具
  */
 @Component
-public class MapServerUtils {
+public class MapServerDataCenter {
     /**
      * 瓦片数据库文件模型
      */

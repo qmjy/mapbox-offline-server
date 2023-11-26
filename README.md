@@ -1,6 +1,10 @@
 # mapbox-offline-server
 Mapbox GL offline server with java(JDK 21).
 
+## 特性列表
+1. 支持瓦片离线服务，主要用于Mapbox离线场景；
+2. 支持全球行政区划级联数据；
+
 ## 资源结构
 
 > 本项目自带了WGS84、CGCS2000坐标系的Mapbox资源文件。

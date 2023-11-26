@@ -89,6 +89,13 @@
             <version>3.43.0.0</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.geotools/gt-geojson-core -->
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-geojson-core</artifactId>
+            <version>30.0</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -96,8 +103,17 @@
             <version>1.18.30</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>osgeo</id>
+            <name>OSGeo Release Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+            <snapshots><enabled>false</enabled></snapshots>
+            <releases><enabled>true</enabled></releases>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>

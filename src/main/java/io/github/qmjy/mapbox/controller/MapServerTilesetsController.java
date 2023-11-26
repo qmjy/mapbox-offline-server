@@ -17,7 +17,7 @@
 package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
-import io.github.qmjy.mapbox.util.MapServerDataCenter;
+import io.github.qmjy.mapbox.MapServerDataCenter;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;

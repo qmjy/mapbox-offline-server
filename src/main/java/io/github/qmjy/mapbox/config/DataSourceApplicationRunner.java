@@ -16,7 +16,7 @@
 
 package io.github.qmjy.mapbox.config;
 
-import io.github.qmjy.mapbox.util.MapServerDataCenter;
+import io.github.qmjy.mapbox.MapServerDataCenter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
-import java.io.FileFilter;
 
 @Component
 @Order(value = 1)
@@ -41,6 +40,23 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
             if (dataFolder.isDirectory() && dataFolder.exists()) {
                 wrapTilesFile(dataFolder);
                 wrapFontsFile(dataFolder);
+                wrapOSMBFile(dataFolder);
+            }
+        }
+    }
+
+    /**
+     * data format from: <a href="https://osm-boundaries.com/">OSM-Boundaries</a>
+     * @param dataFolder 行政区划边界数据
+     */
+    private void wrapOSMBFile(File dataFolder) {
+        File boundariesFolder = new File(dataFolder, "OSMB");
+        File[] files = boundariesFolder.listFiles();
+        if (files != null) {
+            for (File boundary : files) {
+                if (!boundary.isDirectory() && boundary.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_GEOJSON)) {
+                    MapServerDataCenter.initBoundaryFile(boundary);
+                }
             }
         }
     }

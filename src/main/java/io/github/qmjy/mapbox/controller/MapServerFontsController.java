@@ -18,7 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.FontsFileModel;
-import io.github.qmjy.mapbox.util.MapServerDataCenter;
+import io.github.qmjy.mapbox.MapServerDataCenter;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -31,6 +31,7 @@ public class AppConfig {
     public static final String FILE_EXTENSION_NAME_MBTILES = ".mbtiles";
     public static final String FILE_EXTENSION_NAME_PBF = ".pbf";
     public static final String FILE_EXTENSION_NAME_JSON = ".json";
+    public static final String FILE_EXTENSION_NAME_GEOJSON = ".geojson";
     public static final String FILE_EXTENSION_NAME_PNG = ".png";
 
     public static final MediaType APPLICATION_X_PROTOBUF_VALUE = MediaType.valueOf("application/x-protobuf");

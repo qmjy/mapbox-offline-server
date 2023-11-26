@@ -18,7 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.TilesViewModel;
-import io.github.qmjy.mapbox.util.MapServerDataCenter;
+import io.github.qmjy.mapbox.MapServerDataCenter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

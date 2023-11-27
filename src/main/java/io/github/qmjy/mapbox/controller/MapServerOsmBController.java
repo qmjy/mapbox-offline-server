@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,30 +46,33 @@ public class MapServerOsmBController {
     @GetMapping("")
     @ResponseBody
     public Object loadAdministrativeDivision(@RequestParam(required = false) Integer parentId, @RequestParam(required = false, defaultValue = "0") Integer recursion) {
-        Map<String, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
-        Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
-        if (administrativeDivision.containsKey(parentId)) {
-            SimpleFeature simpleFeature = administrativeDivision.get(parentId);
+        if (parentId == null) {
+            return MapServerDataCenter.getSimpleAdminDivision();
+        } else {
+            Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
+            if (administrativeDivision.containsKey(parentId)) {
+                SimpleFeature simpleFeature = administrativeDivision.get(parentId);
 
-            Object osmId = simpleFeature.getAttribute("osm_id");
-            Object name = simpleFeature.getAttribute("local_name");
-            Object nameEn = simpleFeature.getAttribute("name_en");
-            Object parents = simpleFeature.getAttribute("parents");
-            Object geometry = simpleFeature.getAttribute("geometry");
-            Object tags = simpleFeature.getAttribute("all_tags");
-            Object adminLevel = simpleFeature.getAttribute("admin_level");
+                int osmId = (int) simpleFeature.getAttribute("osm_id");
+                String name = (String) simpleFeature.getAttribute("local_name");
+                String nameEn = (String) simpleFeature.getAttribute("name_en");
+                String parents = (String) simpleFeature.getAttribute("parents");
+                Object geometry = simpleFeature.getAttribute("geometry");
+                Object tags =  simpleFeature.getAttribute("all_tags");
+                int adminLevel = (int) simpleFeature.getAttribute("admin_level");
 
-            AdministrativeDivisionModel build = AdministrativeDivisionModel.builder()
-                    .id((int) osmId)
-                    .parentsId(String.valueOf(parents))
-                    .adminLevel((int) adminLevel)
-                    .name(String.valueOf(name))
-                    .nameEn(String.valueOf(nameEn))
-                    .geometry(String.valueOf(geometry))
-                    .build();
-            build.setTags(String.valueOf(tags));
-            return build;
+                AdministrativeDivisionModel build = AdministrativeDivisionModel.builder()
+                        .id(osmId)
+                        .parentsId(parents)
+                        .adminLevel(adminLevel)
+                        .name(name)
+                        .nameEn(nameEn)
+                        .geometry(String.valueOf(geometry))
+                        .build();
+                build.setTags(String.valueOf(tags));
+                return build;
+            }
+            return new HashMap<String, String>();
         }
-        return new HashMap<String, String>();
     }
 }

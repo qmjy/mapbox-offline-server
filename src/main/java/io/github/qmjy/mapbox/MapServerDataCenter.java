@@ -16,6 +16,7 @@
 
 package io.github.qmjy.mapbox;
 
+import io.github.qmjy.mapbox.model.AdministrativeDivisionVo;
 import io.github.qmjy.mapbox.model.FontsFileModel;
 import io.github.qmjy.mapbox.model.TilesFileModel;
 import lombok.Getter;
@@ -50,13 +51,16 @@ public class MapServerDataCenter {
     private static final Map<String, FontsFileModel> fontsMap = new HashMap<>();
 
     /**
-     * 行政区划数据
+     * 行政区划数据。key:行政级别、value:区划对象
      */
     @Getter
-    private static final Map<String, List<SimpleFeature>> administrativeDivisionLevel = new HashMap<>();
+    private static final Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = new HashMap<>();
 
     @Getter
     private static final Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
+
+    @Getter
+    private static AdministrativeDivisionVo simpleAdminDivision;
 
     /**
      * 初始化数据源
@@ -92,7 +96,7 @@ public class MapServerDataCenter {
 
                 administrativeDivision.put((int) feature.getAttribute("osm_id"), feature);
 
-                String adminLevel = feature.getAttribute("admin_level").toString();
+                int adminLevel = (int) feature.getAttribute("admin_level");
                 if (administrativeDivisionLevel.containsKey(adminLevel)) {
                     List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(adminLevel);
                     simpleFeatures.add(feature);
@@ -103,9 +107,77 @@ public class MapServerDataCenter {
                 }
             }
             features.close();
+
+            packageModel();
+            System.out.println();
         } catch (IOException e) {
             logger.error("读取OSM数据异常：" + boundary.getAbsolutePath());
         }
+    }
+
+    private static void packageModel() {
+        Integer[] array = administrativeDivisionLevel.keySet().toArray(new Integer[0]);
+        Arrays.sort(array);
+        for (int level : array) {
+            List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(level);
+            if (simpleAdminDivision == null) {
+                simpleAdminDivision = new AdministrativeDivisionVo(simpleFeatures.get(0), 0);
+                continue;
+            }
+            for (SimpleFeature simpleFeature : simpleFeatures) {
+                int id = (int) simpleFeature.getAttribute("osm_id");
+                int adminLevel = (int) simpleFeature.getAttribute("admin_level");
+                String[] parents = simpleFeature.getAttribute("parents").toString().split(",");
+                for (String parentIdStr : parents) {
+                    int parentId = Integer.parseInt(parentIdStr);
+                    if (parentId == simpleAdminDivision.getId()) {
+                        simpleAdminDivision.getChildren().add(new AdministrativeDivisionVo(simpleFeature, parentId));
+                        continue;
+                    }
+                    if (id == -5758867) {
+                        System.out.println();
+                    }
+                    Optional<AdministrativeDivisionVo> parentNode = findParentNode(simpleAdminDivision.getChildren(), parentId, adminLevel);
+                    if (parentNode.isPresent()) {
+                        AdministrativeDivisionVo administrativeDivisionVo = parentNode.get();
+                        administrativeDivisionVo.getChildren().add(new AdministrativeDivisionVo(simpleFeature, parentId));
+                        break;
+                    }
+                }
+
+                //TODO any node can not find parent?
+            }
+
+        }
+    }
+
+    /**
+     * 找到指定ID的父节点
+     *
+     * @param list              带查找的子节点
+     * @param parentId          父节点ID
+     * @param currentAdminLevel 当前节点行政区划级别
+     * @return 找到的父节点ID
+     */
+    private static Optional<AdministrativeDivisionVo> findParentNode(List<AdministrativeDivisionVo> list, int parentId, int currentAdminLevel) {
+        if (!list.isEmpty()) {
+            for (AdministrativeDivisionVo child : list) {
+                //TODO 允许行政级别存在最大两级误差
+                if (child.getId() == parentId) {
+                    return Optional.of(child);
+                } else {
+                    List<AdministrativeDivisionVo> children = child.getChildren();
+                    if (children.isEmpty()) {
+                        continue;
+                    }
+                    Optional<AdministrativeDivisionVo> parentNode = findParentNode(children, parentId, currentAdminLevel);
+                    if (parentNode.isPresent()) {
+                        return parentNode;
+                    }
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /**

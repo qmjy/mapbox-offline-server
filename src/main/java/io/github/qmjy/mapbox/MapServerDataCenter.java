@@ -109,7 +109,6 @@ public class MapServerDataCenter {
             features.close();
 
             packageModel();
-            System.out.println();
         } catch (IOException e) {
             logger.error("读取OSM数据异常：" + boundary.getAbsolutePath());
         }

@@ -18,6 +18,7 @@ package io.github.qmjy.mapbox.config;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -47,6 +48,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
 
     /**
      * data format from: <a href="https://osm-boundaries.com/">OSM-Boundaries</a>
+     *
      * @param dataFolder 行政区划边界数据
      */
     private void wrapOSMBFile(File dataFolder) {

@@ -19,7 +19,6 @@ package io.github.qmjy.mapbox.controller;
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.model.AdministrativeDivisionModel;
 import org.geotools.api.feature.simple.SimpleFeature;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -42,6 +41,7 @@ public class MapServerOsmBController {
     @GetMapping("")
     @ResponseBody
     public Object loadAdministrativeDivision() {
+        //TODO 目录未配置提示
         return MapServerDataCenter.getSimpleAdminDivision();
     }
 
@@ -54,6 +54,7 @@ public class MapServerOsmBController {
     @GetMapping("/nodes/{nodeId}")
     @ResponseBody
     public Object loadAdministrativeDivisionNode(@PathVariable Integer nodeId) {
+        //TODO 目录未配置提示
         if (nodeId != null) {
             Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
             if (administrativeDivision.containsKey(nodeId)) {

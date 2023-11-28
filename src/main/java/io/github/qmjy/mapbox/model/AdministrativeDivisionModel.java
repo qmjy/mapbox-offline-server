@@ -33,10 +33,10 @@ public class AdministrativeDivisionModel {
     private String name;
     private String nameEn;
     private String geometry;
-    private Map<String, Object> tags = new HashMap<>();
+    private final Map<String, Object> tags = new HashMap<>();
 
     public void setTags(String data) {
         JsonParser jsonParser = JsonParserFactory.getJsonParser();
-        this.tags = jsonParser.parseMap(data);
+        tags.putAll(jsonParser.parseMap(data));
     }
 }

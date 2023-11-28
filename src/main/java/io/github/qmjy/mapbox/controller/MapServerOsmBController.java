@@ -31,34 +31,40 @@ import java.util.Map;
  * @author liushaofeng
  */
 @RestController
-@RequestMapping("/api/admins")
+@RequestMapping("/api/geo/admins")
 public class MapServerOsmBController {
-    @Autowired
-    private MapServerDataCenter mapServerDataCenter;
 
     /**
      * 获取行政区划数据，为空则从根节点开始
      *
-     * @param parentId  父节点
-     * @param recursion 是否递归。 0: false(default)、1: true;
      * @return 行政区划节详情
      */
     @GetMapping("")
     @ResponseBody
-    public Object loadAdministrativeDivision(@RequestParam(required = false) Integer parentId, @RequestParam(required = false, defaultValue = "0") Integer recursion) {
-        if (parentId == null) {
-            return MapServerDataCenter.getSimpleAdminDivision();
-        } else {
+    public Object loadAdministrativeDivision() {
+        return MapServerDataCenter.getSimpleAdminDivision();
+    }
+
+    /**
+     * 查询指定节点行政区划明细数据
+     *
+     * @param nodeId 父节点
+     * @return 行政区划数据
+     */
+    @GetMapping("/nodes/{nodeId}")
+    @ResponseBody
+    public Object loadAdministrativeDivisionNode(@PathVariable Integer nodeId) {
+        if (nodeId != null) {
             Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
-            if (administrativeDivision.containsKey(parentId)) {
-                SimpleFeature simpleFeature = administrativeDivision.get(parentId);
+            if (administrativeDivision.containsKey(nodeId)) {
+                SimpleFeature simpleFeature = administrativeDivision.get(nodeId);
 
                 int osmId = (int) simpleFeature.getAttribute("osm_id");
                 String name = (String) simpleFeature.getAttribute("local_name");
                 String nameEn = (String) simpleFeature.getAttribute("name_en");
                 String parents = (String) simpleFeature.getAttribute("parents");
                 Object geometry = simpleFeature.getAttribute("geometry");
-                Object tags =  simpleFeature.getAttribute("all_tags");
+                Object tags = simpleFeature.getAttribute("all_tags");
                 int adminLevel = (int) simpleFeature.getAttribute("admin_level");
 
                 AdministrativeDivisionModel build = AdministrativeDivisionModel.builder()
@@ -72,7 +78,7 @@ public class MapServerOsmBController {
                 build.setTags(String.valueOf(tags));
                 return build;
             }
-            return new HashMap<String, String>();
         }
+        return new HashMap<String, String>();
     }
 }

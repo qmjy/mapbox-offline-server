@@ -16,27 +16,58 @@
 
 package io.github.qmjy.mapbox.model;
 
-import lombok.Builder;
-import lombok.Data;
+
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.json.JsonParserFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Data
-@Builder
 public class AdministrativeDivisionModel {
-    private int id;
-    private String parentsId;
-    private int adminLevel;
-    private String name;
-    private String nameEn;
-    private String geometry;
+    private final int id;
+    private final String parentsId;
+    private final int adminLevel;
+    private final String name;
+    private final String nameEn;
+    private final String geometry;
     private final Map<String, Object> tags = new HashMap<>();
 
-    public void setTags(String data) {
+    public AdministrativeDivisionModel(int osmId, String parents, int adminLevel, String name, String nameEn, String geometry, String tagsData) {
+        this.id = osmId;
+        this.parentsId = parents;
+        this.adminLevel = adminLevel;
+        this.name = name;
+        this.nameEn = nameEn;
+        this.geometry = geometry;
         JsonParser jsonParser = JsonParserFactory.getJsonParser();
-        tags.putAll(jsonParser.parseMap(data));
+        tags.putAll(jsonParser.parseMap(tagsData));
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getParentsId() {
+        return parentsId;
+    }
+
+    public int getAdminLevel() {
+        return adminLevel;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getNameEn() {
+        return nameEn;
+    }
+
+    public String getGeometry() {
+        return geometry;
+    }
+
+    public Map<String, Object> getTags() {
+        return tags;
     }
 }

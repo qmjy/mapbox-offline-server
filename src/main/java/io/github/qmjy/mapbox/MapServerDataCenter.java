@@ -19,7 +19,6 @@ package io.github.qmjy.mapbox;
 import io.github.qmjy.mapbox.model.AdministrativeDivisionVo;
 import io.github.qmjy.mapbox.model.FontsFileModel;
 import io.github.qmjy.mapbox.model.TilesFileModel;
-import lombok.Getter;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -53,13 +52,13 @@ public class MapServerDataCenter {
     /**
      * 行政区划数据。key:行政级别、value:区划对象
      */
-    @Getter
+
     private static final Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = new HashMap<>();
 
-    @Getter
-    private static final Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
 
-    @Getter
+    private static  Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
+
+
     private static AdministrativeDivisionVo simpleAdminDivision;
 
     /**
@@ -225,5 +224,11 @@ public class MapServerDataCenter {
         }
     }
 
+    public static Map<Integer, SimpleFeature> getAdministrativeDivision() {
+        return administrativeDivision;
+    }
 
+    public static AdministrativeDivisionVo getSimpleAdminDivision() {
+        return simpleAdminDivision;
+    }
 }

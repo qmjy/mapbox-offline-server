@@ -16,11 +16,8 @@
 
 package io.github.qmjy.mapbox.model;
 
-import lombok.Data;
-
 import java.io.File;
 
-@Data
 public class TilesViewModel {
     private String name;
     public TilesViewModel(File file) {

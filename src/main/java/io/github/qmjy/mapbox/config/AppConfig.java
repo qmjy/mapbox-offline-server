@@ -17,13 +17,12 @@
 package io.github.qmjy.mapbox.config;
 
 
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-@Data
+
 @Component
 @ConfigurationProperties
 public class AppConfig {
@@ -44,4 +43,13 @@ public class AppConfig {
      */
     @Value("${data-path}")
     private String dataPath = "";
+
+
+    public String getDriverClassName() {
+        return driverClassName;
+    }
+
+    public String getDataPath() {
+        return dataPath;
+    }
 }

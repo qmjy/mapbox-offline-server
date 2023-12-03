@@ -16,13 +16,11 @@
 
 package io.github.qmjy.mapbox.model;
 
-import lombok.Data;
 import org.geotools.api.feature.simple.SimpleFeature;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
 public class AdministrativeDivisionVo {
     private int id;
     private int parentId;
@@ -38,5 +36,13 @@ public class AdministrativeDivisionVo {
         this.nameEn = nameEnObj == null ? "" : String.valueOf(nameEnObj);
         this.parentId = parentId;
         this.adminLevel = (int) simpleFeature.getAttribute("admin_level");
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public List<AdministrativeDivisionVo> getChildren() {
+        return children;
     }
 }

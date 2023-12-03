@@ -16,7 +16,6 @@
 
 package io.github.qmjy.mapbox.model;
 
-import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -31,7 +30,6 @@ import java.util.Map;
 /**
  * Mbtiles瓦片数据文件模型
  */
-@Data
 public class TilesFileModel {
     private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
 
@@ -66,5 +64,13 @@ public class TilesFileModel {
         } catch (DataAccessException e) {
             logger.error("Load map meta data failed: {}", filePath);
         }
+    }
+
+    public JdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+
+    public Map<String, String> getMetaDataMap() {
+        return metaDataMap;
     }
 }

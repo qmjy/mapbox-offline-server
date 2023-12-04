@@ -2,15 +2,15 @@ module mapbox.offline.server {
     requires static java.annotation;
 
     requires jgridshift.core;
+    requires jakarta.annotation;
 
     requires jai.core;
+
+    requires jul.to.slf4j;
 
     requires thymeleaf;
     requires thymeleaf.spring6;
     requires org.yaml.snakeyaml;
-
-    requires unbescape;
-    requires attoparser;
 
     requires ejml.core;
     requires ejml.ddense;
@@ -18,10 +18,17 @@ module mapbox.offline.server {
     requires org.apache.commons.io;
     requires org.apache.commons.lang3;
     requires org.apache.tomcat.embed.core;
+    requires org.apache.tomcat.embed.websocket;
     requires org.apache.commons.text;
     requires org.apache.logging.slf4j;
+    requires org.apache.logging.log4j;
+    requires org.apache.tomcat.embed.el;
 
     requires systems.uom.common;
+    requires systems.uom.quantity;
+    requires si.uom.quantity;
+    requires si.uom.units;
+    requires tech.uom.lib.common;
 
     requires micrometer.observation;
     requires micrometer.commons;
@@ -35,6 +42,8 @@ module mapbox.offline.server {
     requires org.geotools.epsg_hsql;
     requires org.geotools.referencing;
     requires org.geotools.ogc.net.opengis.ows;
+    requires org.geotools.ogc.org.w3.xlink;
+    requires org.geotools.http;
 
     requires spring.jdbc;
     requires spring.web;
@@ -64,8 +73,27 @@ module mapbox.offline.server {
     requires org.eclipse.emf.ecore.xmi;
     requires org.eclipse.emf.common;
 
+    requires org.hsqldb;
+
+    requires org.apiguardian.api;
+
     requires commons.pool;
+
+    requires com.zaxxer.hikari;
+    requires com.fasterxml.jackson.core;
+    requires com.fasterxml.jackson.annotation;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.datatype.jsr310;
+    requires com.fasterxml.jackson.datatype.jdk8;
+    requires com.fasterxml.jackson.module.paramnames;
+
+    requires ch.qos.logback.core;
+    requires ch.qos.logback.classic;
+
     requires javax.inject;
 
+    requires re2j;
+    requires unbescape;
+    requires attoparser;
     requires GeographicLib.Java;
 }

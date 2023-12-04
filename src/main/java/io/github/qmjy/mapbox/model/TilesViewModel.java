@@ -23,4 +23,8 @@ public class TilesViewModel {
     public TilesViewModel(File file) {
         this.name = file.getName();
     }
+
+    public String getName() {
+        return name;
+    }
 }

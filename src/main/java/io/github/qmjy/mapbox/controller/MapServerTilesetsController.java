@@ -43,11 +43,27 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/tilesets")
 public class MapServerTilesetsController {
-
     @Autowired
     private MapServerDataCenter mapServerDataCenter;
     @Autowired
     private AppConfig appConfig;
+
+    /**
+     * 加载图片瓦片数据
+     *
+     * @param tileset 瓦片数据库名称
+     * @param z       地图缩放层级
+     * @param x       地图的x轴瓦片坐标
+     * @param y       地图的y轴瓦片坐标
+     * @return jpg格式的瓦片数据
+     */
+    @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpg", produces = "image/jpg")
+    @ResponseBody
+    public ResponseEntity<ByteArrayResource> loadJpgTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
+                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
+        return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_JPEG);
+    }
+
 
     /**
      * 加载图片瓦片数据
@@ -62,26 +78,7 @@ public class MapServerTilesetsController {
     @ResponseBody
     public ResponseEntity<ByteArrayResource> loadPngTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                           @PathVariable("x") String x, @PathVariable("y") String y) {
-        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
-            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
-            if (jdbcTemplateOpt.isPresent()) {
-                JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
-
-                String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
-                try {
-                    byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
-                    if (bytes != null) {
-                        HttpHeaders headers = new HttpHeaders();
-                        headers.setContentType(MediaType.IMAGE_PNG);
-                        ByteArrayResource resource = new ByteArrayResource(bytes);
-                        return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
-                    }
-                } catch (EmptyResultDataAccessException e) {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-                }
-            }
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_PNG);
     }
 
 
@@ -99,25 +96,7 @@ public class MapServerTilesetsController {
     public ResponseEntity<ByteArrayResource> loadPbfTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                           @PathVariable("x") String x, @PathVariable("y") String y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
-            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
-            if (jdbcTemplateOpt.isPresent()) {
-                JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
-
-                String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
-                try {
-                    byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
-                    if (bytes != null) {
-                        HttpHeaders headers = new HttpHeaders();
-                        headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
-                        ByteArrayResource resource = new ByteArrayResource(bytes);
-                        return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
-                    }
-
-                } catch (EmptyResultDataAccessException e) {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-                }
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return getArrayResourceResponseEntity(tileset, z, x, y, AppConfig.APPLICATION_X_PROTOBUF_VALUE);
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator)
@@ -137,5 +116,33 @@ public class MapServerTilesetsController {
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    private ResponseEntity<ByteArrayResource> getByteArrayResourceResponseEntity(String tileset, String z, String x, String y, MediaType mediaType) {
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+            return getArrayResourceResponseEntity(tileset, z, x, y, mediaType);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    private ResponseEntity<ByteArrayResource> getArrayResourceResponseEntity(String tileset, String z, String x, String y, MediaType mediaType) {
+        Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
+        if (jdbcTemplateOpt.isPresent()) {
+            JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
+
+            String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
+            try {
+                byte[] bytes = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
+                if (bytes != null) {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(mediaType);
+                    ByteArrayResource resource = new ByteArrayResource(bytes);
+                    return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
+                }
+            } catch (EmptyResultDataAccessException e) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }

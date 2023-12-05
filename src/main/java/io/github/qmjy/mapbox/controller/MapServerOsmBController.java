@@ -68,9 +68,8 @@ public class MapServerOsmBController {
                 Object tags = simpleFeature.getAttribute("all_tags");
                 int adminLevel = (int) simpleFeature.getAttribute("admin_level");
 
-                AdministrativeDivisionModel build = new AdministrativeDivisionModel(
+                return new AdministrativeDivisionModel(
                         osmId, parents, adminLevel, name, nameEn, String.valueOf(geometry), String.valueOf(tags));
-                return build;
             }
         }
         return new HashMap<String, String>();

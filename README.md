@@ -1,14 +1,20 @@
 # mapbox-offline-server
+
 Mapbox GL offline server with java(JDK 21).
 
 ## 特性列表
+
 1. 支持瓦片离线服务，主要用于Mapbox离线场景；
-  - 支持mbtiles瓦片数据发布；
-  - 支持mapbox离线静态资源发布；
+
+- 支持mbtiles瓦片数据发布；
+- 支持mapbox离线静态资源发布；
+
 2. 支持全球行政区划级联数据查询；
-  - 省市区县级联数据查询；
-  - 国际化支持；
-  - 支持行政区划边界范围查询；
+
+- 支持全球省市区县级联数据查询；
+- 支持全球行政区划边界范围查询；
+- 支持全球地理逆编码查询；
+- 国际化支持；
 
 ## 资源结构
 
@@ -41,6 +47,7 @@ data
 ```
 
 ## 字体下载
+
 SimSun Regular（宋体）：https://pan.baidu.com/s/1lv69EP5QlaUnlKZlH4-qlA  
 Microsoft YaHei Regular（雅黑）：https://pan.baidu.com/s/1-tJr-PpKSFRxlfhWwtc0Kw  
 Microsoft YaHei Bold：https://pan.baidu.com/s/1Ls1hgLIbcu5impJ086x5DQ  

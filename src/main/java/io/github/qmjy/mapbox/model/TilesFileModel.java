@@ -29,20 +29,20 @@ import java.util.Map;
 
 /**
  * Mbtiles瓦片数据文件模型
+ *
+ * @author liushaofeng
  */
 public class TilesFileModel {
     private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
 
     private String name;
     private String filePath;
-    private long fileLastModifiedTime = 0;
     private JdbcTemplate jdbcTemplate;
     private Map<String, String> metaDataMap = new HashMap<>();
 
     public TilesFileModel(File file, String className) {
         this.name = file.getName();
         this.filePath = file.getAbsolutePath();
-        this.fileLastModifiedTime = file.lastModified();
 
         initJdbc(className, file);
         loadMetaData();

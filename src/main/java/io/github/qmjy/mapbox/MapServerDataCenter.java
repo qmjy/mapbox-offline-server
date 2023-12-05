@@ -50,15 +50,18 @@ public class MapServerDataCenter {
     private static final Map<String, FontsFileModel> fontsMap = new HashMap<>();
 
     /**
-     * 行政区划数据。key:行政级别、value:区划对象
+     * 行政区划数据。key:行政级别、value:区划对象列表
      */
-
     private static final Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = new HashMap<>();
 
+    /**
+     * 行政区划数据。key:区划ID、value:区划对象
+     */
+    private static final Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
 
-    private static  Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
-
-
+    /**
+     * 行政区划层级树
+     */
     private static AdministrativeDivisionVo simpleAdminDivision;
 
     /**
@@ -142,10 +145,8 @@ public class MapServerDataCenter {
                         break;
                     }
                 }
-
                 //TODO any node can not find parent?
             }
-
         }
     }
 
@@ -160,7 +161,6 @@ public class MapServerDataCenter {
     private static Optional<AdministrativeDivisionVo> findParentNode(List<AdministrativeDivisionVo> list, int parentId, int currentAdminLevel) {
         if (!list.isEmpty()) {
             for (AdministrativeDivisionVo child : list) {
-                //TODO 允许行政级别存在最大两级误差
                 if (child.getId() == parentId) {
                     return Optional.of(child);
                 } else {
@@ -222,6 +222,10 @@ public class MapServerDataCenter {
         } else {
             return Optional.empty();
         }
+    }
+
+    public static Map<Integer, List<SimpleFeature>> getAdministrativeDivisionLevel() {
+        return administrativeDivisionLevel;
     }
 
     public static Map<Integer, SimpleFeature> getAdministrativeDivision() {

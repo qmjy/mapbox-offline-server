@@ -39,6 +39,8 @@ import java.util.Optional;
 /**
  * Mbtiles支持的数据库访问API。<br>
  * MBTiles 1.3 规范定义：<a href="https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md">MBTiles 1.3</a>
+ *
+ * @author liushaofeng
  */
 @RestController
 @RequestMapping("/api/tilesets")
@@ -57,10 +59,10 @@ public class MapServerTilesetsController {
      * @param y       地图的y轴瓦片坐标
      * @return jpg格式的瓦片数据
      */
-    @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpg", produces = "image/jpg")
+    @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpg", produces = MediaType.IMAGE_JPEG_VALUE)
     @ResponseBody
-    public ResponseEntity<ByteArrayResource> loadJpgTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
-                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
+    public ResponseEntity<ByteArrayResource> loadJpgTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
+                                                         @PathVariable("x") String x, @PathVariable("y") String y) {
         return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_JPEG);
     }
 
@@ -74,10 +76,10 @@ public class MapServerTilesetsController {
      * @param y       地图的y轴瓦片坐标
      * @return png格式的瓦片数据
      */
-    @GetMapping(value = "/{tileset}/{z}/{x}/{y}.png", produces = "image/png")
+    @GetMapping(value = "/{tileset}/{z}/{x}/{y}.png", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
-    public ResponseEntity<ByteArrayResource> loadPngTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
-                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
+    public ResponseEntity<ByteArrayResource> loadPngTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
+                                                         @PathVariable("x") String x, @PathVariable("y") String y) {
         return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_PNG);
     }
 
@@ -93,8 +95,8 @@ public class MapServerTilesetsController {
      */
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.pbf", produces = "application/x-protobuf")
     @ResponseBody
-    public ResponseEntity<ByteArrayResource> loadPbfTitle(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
-                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
+    public ResponseEntity<ByteArrayResource> loadPbfTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
+                                                         @PathVariable("x") String x, @PathVariable("y") String y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             return getArrayResourceResponseEntity(tileset, z, x, y, AppConfig.APPLICATION_X_PROTOBUF_VALUE);
         } else {

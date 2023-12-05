@@ -20,7 +20,6 @@ module mapbox.offline.server {
     requires org.apache.tomcat.embed.core;
     requires org.apache.tomcat.embed.websocket;
     requires org.apache.commons.text;
-    requires org.apache.logging.slf4j;
     requires org.apache.logging.log4j;
     requires org.apache.tomcat.embed.el;
 
@@ -89,6 +88,8 @@ module mapbox.offline.server {
 
     requires ch.qos.logback.core;
     requires ch.qos.logback.classic;
+
+    requires io.swagger.v3.oas.annotations;
 
     requires javax.inject;
 

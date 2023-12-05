@@ -18,6 +18,8 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.geometry.jts.GeometryBuilder;
 import org.locationtech.jts.geom.MultiPolygon;
@@ -38,6 +40,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/geocode")
+@Tag(name = "地理编码管理", description = "地理编码与逆编码服务接口能力")
 public class MapServerGeoController {
 
     /**
@@ -59,6 +62,7 @@ public class MapServerGeoController {
      * @param langType 可选参数，支持本地语言(0:default)和英语(1)。
      * @return 地理逆编码结果
      */
+    @Operation(summary = "地理逆编码查询", description = "通过经纬度查询行政区划概要信息，通过区划ID可获取行政区划详细信息。")
     @GetMapping("regeo")
     public ResponseEntity<Map<String, Object>> regeo(@RequestParam(value = "location", required = true) String location,
                                                      @RequestParam(value = "langType", required = false, defaultValue = "0") int langType) {

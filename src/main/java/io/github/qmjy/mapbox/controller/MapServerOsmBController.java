@@ -18,6 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.model.AdministrativeDivisionModel;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +32,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/geo/admins")
+@Tag(name = "行政区划管理", description = "行政区划相关服务接口能力")
 public class MapServerOsmBController {
 
     /**

@@ -18,6 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.MapServerDataCenter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -44,6 +45,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/tilesets")
+@Tag(name = "地图瓦片服务管理", description = "Mapbox离线服务接口能力")
 public class MapServerTilesetsController {
     @Autowired
     private MapServerDataCenter mapServerDataCenter;

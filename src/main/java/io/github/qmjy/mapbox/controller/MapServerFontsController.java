@@ -19,6 +19,7 @@ package io.github.qmjy.mapbox.controller;
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.FontsFileModel;
 import io.github.qmjy.mapbox.MapServerDataCenter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/fonts")
+@Tag(name = "Mapbox字体服务管理", description = "Mapbox离线服务接口能力")
 public class MapServerFontsController {
     private final Logger logger = LoggerFactory.getLogger(MapServerFontsController.class);
     @Autowired

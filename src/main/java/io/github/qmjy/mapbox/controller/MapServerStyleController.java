@@ -17,6 +17,7 @@
 package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/styles")
+@Tag(name = "Mapbox样式服务管理", description = "Mapbox离线服务接口能力")
 public class MapServerStyleController {
     @Autowired
     private AppConfig appConfig;

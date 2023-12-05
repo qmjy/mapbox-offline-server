@@ -16,6 +16,7 @@
 
 package io.github.qmjy.mapbox.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.io.ByteArrayResource;
@@ -28,7 +29,8 @@ import org.springframework.web.client.RestTemplate;
 
 
 @RestController
-@RequestMapping("/proxy")
+@RequestMapping("/api/proxy")
+@Tag(name = "代理服务管理", description = "三方在线地图服务接口代理能力")
 public class MapServerProxyController {
     @Autowired
     private RestTemplateBuilder restTemplateBuilder;

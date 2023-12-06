@@ -109,10 +109,9 @@ public class MapServerDataCenter {
                 }
             }
             features.close();
-
             packageModel();
         } catch (IOException e) {
-            logger.error("读取OSM数据异常：" + boundary.getAbsolutePath());
+            logger.error("Read OSM file failed：" + boundary.getAbsolutePath());
         }
     }
 
@@ -134,9 +133,6 @@ public class MapServerDataCenter {
                     if (parentId == simpleAdminDivision.getId()) {
                         simpleAdminDivision.getChildren().add(new AdministrativeDivisionVo(simpleFeature, parentId));
                         continue;
-                    }
-                    if (id == -5758867) {
-                        System.out.println();
                     }
                     Optional<AdministrativeDivisionVo> parentNode = findParentNode(simpleAdminDivision.getChildren(), parentId, adminLevel);
                     if (parentNode.isPresent()) {

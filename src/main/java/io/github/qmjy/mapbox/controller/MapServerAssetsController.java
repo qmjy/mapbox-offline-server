@@ -19,7 +19,13 @@ package io.github.qmjy.mapbox.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 静态资源http服务器
+ *
+ * @author liushaofeng
+ */
 @RestController
 @RequestMapping("/api/assets")
 public class MapServerAssetsController {
+
 }

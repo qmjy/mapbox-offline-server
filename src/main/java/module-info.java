@@ -97,4 +97,11 @@ module mapbox.offline.server {
     requires unbescape;
     requires attoparser;
     requires GeographicLib.Java;
+
+    opens io.github.qmjy.mapbox;
+    opens io.github.qmjy.mapbox.controller;
+    opens io.github.qmjy.mapbox.config;
+    opens io.github.qmjy.mapbox.model;
+    opens io.github.qmjy.mapbox.util;
+    opens io.github.qmjy.mapbox.service;
 }

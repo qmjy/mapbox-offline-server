@@ -28,6 +28,19 @@ public class ResponseMapUtil {
     /**
      * 响应正常的map封装
      *
+     * @return 响应结果
+     */
+    public static Map<String, Object> ok() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("code", 0);
+        map.put("msg", "");
+        map.put("data", "Nothing");
+        return map;
+    }
+
+    /**
+     * 响应正常的map封装
+     *
      * @param data 待返回的数据类型
      * @return 响应结果
      */

@@ -24,6 +24,8 @@ import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.geometry.jts.GeometryBuilder;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +44,7 @@ import java.util.Map;
 @RequestMapping("/api/geocode")
 @Tag(name = "地理编码管理", description = "地理编码与逆编码服务接口能力")
 public class MapServerGeoController {
+    private static final Logger logger = LoggerFactory.getLogger(MapServerGeoController.class);
 
     /**
      * 地理编码
@@ -50,9 +53,15 @@ public class MapServerGeoController {
      */
     @GetMapping("geo")
     @ResponseBody
-    public Object geo() {
-        //TODO 目录未配置提示
-        return null;
+    public ResponseEntity<Map<String, Object>> geo() {
+        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
+        if (administrativeDivisionLevel.isEmpty()) {
+            logger.error("Can't find any geojson file for boundary search!");
+            return ResponseEntity.notFound().build();
+        } else {
+            //TODO
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok());
+        }
     }
 
     /**
@@ -64,10 +73,13 @@ public class MapServerGeoController {
      */
     @Operation(summary = "地理逆编码查询", description = "通过经纬度查询行政区划概要信息，通过区划ID可获取行政区划详细信息。")
     @GetMapping("regeo")
-    public ResponseEntity<Map<String, Object>> regeo(@RequestParam(value = "location", required = true) String location,
+    public ResponseEntity<Map<String, Object>> regeo(@RequestParam(value = "location") String location,
                                                      @RequestParam(value = "langType", required = false, defaultValue = "0") int langType) {
-        //TODO 目录未配置提示 return ResponseEntity.notFound().build();
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
+        if (administrativeDivisionLevel.isEmpty()) {
+            logger.error("Can't find any geojson file for boundary search!");
+            return ResponseEntity.notFound().build();
+        }
         Integer[] array = administrativeDivisionLevel.keySet().toArray(new Integer[0]);
         Arrays.sort(array);
         for (int i = array.length - 1; i >= 0; i--) {

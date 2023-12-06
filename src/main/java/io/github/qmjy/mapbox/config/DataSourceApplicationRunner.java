@@ -17,8 +17,9 @@
 package io.github.qmjy.mapbox.config;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -30,7 +31,7 @@ import java.io.File;
 @Component
 @Order(value = 1)
 public class DataSourceApplicationRunner implements ApplicationRunner {
-
+    private final Logger logger = LoggerFactory.getLogger(DataSourceApplicationRunner.class);
     @Autowired
     private AppConfig appConfig;
 
@@ -57,6 +58,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         if (files != null) {
             for (File boundary : files) {
                 if (!boundary.isDirectory() && boundary.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_GEOJSON)) {
+                    logger.info("Load boundary file: {}", boundary.getName());
                     MapServerDataCenter.initBoundaryFile(boundary);
                 }
             }
@@ -81,6 +83,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
 
         if (files != null) {
             for (File dbFile : files) {
+                logger.info("Load tile file: {}", dbFile.getName());
                 MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
             }
         }

@@ -49,7 +49,7 @@ public class Application implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println(">>>>>>>>>>>>>>>>>服务启动执行");
-        logger.info(environment.toString());
+//        logger.info(environment.toString());
         logger.info(String.valueOf(Arrays.asList(environment.getActiveProfiles())));
     }
 }

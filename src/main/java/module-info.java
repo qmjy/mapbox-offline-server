@@ -1,10 +1,9 @@
 module mapbox.offline.server {
     requires static java.annotation;
 
+    requires jai.core;
     requires jgridshift.core;
     requires jakarta.annotation;
-
-    requires jai.core;
 
     requires jul.to.slf4j;
 
@@ -98,10 +97,10 @@ module mapbox.offline.server {
     requires attoparser;
     requires GeographicLib.Java;
 
-    opens io.github.qmjy.mapbox;
-    opens io.github.qmjy.mapbox.controller;
-    opens io.github.qmjy.mapbox.config;
-    opens io.github.qmjy.mapbox.model;
-    opens io.github.qmjy.mapbox.util;
-    opens io.github.qmjy.mapbox.service;
+
+    opens io.github.qmjy.mapbox to spring.core, spring.beans, spring.context;
+    opens io.github.qmjy.mapbox.config to spring.core, spring.beans, spring.boot, spring.context;
+    opens io.github.qmjy.mapbox.controller to spring.beans, spring.core, spring.web;
+    opens io.github.qmjy.mapbox.service to spring.beans, spring.context;
+    opens io.github.qmjy.mapbox.util to spring.beans;
 }

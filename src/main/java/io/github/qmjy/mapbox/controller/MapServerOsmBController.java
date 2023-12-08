@@ -18,11 +18,17 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.model.AdministrativeDivisionModel;
+import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,17 +40,24 @@ import java.util.Map;
 @RequestMapping("/api/geo/admins")
 @Tag(name = "行政区划管理", description = "行政区划相关服务接口能力")
 public class MapServerOsmBController {
+    private static final Logger logger = LoggerFactory.getLogger(MapServerOsmBController.class);
 
     /**
      * 获取行政区划数据，为空则从根节点开始
      *
+     * @param langType 可选参数，支持本地语言(0:default)和英语(1)。
      * @return 行政区划节详情
      */
     @GetMapping("")
     @ResponseBody
-    public Object loadAdministrativeDivision() {
-        //TODO 目录未配置提示
-        return MapServerDataCenter.getSimpleAdminDivision();
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@RequestParam(value = "langType", required = false, defaultValue = "0") int langType) {
+        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
+        if (administrativeDivisionLevel.isEmpty()) {
+            logger.error("Can't find any geojson file for boundary search!");
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(MapServerDataCenter.getSimpleAdminDivisionByLang(langType)));
+        }
     }
 
     /**
@@ -55,8 +68,12 @@ public class MapServerOsmBController {
      */
     @GetMapping("/nodes/{nodeId}")
     @ResponseBody
-    public Object loadAdministrativeDivisionNode(@PathVariable Integer nodeId) {
-        //TODO 目录未配置提示
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@PathVariable Integer nodeId) {
+        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
+        if (administrativeDivisionLevel.isEmpty()) {
+            logger.error("Can't find any geojson file for boundary search!");
+            return ResponseEntity.notFound().build();
+        }
         if (nodeId != null) {
             Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
             if (administrativeDivision.containsKey(nodeId)) {
@@ -70,10 +87,12 @@ public class MapServerOsmBController {
                 Object tags = simpleFeature.getAttribute("all_tags");
                 int adminLevel = (int) simpleFeature.getAttribute("admin_level");
 
-                return new AdministrativeDivisionModel(
+                AdministrativeDivisionModel data = new AdministrativeDivisionModel(
                         osmId, parents, adminLevel, name, nameEn, String.valueOf(geometry), String.valueOf(tags));
+                Map<String, Object> ok = ResponseMapUtil.ok(data);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
             }
         }
-        return new HashMap<String, String>();
+        return ResponseEntity.notFound().build();
     }
 }

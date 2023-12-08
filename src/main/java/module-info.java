@@ -103,4 +103,6 @@ module mapbox.offline.server {
     opens io.github.qmjy.mapbox.controller to spring.beans, spring.core, spring.web;
     opens io.github.qmjy.mapbox.service to spring.beans, spring.context;
     opens io.github.qmjy.mapbox.util to spring.beans;
+
+    exports io.github.qmjy.mapbox.model to com.fasterxml.jackson.databind;
 }

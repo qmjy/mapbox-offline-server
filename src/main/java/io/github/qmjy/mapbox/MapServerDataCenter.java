@@ -24,6 +24,7 @@ import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -121,11 +122,10 @@ public class MapServerDataCenter {
         for (int level : array) {
             List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(level);
             if (simpleAdminDivision == null) {
-                simpleAdminDivision = new AdministrativeDivisionVo(simpleFeatures.get(0), 0);
+                simpleAdminDivision = new AdministrativeDivisionVo(simpleFeatures.getFirst(), 0);
                 continue;
             }
             for (SimpleFeature simpleFeature : simpleFeatures) {
-                int id = (int) simpleFeature.getAttribute("osm_id");
                 int adminLevel = (int) simpleFeature.getAttribute("admin_level");
                 String[] parents = simpleFeature.getAttribute("parents").toString().split(",");
                 for (String parentIdStr : parents) {
@@ -174,6 +174,7 @@ public class MapServerDataCenter {
         return Optional.empty();
     }
 
+
     /**
      * 通过文件名获取数据源
      *
@@ -218,6 +219,18 @@ public class MapServerDataCenter {
         } else {
             return Optional.empty();
         }
+    }
+
+    /**
+     * 级联行政区划
+     *
+     * @param langType 可选参数，支持本地语言(0:default)和英语(1)。
+     * @return 对应语言的级联数据
+     */
+    public static AdministrativeDivisionVo getSimpleAdminDivisionByLang(int langType) {
+        AdministrativeDivisionVo clone = simpleAdminDivision.clone();
+        //TODO 按照语言返回基本数据
+        return clone;
     }
 
     public static Map<Integer, List<SimpleFeature>> getAdministrativeDivisionLevel() {

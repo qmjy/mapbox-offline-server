@@ -21,12 +21,12 @@ import org.geotools.api.feature.simple.SimpleFeature;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdministrativeDivisionVo {
-    private int id;
-    private int parentId;
-    private String name;
+public class AdministrativeDivisionVo implements Cloneable {
+    private int id = 0;
+    private int parentId = 0;
+    private String name = "";
     private String nameEn = "";
-    private int adminLevel;
+    private int adminLevel = 0;
     private List<AdministrativeDivisionVo> children = new ArrayList<>();
 
     public AdministrativeDivisionVo(SimpleFeature simpleFeature, int parentId) {
@@ -42,7 +42,42 @@ public class AdministrativeDivisionVo {
         return id;
     }
 
+    public int getParentId() {
+        return parentId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getNameEn() {
+        return nameEn;
+    }
+
+    public int getAdminLevel() {
+        return adminLevel;
+    }
+
     public List<AdministrativeDivisionVo> getChildren() {
         return children;
+    }
+
+    public void setChildren(List<AdministrativeDivisionVo> children) {
+        this.children = children;
+    }
+
+    @Override
+    public AdministrativeDivisionVo clone() {
+        try {
+            AdministrativeDivisionVo clone = (AdministrativeDivisionVo) super.clone();
+            ArrayList<AdministrativeDivisionVo> administrativeDivisionVos = new ArrayList<>();
+            this.getChildren().forEach(item -> {
+                administrativeDivisionVos.add(item.clone());
+            });
+            clone.setChildren(administrativeDivisionVos);
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

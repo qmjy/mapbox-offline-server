@@ -147,6 +147,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.1.1</version>
+                <configuration>
+                    <charset>UTF-8</charset><!-- utf-8读取文件 -->
+                    <encoding>UTF-8</encoding><!-- utf-8进行编码代码 -->
+                    <docencoding>UTF-8</docencoding><!-- utf-8进行编码文档 -->
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -157,60 +162,7 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.moditect</groupId>
-                <artifactId>moditect-maven-plugin</artifactId>
-                <version>1.1.0</version>
-                <executions>
-                    <execution>
-                        <id>add-module-infos</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>add-module-info</goal>
-                        </goals>
-                        <configuration>
-                            <jvmVersion>21</jvmVersion>
-                            <failOnWarning>false</failOnWarning>
-                            <outputTimestamp>1980-01-01T00:00:02Z</outputTimestamp>
-                            <module>
-                                <moduleInfo>
-                                    <name>io.github.qmjy.mapbox</name>
-                                    <exports>
-                                        !io.github.qmjy.mapbox.*;
-                                        *;
-                                    </exports>
-                                </moduleInfo>
-                            </module>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>create-runtime-image</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>create-runtime-image</goal>
-                        </goals>
-                        <configuration>
-                            <modulePath>
-                                <path>${project.build.directory}/modules</path>
-                            </modulePath>
-                            <modules>
-                                <module>io.github.qmjy.mapbox</module>
-                            </modules>
-                            <excludedResources>
-                                <pattern>glob:/io.github.qmjy.mapbox/**</pattern>
-                            </excludedResources>
-                            <baseJdk>version=9,vendor=openjdk,platform=linux-x64</baseJdk>
-                            <launcher>
-                                <name>app</name>
-                                <module>io.github.qmjy.mapbox</module>
-                            </launcher>
-                            <outputDirectory>
-                                ${project.build.directory}/jlink-image
-                            </outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
         </plugins>
     </build>
 

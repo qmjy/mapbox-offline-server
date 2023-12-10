@@ -34,14 +34,11 @@ import java.util.Map;
  */
 public class TilesFileModel {
     private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
-
-    private String name;
-    private String filePath;
+    private final String filePath;
     private JdbcTemplate jdbcTemplate;
-    private Map<String, String> metaDataMap = new HashMap<>();
+    private final Map<String, String> metaDataMap = new HashMap<>();
 
     public TilesFileModel(File file, String className) {
-        this.name = file.getName();
         this.filePath = file.getAbsolutePath();
 
         initJdbc(className, file);

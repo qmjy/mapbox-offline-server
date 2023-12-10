@@ -14,26 +14,24 @@
  *   limitations under the License.
  */
 
-package io.github.qmjy.mapbox.model;
+package io.github.qmjy.mapbox.controller;
 
-import java.io.File;
+import jakarta.servlet.http.HttpServletRequest;
 
-public class TilesViewModel {
-    private final String name;
-
+/**
+ * Controller 公共常用方法
+ *
+ * @author liushaofeng
+ */
+public class BaseController {
     /**
-     * 构造方法
-     * @param file 瓦片文件
+     * 获取请求页面基础地址
+     *
+     * @param request HttpServletRequest
+     * @return 请求地址前缀
      */
-    public TilesViewModel(File file) {
-        this.name = file.getName();
-    }
-
-    /**
-     * 获取瓦片文件名称
-     * @return 瓦片文件名称
-     */
-    public String getName() {
-        return name;
+    public String getBasePath(HttpServletRequest request) {
+        String path = request.getContextPath();
+        return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path;
     }
 }

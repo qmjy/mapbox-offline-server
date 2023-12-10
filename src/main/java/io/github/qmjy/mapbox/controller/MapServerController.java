@@ -16,10 +16,13 @@
 
 package io.github.qmjy.mapbox.controller;
 
-import io.github.qmjy.mapbox.config.AppConfig;
-import io.github.qmjy.mapbox.model.TilesViewModel;
 import io.github.qmjy.mapbox.MapServerDataCenter;
+import io.github.qmjy.mapbox.config.AppConfig;
+import io.github.qmjy.mapbox.config.DataSourceApplicationRunner;
+import io.github.qmjy.mapbox.model.TilesViewModel;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,7 +32,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +42,8 @@ import java.util.Map;
  * 系统主页
  */
 @Controller
-public class MapServerController {
+public class MapServerController extends BaseController {
+    private final Logger logger = LoggerFactory.getLogger(MapServerController.class);
     @Autowired
     private MapServerDataCenter mapServerDataCenter;
     @Autowired
@@ -52,7 +55,8 @@ public class MapServerController {
      * @return 系统首页
      */
     @GetMapping("")
-    public String index() {
+    public String index(Model model, HttpServletRequest request) {
+        model.addAttribute("basePath", super.getBasePath(request));
         return "index";
     }
 
@@ -68,28 +72,25 @@ public class MapServerController {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
                 File tilesetsFolder = new File(dataFolder, "tilesets");
-                File[] files = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        if (pathname.isDirectory()) {
-                            File[] subFiles = pathname.listFiles();
-                            if (subFiles != null) {
-                                for (File subFile : subFiles) {
-                                    if ("metadata.json".equals(subFile.getName())) {
-                                        return true;
-                                    }
+                File[] files = tilesetsFolder.listFiles(pathname -> {
+                    if (pathname.isDirectory()) {
+                        File[] subFiles = pathname.listFiles();
+                        if (subFiles != null) {
+                            for (File subFile : subFiles) {
+                                if ("metadata.json".equals(subFile.getName())) {
+                                    return true;
                                 }
                             }
-                            return false;
-                        } else {
-                            return pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
                         }
+                        return false;
+                    } else {
+                        return pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
                     }
                 });
                 model.addAttribute("tileFiles", wrapThymeleafModel(files));
             }
         } else {
-            System.out.println("请在data目录配置瓦片数据...");
+            logger.error("请在data目录配置瓦片数据...");
         }
         return "tilesets";
     }
@@ -104,9 +105,7 @@ public class MapServerController {
      */
     @GetMapping("/tilesets/{tileset}")
     public String preview(@PathVariable("tileset") String tileset, HttpServletRequest request, Model model) {
-        String path = request.getContextPath();
-        String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path;
-        model.addAttribute("basePath", basePath);
+        model.addAttribute("basePath", super.getBasePath(request));
 
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             model.addAttribute("tilesetName", tileset);
@@ -118,7 +117,7 @@ public class MapServerController {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");
             try {
-                String metaData = FileCopyUtils.copyToString(new FileReader(new File(sb.toString())));
+                String metaData = FileCopyUtils.copyToString(new FileReader(sb.toString()));
                 model.addAttribute("tilesetName", tileset);
                 model.addAttribute("metaData", metaData);
             } catch (IOException e) {
@@ -141,16 +140,11 @@ public class MapServerController {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
                 File tilesetsFolder = new File(dataFolder, "fonts");
-                File[] folders = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        return pathname.isDirectory();
-                    }
-                });
+                File[] folders = tilesetsFolder.listFiles(File::isDirectory);
                 model.addAttribute("fonts", wrapThymeleafModel(folders));
             }
         } else {
-            System.out.println("请在data目录配置字体数据...");
+            logger.error("请在data目录配置字体数据...");
         }
         return "fonts";
     }
@@ -166,16 +160,11 @@ public class MapServerController {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
                 File tilesetsFolder = new File(dataFolder, "sprites");
-                File[] styles = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        return pathname.isDirectory();
-                    }
-                });
+                File[] styles = tilesetsFolder.listFiles(File::isDirectory);
                 model.addAttribute("sprites", wrapThymeleafModel(styles));
             }
         } else {
-            System.out.println("请在data目录配置sprites数据...");
+            logger.error("请在data目录配置sprites数据...");
         }
         return "sprites";
     }
@@ -191,16 +180,11 @@ public class MapServerController {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
                 File tilesetsFolder = new File(dataFolder, "styles");
-                File[] styles = tilesetsFolder.listFiles(new FileFilter() {
-                    @Override
-                    public boolean accept(File pathname) {
-                        return !pathname.isDirectory() && pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_JSON);
-                    }
-                });
+                File[] styles = tilesetsFolder.listFiles(pathname -> !pathname.isDirectory() && pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_JSON));
                 model.addAttribute("styles", wrapThymeleafModel(styles));
             }
         } else {
-            System.out.println("请在data目录配置样式数据...");
+            logger.error("请在data目录配置样式数据...");
         }
         return "styles";
     }

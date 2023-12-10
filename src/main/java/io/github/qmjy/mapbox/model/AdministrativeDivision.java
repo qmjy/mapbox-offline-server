@@ -60,22 +60,47 @@ public class AdministrativeDivision {
         return list;
     }
 
+    /**
+     * 获取行政区划对象ID
+     *
+     * @return 行政区划对象ID
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * 获取行政区划区域父ID
+     *
+     * @return 行政区划的父ID
+     */
     public int getParentId() {
         return parentId;
     }
 
+    /**
+     * 获取行政区划名称
+     *
+     * @return 行政区划名称
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * 获取行政区划
+     *
+     * @return 行政区划级别
+     */
     public int getAdminLevel() {
         return adminLevel;
     }
 
+    /**
+     * 获取子级行政区划
+     *
+     * @return 子级行政区划
+     */
     public List<AdministrativeDivision> getChildren() {
         return children;
     }

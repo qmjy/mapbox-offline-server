@@ -1,3 +1,6 @@
+/**
+ * module-info
+ */
 module mapbox.offline.server {
     requires static java.annotation;
 
@@ -15,12 +18,12 @@ module mapbox.offline.server {
     requires ejml.ddense;
 
     requires org.apache.commons.io;
+    requires org.apache.commons.text;
     requires org.apache.commons.lang3;
     requires org.apache.tomcat.embed.core;
-    requires org.apache.tomcat.embed.websocket;
-    requires org.apache.commons.text;
-    requires org.apache.logging.log4j;
     requires org.apache.tomcat.embed.el;
+    requires org.apache.tomcat.embed.websocket;
+    requires org.apache.logging.log4j;
 
     requires systems.uom.common;
     requires systems.uom.quantity;

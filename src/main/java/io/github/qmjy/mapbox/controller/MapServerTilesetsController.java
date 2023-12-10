@@ -18,6 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.MapServerDataCenter;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,7 @@ public class MapServerTilesetsController {
      */
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpg", produces = MediaType.IMAGE_JPEG_VALUE)
     @ResponseBody
+    @Operation(summary = "获取JPG格式瓦片数据", description = "获取JPG格式瓦片数据。")
     public ResponseEntity<ByteArrayResource> loadJpgTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
         return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_JPEG);
@@ -80,6 +82,7 @@ public class MapServerTilesetsController {
      */
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.png", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
+    @Operation(summary = "获取PNG格式瓦片数据", description = "获取PNG格式瓦片数据。")
     public ResponseEntity<ByteArrayResource> loadPngTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
         return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_PNG);
@@ -97,6 +100,7 @@ public class MapServerTilesetsController {
      */
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.pbf", produces = "application/x-protobuf")
     @ResponseBody
+    @Operation(summary = "获取PBF格式瓦片数据", description = "获取PBF格式瓦片数据。")
     public ResponseEntity<ByteArrayResource> loadPbfTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {

@@ -21,15 +21,20 @@ import org.geotools.api.feature.simple.SimpleFeature;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdministrativeDivisionVo implements Cloneable {
-    private int id = 0;
-    private int parentId = 0;
-    private String name = "";
-    private String nameEn = "";
-    private int adminLevel = 0;
-    private List<AdministrativeDivisionVo> children = new ArrayList<>();
+/**
+ * 行政区划数据，树形结构
+ *
+ * @author liushaofeng
+ */
+public class AdministrativeDivisionTmp {
+    private final int id;
+    private final int parentId;
+    private final String name;
+    private final String nameEn;
+    private final int adminLevel;
+    private List<AdministrativeDivisionTmp> children = new ArrayList<>();
 
-    public AdministrativeDivisionVo(SimpleFeature simpleFeature, int parentId) {
+    public AdministrativeDivisionTmp(SimpleFeature simpleFeature, int parentId) {
         this.id = (int) simpleFeature.getAttribute("osm_id");
         this.name = (String) simpleFeature.getAttribute("local_name");
         Object nameEnObj = simpleFeature.getAttribute("name_en");
@@ -58,26 +63,11 @@ public class AdministrativeDivisionVo implements Cloneable {
         return adminLevel;
     }
 
-    public List<AdministrativeDivisionVo> getChildren() {
+    public List<AdministrativeDivisionTmp> getChildren() {
         return children;
     }
 
-    public void setChildren(List<AdministrativeDivisionVo> children) {
+    public void setChildren(List<AdministrativeDivisionTmp> children) {
         this.children = children;
-    }
-
-    @Override
-    public AdministrativeDivisionVo clone() {
-        try {
-            AdministrativeDivisionVo clone = (AdministrativeDivisionVo) super.clone();
-            ArrayList<AdministrativeDivisionVo> administrativeDivisionVos = new ArrayList<>();
-            this.getChildren().forEach(item -> {
-                administrativeDivisionVos.add(item.clone());
-            });
-            clone.setChildren(administrativeDivisionVos);
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
     }
 }

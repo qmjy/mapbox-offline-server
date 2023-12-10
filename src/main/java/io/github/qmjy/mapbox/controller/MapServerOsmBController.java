@@ -17,8 +17,15 @@
 package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
-import io.github.qmjy.mapbox.model.AdministrativeDivisionModel;
+import io.github.qmjy.mapbox.model.AdministrativeDivision;
+import io.github.qmjy.mapbox.model.AdministrativeDivisionOrigin;
+import io.github.qmjy.mapbox.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
@@ -41,22 +48,34 @@ import java.util.Map;
 @Tag(name = "行政区划管理", description = "行政区划相关服务接口能力")
 public class MapServerOsmBController {
     private static final Logger logger = LoggerFactory.getLogger(MapServerOsmBController.class);
+    private final Map<Integer, AdministrativeDivision> cacheMap = new HashMap<>();
 
     /**
      * 获取行政区划数据，为空则从根节点开始
      *
-     * @param langType 可选参数，支持本地语言(0:default)和英语(1)。
+     * @param lang 可选参数，支持本地语言(0:default)和英语(1)。
      * @return 行政区划节详情
      */
     @GetMapping("")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@RequestParam(value = "langType", required = false, defaultValue = "0") int langType) {
+    @Operation(summary = "获取省市区划级数据", description = "查询行政区划级联树数据。")
+    @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivision.class)))
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@Parameter(description = "支持本地语言(0: default)和英语(1)。") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
             logger.error("Can't find any geojson file for boundary search!");
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(MapServerDataCenter.getSimpleAdminDivisionByLang(langType)));
+            if (lang > 1 || lang < 0) {
+                return ResponseEntity.badRequest().build();
+            }
+            AdministrativeDivisionTmp adminDivision = MapServerDataCenter.getSimpleAdminDivision();
+            if (cacheMap.containsKey(lang)) {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(cacheMap.get(lang)));
+            }
+            AdministrativeDivision ad = new AdministrativeDivision(adminDivision, lang);
+            cacheMap.put(lang, ad);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(ad));
         }
     }
 
@@ -68,7 +87,9 @@ public class MapServerOsmBController {
      */
     @GetMapping("/nodes/{nodeId}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@PathVariable Integer nodeId) {
+    @Operation(summary = "获取省市区划节点详情数据", description = "查询行政区划节点详情数据。")
+    @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivisionOrigin.class)))
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-7668313。") @PathVariable Integer nodeId) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
             logger.error("Can't find any geojson file for boundary search!");
@@ -87,7 +108,7 @@ public class MapServerOsmBController {
                 Object tags = simpleFeature.getAttribute("all_tags");
                 int adminLevel = (int) simpleFeature.getAttribute("admin_level");
 
-                AdministrativeDivisionModel data = new AdministrativeDivisionModel(
+                AdministrativeDivisionOrigin data = new AdministrativeDivisionOrigin(
                         osmId, parents, adminLevel, name, nameEn, String.valueOf(geometry), String.valueOf(tags));
                 Map<String, Object> ok = ResponseMapUtil.ok(data);
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);

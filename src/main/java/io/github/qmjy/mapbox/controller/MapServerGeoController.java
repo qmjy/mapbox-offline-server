@@ -60,7 +60,7 @@ public class MapServerGeoController {
             return ResponseEntity.notFound().build();
         } else {
             //TODO
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok());
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok("待实现..."));
         }
     }
 

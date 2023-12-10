@@ -16,7 +16,7 @@
 
 package io.github.qmjy.mapbox;
 
-import io.github.qmjy.mapbox.model.AdministrativeDivisionVo;
+import io.github.qmjy.mapbox.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapbox.model.FontsFileModel;
 import io.github.qmjy.mapbox.model.TilesFileModel;
 import org.geotools.api.feature.simple.SimpleFeature;
@@ -24,7 +24,6 @@ import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -63,7 +62,7 @@ public class MapServerDataCenter {
     /**
      * 行政区划层级树
      */
-    private static AdministrativeDivisionVo simpleAdminDivision;
+    private static AdministrativeDivisionTmp simpleAdminDivision;
 
     /**
      * 初始化数据源
@@ -122,7 +121,7 @@ public class MapServerDataCenter {
         for (int level : array) {
             List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(level);
             if (simpleAdminDivision == null) {
-                simpleAdminDivision = new AdministrativeDivisionVo(simpleFeatures.getFirst(), 0);
+                simpleAdminDivision = new AdministrativeDivisionTmp(simpleFeatures.getFirst(), 0);
                 continue;
             }
             for (SimpleFeature simpleFeature : simpleFeatures) {
@@ -131,13 +130,13 @@ public class MapServerDataCenter {
                 for (String parentIdStr : parents) {
                     int parentId = Integer.parseInt(parentIdStr);
                     if (parentId == simpleAdminDivision.getId()) {
-                        simpleAdminDivision.getChildren().add(new AdministrativeDivisionVo(simpleFeature, parentId));
+                        simpleAdminDivision.getChildren().add(new AdministrativeDivisionTmp(simpleFeature, parentId));
                         continue;
                     }
-                    Optional<AdministrativeDivisionVo> parentNode = findParentNode(simpleAdminDivision.getChildren(), parentId, adminLevel);
+                    Optional<AdministrativeDivisionTmp> parentNode = findParentNode(simpleAdminDivision.getChildren(), parentId, adminLevel);
                     if (parentNode.isPresent()) {
-                        AdministrativeDivisionVo administrativeDivisionVo = parentNode.get();
-                        administrativeDivisionVo.getChildren().add(new AdministrativeDivisionVo(simpleFeature, parentId));
+                        AdministrativeDivisionTmp administrativeDivisionVo = parentNode.get();
+                        administrativeDivisionVo.getChildren().add(new AdministrativeDivisionTmp(simpleFeature, parentId));
                         break;
                     }
                 }
@@ -154,17 +153,17 @@ public class MapServerDataCenter {
      * @param currentAdminLevel 当前节点行政区划级别
      * @return 找到的父节点ID
      */
-    private static Optional<AdministrativeDivisionVo> findParentNode(List<AdministrativeDivisionVo> list, int parentId, int currentAdminLevel) {
+    private static Optional<AdministrativeDivisionTmp> findParentNode(List<AdministrativeDivisionTmp> list, int parentId, int currentAdminLevel) {
         if (!list.isEmpty()) {
-            for (AdministrativeDivisionVo child : list) {
+            for (AdministrativeDivisionTmp child : list) {
                 if (child.getId() == parentId) {
                     return Optional.of(child);
                 } else {
-                    List<AdministrativeDivisionVo> children = child.getChildren();
+                    List<AdministrativeDivisionTmp> children = child.getChildren();
                     if (children.isEmpty()) {
                         continue;
                     }
-                    Optional<AdministrativeDivisionVo> parentNode = findParentNode(children, parentId, currentAdminLevel);
+                    Optional<AdministrativeDivisionTmp> parentNode = findParentNode(children, parentId, currentAdminLevel);
                     if (parentNode.isPresent()) {
                         return parentNode;
                     }
@@ -221,18 +220,6 @@ public class MapServerDataCenter {
         }
     }
 
-    /**
-     * 级联行政区划
-     *
-     * @param langType 可选参数，支持本地语言(0:default)和英语(1)。
-     * @return 对应语言的级联数据
-     */
-    public static AdministrativeDivisionVo getSimpleAdminDivisionByLang(int langType) {
-        AdministrativeDivisionVo clone = simpleAdminDivision.clone();
-        //TODO 按照语言返回基本数据
-        return clone;
-    }
-
     public static Map<Integer, List<SimpleFeature>> getAdministrativeDivisionLevel() {
         return administrativeDivisionLevel;
     }
@@ -241,7 +228,7 @@ public class MapServerDataCenter {
         return administrativeDivision;
     }
 
-    public static AdministrativeDivisionVo getSimpleAdminDivision() {
+    public static AdministrativeDivisionTmp getSimpleAdminDivision() {
         return simpleAdminDivision;
     }
 }

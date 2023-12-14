@@ -98,7 +98,7 @@ public class MapServerDataCenter {
 
                 administrativeDivision.put((int) feature.getAttribute("osm_id"), feature);
 
-                int adminLevel = (int) feature.getAttribute("admin_level");
+                int adminLevel = feature.getAttribute("admin_level") == null ? -1 : (int) feature.getAttribute("admin_level");
                 if (administrativeDivisionLevel.containsKey(adminLevel)) {
                     List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(adminLevel);
                     simpleFeatures.add(feature);
@@ -125,7 +125,7 @@ public class MapServerDataCenter {
                 continue;
             }
             for (SimpleFeature simpleFeature : simpleFeatures) {
-                int adminLevel = (int) simpleFeature.getAttribute("admin_level");
+                int adminLevel = simpleFeature.getAttribute("admin_level") == null ? -1 : (int) simpleFeature.getAttribute("admin_level");
                 String[] parents = simpleFeature.getAttribute("parents").toString().split(",");
                 for (String parentIdStr : parents) {
                     int parentId = Integer.parseInt(parentIdStr);

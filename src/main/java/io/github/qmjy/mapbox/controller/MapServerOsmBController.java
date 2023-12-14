@@ -121,17 +121,17 @@ public class MapServerOsmBController {
     }
 
     /**
-     * 判断一个经纬度坐标是否在行政区划范围内
+     * 判断经纬度坐标是否在行政区划范围内
      *
-     * @param nodeId   行政区划节点ID
-     * @param location 待判断的经纬度坐标
+     * @param nodeId    行政区划节点ID
+     * @param locations 待判断的经纬度坐标,多个参数用“;”分割
      * @return 此行政区划是否包含此经纬度点
      */
     @GetMapping("/nodes/{nodeId}/contains")
     @ResponseBody
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)))
-    @Operation(summary = "判断一个经纬度坐标是否在某个行政区划范围内", description = "判断一个经纬度坐标是否在某个行政区划范围内。")
-    public ResponseEntity<Map<String, Object>> contains(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId, @Parameter(description = "待判断的经纬度坐标，例如：104.071883,30.671974") @RequestParam(value = "location") String location) {
+    @Operation(summary = "判断经纬度坐标是否在某个行政区划范围内", description = "判断经纬度坐标是否在某个行政区划范围内。")
+    public ResponseEntity<Map<String, Object>> contains(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId, @Parameter(description = "待判断的经纬度坐标，多个参数用“;”分割。例如：104.071883,30.671974;104.071823,30.671374") @RequestParam(value = "locations") String locations) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
             logger.error("Can't find any geojson file for boundary search!");
@@ -141,14 +141,18 @@ public class MapServerOsmBController {
             Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
             if (administrativeDivision.containsKey(nodeId)) {
                 SimpleFeature simpleFeature = administrativeDivision.get(nodeId);
-
                 Object geometry = simpleFeature.getAttribute("geometry");
                 if (geometry instanceof MultiPolygon polygon) {
-                    String[] split = location.split(",");
-                    GeometryBuilder geometryBuilder = new GeometryBuilder();
-                    Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
-                    boolean contains = polygon.covers(point);
-                    Map<String, Object> ok = ResponseMapUtil.ok(contains);
+                    String[] groups = locations.split(";");
+                    HashMap<String, Boolean> resultMap = new HashMap<>();
+                    for (String location : groups) {
+                        String[] split = location.split(",");
+                        GeometryBuilder geometryBuilder = new GeometryBuilder();
+                        Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
+                        boolean contains = polygon.covers(point);
+                        resultMap.put(location, contains);
+                    }
+                    Map<String, Object> ok = ResponseMapUtil.ok(resultMap);
                     return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
                 }
             }

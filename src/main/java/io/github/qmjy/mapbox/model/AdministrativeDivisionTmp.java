@@ -40,7 +40,7 @@ public class AdministrativeDivisionTmp {
         Object nameEnObj = simpleFeature.getAttribute("name_en");
         this.nameEn = nameEnObj == null ? "" : String.valueOf(nameEnObj);
         this.parentId = parentId;
-        this.adminLevel = (int) simpleFeature.getAttribute("admin_level");
+        this.adminLevel = simpleFeature.getAttribute("admin_level") == null ? -1 : (int) simpleFeature.getAttribute("admin_level");
     }
 
     public int getId() {

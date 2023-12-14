@@ -28,6 +28,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.geometry.jts.GeometryBuilder;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -112,6 +115,42 @@ public class MapServerOsmBController {
                         osmId, parents, adminLevel, name, nameEn, String.valueOf(geometry), String.valueOf(tags));
                 Map<String, Object> ok = ResponseMapUtil.ok(data);
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
+     * 判断一个经纬度坐标是否在行政区划范围内
+     *
+     * @param nodeId   行政区划节点ID
+     * @param location 待判断的经纬度坐标
+     * @return 此行政区划是否包含此经纬度点
+     */
+    @GetMapping("/nodes/{nodeId}/contains")
+    @ResponseBody
+    @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)))
+    @Operation(summary = "判断一个经纬度坐标是否在某个行政区划范围内", description = "判断一个经纬度坐标是否在某个行政区划范围内。")
+    public ResponseEntity<Map<String, Object>> contains(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId, @Parameter(description = "待判断的经纬度坐标，例如：104.071883,30.671974") @RequestParam(value = "location") String location) {
+        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
+        if (administrativeDivisionLevel.isEmpty()) {
+            logger.error("Can't find any geojson file for boundary search!");
+            return ResponseEntity.notFound().build();
+        }
+        if (nodeId != null) {
+            Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
+            if (administrativeDivision.containsKey(nodeId)) {
+                SimpleFeature simpleFeature = administrativeDivision.get(nodeId);
+
+                Object geometry = simpleFeature.getAttribute("geometry");
+                if (geometry instanceof MultiPolygon polygon) {
+                    String[] split = location.split(",");
+                    GeometryBuilder geometryBuilder = new GeometryBuilder();
+                    Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
+                    boolean contains = polygon.covers(point);
+                    Map<String, Object> ok = ResponseMapUtil.ok(contains);
+                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
+                }
             }
         }
         return ResponseEntity.notFound().build();

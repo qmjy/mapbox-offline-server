@@ -116,57 +116,83 @@ public class MapServerDataCenter {
     }
 
     private static void packageModel() {
-        Integer[] array = administrativeDivisionLevel.keySet().toArray(new Integer[0]);
-        Arrays.sort(array);
-        for (int level : array) {
-            List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(level);
+        administrativeDivision.values().forEach(feature -> {
             if (simpleAdminDivision == null) {
-                simpleAdminDivision = new AdministrativeDivisionTmp(simpleFeatures.getFirst(), 0);
-                continue;
-            }
-            for (SimpleFeature simpleFeature : simpleFeatures) {
-                int adminLevel = simpleFeature.getAttribute("admin_level") == null ? -1 : (int) simpleFeature.getAttribute("admin_level");
-                String[] parents = simpleFeature.getAttribute("parents").toString().split(",");
-                for (String parentIdStr : parents) {
-                    int parentId = Integer.parseInt(parentIdStr);
-                    if (parentId == simpleAdminDivision.getId()) {
-                        simpleAdminDivision.getChildren().add(new AdministrativeDivisionTmp(simpleFeature, parentId));
-                        continue;
-                    }
-                    Optional<AdministrativeDivisionTmp> parentNode = findParentNode(simpleAdminDivision.getChildren(), parentId, adminLevel);
-                    if (parentNode.isPresent()) {
-                        AdministrativeDivisionTmp administrativeDivisionVo = parentNode.get();
-                        administrativeDivisionVo.getChildren().add(new AdministrativeDivisionTmp(simpleFeature, parentId));
-                        break;
+                simpleAdminDivision = initRootNode(feature);
+            } else {
+                Object parentsObj = feature.getAttribute("parents");
+                if (parentsObj != null) {
+                    String[] parents = parentsObj.toString().split(",");
+
+                    AdministrativeDivisionTmp tempNode = new AdministrativeDivisionTmp(feature, Integer.parseInt(parents[0]));
+
+                    for (int i = 0; i < parents.length; i++) {
+                        int parentId = Integer.parseInt(parents[i]);
+                        Optional<AdministrativeDivisionTmp> nodeOpt = findNode(simpleAdminDivision, parentId);
+                        if (nodeOpt.isPresent()) {
+                            AdministrativeDivisionTmp child = nodeOpt.get();
+                            //如果父节点已经在早期全路径时构造过了，则不需要再追加此单节点。
+                            if (!contains(child, (int) feature.getAttribute("osm_id"))) {
+                                child.getChildren().add(tempNode);
+                            }
+                            break;
+                        } else {
+                            AdministrativeDivisionTmp tmp = new AdministrativeDivisionTmp(administrativeDivision.get(parentId), Integer.parseInt(parents[i + 1]));
+                            tmp.getChildren().add(tempNode);
+                            tempNode = tmp;
+                        }
                     }
                 }
-                //TODO any node can not find parent?
             }
+        });
+    }
+
+    private static boolean contains(AdministrativeDivisionTmp child, int parentId) {
+        for (AdministrativeDivisionTmp item : child.getChildren()) {
+            if (item.getId() == parentId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private static AdministrativeDivisionTmp initRootNode(SimpleFeature feature) {
+        Object parents = feature.getAttribute("parents");
+        if (parents == null) {
+            return new AdministrativeDivisionTmp(feature, -1);
+        } else {
+            String[] split = parents.toString().split(",");
+            List<AdministrativeDivisionTmp> children = new ArrayList<>();
+            AdministrativeDivisionTmp tmp = null;
+            for (int i = 0; i < split.length; i++) {
+                int osmId = Integer.parseInt(split[i]);
+                if (i + 1 > split.length - 1) {
+                    tmp = new AdministrativeDivisionTmp(administrativeDivision.get(osmId), -1);
+                    tmp.setChildren(children);
+                } else {
+                    tmp = new AdministrativeDivisionTmp(administrativeDivision.get(osmId), Integer.parseInt(split[i + 1]));
+                    tmp.setChildren(children);
+                    children = new ArrayList<>();
+                    children.add(tmp);
+                }
+            }
+            return tmp;
         }
     }
 
-    /**
-     * 找到指定ID的父节点
-     *
-     * @param list              带查找的子节点
-     * @param parentId          父节点ID
-     * @param currentAdminLevel 当前节点行政区划级别
-     * @return 找到的父节点ID
-     */
-    private static Optional<AdministrativeDivisionTmp> findParentNode(List<AdministrativeDivisionTmp> list, int parentId, int currentAdminLevel) {
-        if (!list.isEmpty()) {
-            for (AdministrativeDivisionTmp child : list) {
-                if (child.getId() == parentId) {
-                    return Optional.of(child);
-                } else {
-                    List<AdministrativeDivisionTmp> children = child.getChildren();
-                    if (children.isEmpty()) {
-                        continue;
-                    }
-                    Optional<AdministrativeDivisionTmp> parentNode = findParentNode(children, parentId, currentAdminLevel);
-                    if (parentNode.isPresent()) {
-                        return parentNode;
-                    }
+    private static Optional<AdministrativeDivisionTmp> findNode(AdministrativeDivisionTmp tmp, int parentId) {
+        if (tmp.getId() == parentId) {
+            return Optional.of(tmp);
+        }
+        List<AdministrativeDivisionTmp> children = tmp.getChildren();
+        for (AdministrativeDivisionTmp item : children) {
+            if (item.getId() == parentId) {
+                return Optional.of(item);
+            } else {
+                Optional<AdministrativeDivisionTmp> childOpt = findNode(item, parentId);
+                if (childOpt.isPresent()) {
+                    return childOpt;
                 }
             }
         }

@@ -56,8 +56,9 @@ public class MapServerGeoController {
     public ResponseEntity<Map<String, Object>> geo() {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
-            logger.error("Can't find any geojson file for boundary search!");
-            return ResponseEntity.notFound().build();
+            String msg = "Can't find any geojson file for boundary search!";
+            logger.error(msg);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         } else {
             //TODO
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok("待实现..."));
@@ -77,8 +78,9 @@ public class MapServerGeoController {
                                                      @RequestParam(value = "langType", required = false, defaultValue = "0") int langType) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
-            logger.error("Can't find any geojson file for boundary search!");
-            return ResponseEntity.notFound().build();
+            String msg = "Can't find any geojson file for boundary search!";
+            logger.error(msg);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         }
         Integer[] array = administrativeDivisionLevel.keySet().toArray(new Integer[0]);
         Arrays.sort(array);
@@ -104,7 +106,6 @@ public class MapServerGeoController {
                 }
             }
         }
-        Map<String, Object> nok = ResponseMapUtil.nok("Not Found!");
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(nok);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
     }
 }

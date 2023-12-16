@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 行政区划获取接口
@@ -51,36 +52,69 @@ import java.util.Map;
 @Tag(name = "行政区划管理", description = "行政区划相关服务接口能力")
 public class MapServerOsmBController {
     private static final Logger logger = LoggerFactory.getLogger(MapServerOsmBController.class);
-    private final Map<Integer, AdministrativeDivision> cacheMap = new HashMap<>();
+    private final Map<String, AdministrativeDivision> cacheMap = new HashMap<>();
 
     /**
      * 获取行政区划数据，为空则从根节点开始
      *
-     * @param lang 可选参数，支持本地语言(0:default)和英语(1)。
+     * @param nodeId 查询行政区划数据的根节点
+     * @param lang   可选参数，支持本地语言(0:default)和英语(1)。
      * @return 行政区划节详情
      */
     @GetMapping("")
     @ResponseBody
     @Operation(summary = "获取省市区划级数据", description = "查询行政区划级联树数据。")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivision.class)))
-    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@Parameter(description = "支持本地语言(0: default)和英语(1)。") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang) {
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@Parameter(description = "行政区划的根节点") @RequestParam(value = "nodeId", required = false, defaultValue = "0") int nodeId,
+                                                                          @Parameter(description = "支持本地语言(0: default)和英语(1)。") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
-            logger.error("Can't find any geojson file for boundary search!");
-            return ResponseEntity.notFound().build();
+            String msg = "Can't find any geojson file for boundary search!";
+            logger.error(msg);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         } else {
             if (lang > 1 || lang < 0) {
                 return ResponseEntity.badRequest().build();
             }
-            AdministrativeDivisionTmp adminDivision = MapServerDataCenter.getSimpleAdminDivision();
-            if (cacheMap.containsKey(lang)) {
-                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(cacheMap.get(lang)));
+
+            String key = nodeId + "-" + lang;
+            if (cacheMap.containsKey(key)) {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(cacheMap.get(key)));
             }
-            AdministrativeDivision ad = new AdministrativeDivision(adminDivision, lang);
-            cacheMap.put(lang, ad);
+
+            AdministrativeDivisionTmp root = MapServerDataCenter.getSimpleAdminDivision();
+            if (nodeId != 0) {
+                if (MapServerDataCenter.getAdministrativeDivision().containsKey(nodeId)) {
+                    Optional<AdministrativeDivisionTmp> rootOpt = getRoot(MapServerDataCenter.getSimpleAdminDivision(), nodeId);
+                    if (rootOpt.isPresent()) {
+                        root = rootOpt.get();
+                    }
+                } else {
+                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
+                }
+            }
+
+            AdministrativeDivision ad = new AdministrativeDivision(root, lang);
+            cacheMap.put(key, ad);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(ad));
         }
     }
+
+    private Optional<AdministrativeDivisionTmp> getRoot(AdministrativeDivisionTmp simpleAdminDivision, int nodeId) {
+        if (simpleAdminDivision.getId() == nodeId) {
+            return Optional.of(simpleAdminDivision);
+        } else {
+            List<AdministrativeDivisionTmp> children = simpleAdminDivision.getChildren();
+            for (AdministrativeDivisionTmp child : children) {
+                Optional<AdministrativeDivisionTmp> rootOpt = getRoot(child, nodeId);
+                if (rootOpt.isPresent()) {
+                    return rootOpt;
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
 
     /**
      * 查询指定节点行政区划明细数据
@@ -92,11 +126,12 @@ public class MapServerOsmBController {
     @ResponseBody
     @Operation(summary = "获取省市区划节点详情数据", description = "查询行政区划节点详情数据。")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivisionOrigin.class)))
-    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-7668313。") @PathVariable Integer nodeId) {
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
-            logger.error("Can't find any geojson file for boundary search!");
-            return ResponseEntity.notFound().build();
+            String msg = "Can't find any geojson file for boundary search!";
+            logger.error(msg);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         }
         if (nodeId != null) {
             Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
@@ -117,7 +152,7 @@ public class MapServerOsmBController {
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
             }
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
     }
 
     /**
@@ -134,8 +169,9 @@ public class MapServerOsmBController {
     public ResponseEntity<Map<String, Object>> contains(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId, @Parameter(description = "待判断的经纬度坐标，多个参数用“;”分割。例如：104.071883,30.671974;104.071823,30.671374") @RequestParam(value = "locations") String locations) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
-            logger.error("Can't find any geojson file for boundary search!");
-            return ResponseEntity.notFound().build();
+            String msg = "Can't find any geojson file for boundary search!";
+            logger.error(msg);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         }
         if (nodeId != null) {
             Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
@@ -157,6 +193,6 @@ public class MapServerOsmBController {
                 }
             }
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
     }
 }

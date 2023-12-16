@@ -25,6 +25,29 @@ import java.util.Map;
  * @author liushaofeng
  */
 public class ResponseMapUtil {
+
+    /**
+     * 响应结果：OK
+     */
+    public static final int STATUS_OK = 0;
+    /**
+     * 响应结果：资源未找到
+     */
+    public static final int STATUS_NOT_FOUND = 1;
+    /**
+     * 响应结果：API参数设置错误
+     */
+    public static final int STATUS_PARAM_CONFIG_ERROR_API = 2;
+
+    /**
+     * 响应结果：App参数设置错误
+     */
+    public static final int STATUS_PARAM_CONFIG_ERROR_APP = 3;
+    /**
+     * 响应结果：其他
+     */
+    public static final int STATUS_OTHERS = 9;
+
     /**
      * 响应正常的map封装
      *
@@ -32,7 +55,7 @@ public class ResponseMapUtil {
      */
     public static Map<String, Object> ok() {
         HashMap<String, Object> map = new HashMap<>();
-        map.put("code", 0);
+        map.put("code", STATUS_OK);
         map.put("msg", "");
         map.put("data", "Nothing");
         return map;
@@ -46,21 +69,45 @@ public class ResponseMapUtil {
      */
     public static Map<String, Object> ok(Object data) {
         HashMap<String, Object> map = new HashMap<>();
-        map.put("code", 0);
+        map.put("code", STATUS_OK);
         map.put("msg", "");
         map.put("data", data);
         return map;
     }
 
     /**
+     * 找不到资源
+     *
+     * @return 找不到资源的相应消息
+     */
+    public static Map<String, Object> notFound() {
+        return notFound("Not found!");
+    }
+
+    /**
+     * 找不到资源，并携带消息说明
+     *
+     * @param msg 待返回的提示内容
+     * @return 找不到资源的相应消息
+     */
+    public static Map<String, Object> notFound(String msg) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("code", STATUS_NOT_FOUND);
+        map.put("msg", msg);
+        map.put("data", "");
+        return map;
+    }
+
+    /**
      * 响应不正常的map封装
      *
-     * @param msg 待返回的错误消息
+     * @param code 响应码
+     * @param msg  待返回的错误消息
      * @return 响应结果
      */
-    public static Map<String, Object> nok(String msg) {
+    public static Map<String, Object> nok(int code, String msg) {
         HashMap<String, Object> map = new HashMap<>();
-        map.put("code", 1);
+        map.put("code", code);
         map.put("msg", msg);
         map.put("data", "");
         return map;

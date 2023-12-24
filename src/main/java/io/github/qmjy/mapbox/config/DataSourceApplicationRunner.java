@@ -16,7 +16,7 @@
 
 package io.github.qmjy.mapbox.config;
 
-import io.github.qmjy.mapbox.MapServerDataCenter;
+import io.github.qmjy.mapbox.service.AsyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,68 +24,17 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
-import java.io.File;
 
 @Component
 @Order(value = 1)
 public class DataSourceApplicationRunner implements ApplicationRunner {
     private final Logger logger = LoggerFactory.getLogger(DataSourceApplicationRunner.class);
+
     @Autowired
-    private AppConfig appConfig;
+    private AsyncService asyncService;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        if (StringUtils.hasLength(appConfig.getDataPath())) {
-            File dataFolder = new File(appConfig.getDataPath());
-            if (dataFolder.isDirectory() && dataFolder.exists()) {
-                wrapTilesFile(dataFolder);
-                wrapFontsFile(dataFolder);
-                wrapOSMBFile(dataFolder);
-            }
-        }
-    }
-
-    /**
-     * data format from: <a href="https://osm-boundaries.com/">OSM-Boundaries</a>
-     *
-     * @param dataFolder 行政区划边界数据
-     */
-    private void wrapOSMBFile(File dataFolder) {
-        File boundariesFolder = new File(dataFolder, "OSMB");
-        File[] files = boundariesFolder.listFiles();
-        if (files != null) {
-            for (File boundary : files) {
-                if (!boundary.isDirectory() && boundary.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_GEOJSON)) {
-                    logger.info("Load boundary file: {}", boundary.getName());
-                    MapServerDataCenter.initBoundaryFile(boundary);
-                }
-            }
-        }
-    }
-
-    private void wrapFontsFile(File dataFolder) {
-        File tilesetsFolder = new File(dataFolder, "fonts");
-        File[] files = tilesetsFolder.listFiles();
-        if (files != null) {
-            for (File fontFolder : files) {
-                if (fontFolder.isDirectory()) {
-                    MapServerDataCenter.initFontsFile(fontFolder);
-                }
-            }
-        }
-    }
-
-    private void wrapTilesFile(File dataFolder) {
-        File tilesetsFolder = new File(dataFolder, "tilesets");
-        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES));
-
-        if (files != null) {
-            for (File dbFile : files) {
-                logger.info("Load tile file: {}", dbFile.getName());
-                MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
-            }
-        }
+        asyncService.asyncTask();
     }
 }

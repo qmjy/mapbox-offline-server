@@ -19,6 +19,21 @@ spring:
     driver-class-name: org.sqlite.JDBC
     url: jdbc:sqlite::resource:mapbox/tilesets/default.mbtiles
 
+async:
+  executor:
+    thread:
+      # 配置核心线程数
+      core_pool_size: 5
+      # 配置最大线程数
+      max_pool_size: 5
+      # 配置队列大小
+      queue_capacity: 999
+      # 配置线程最大空闲时间
+      keep_alive_seconds: 30
+      # 配置线程池中的线程的名称前缀
+      name:
+        prefix: mapbox-server-async-
+
 logging:
   level:
     #    org.springframework.web: trace

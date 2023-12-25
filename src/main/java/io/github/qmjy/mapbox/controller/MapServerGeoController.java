@@ -47,7 +47,7 @@ public class MapServerGeoController {
     private static final Logger logger = LoggerFactory.getLogger(MapServerGeoController.class);
 
     /**
-     * 地理编码
+     * 【未实现】地理编码
      *
      * @return 地理编码结果
      */

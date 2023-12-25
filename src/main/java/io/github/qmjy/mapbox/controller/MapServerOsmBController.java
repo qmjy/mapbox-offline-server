@@ -37,10 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 行政区划获取接口
@@ -113,6 +110,44 @@ public class MapServerOsmBController {
             }
         }
         return Optional.empty();
+    }
+
+
+    /**
+     * 查询支持的节点行政区划节点ID。如果指定父ID则查询所有的子行政区划，否则查询全部。
+     *
+     * @param nodeId 父节点
+     * @return 行政区划ID和名称
+     */
+    @GetMapping("/nodes")
+    @ResponseBody
+    @Operation(summary = "获取省市区划节点ID列表", description = "查询行政区划节点ID列表。")
+    @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)))
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNodes(@Parameter(description = "行政区划的根节点") @RequestParam(value = "nodeId", required = false, defaultValue = "0") int nodeId) {
+        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
+        if (administrativeDivisionLevel.isEmpty()) {
+            String msg = "Can't find any geojson file for boundary search!";
+            logger.error(msg);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
+        }
+        AdministrativeDivisionTmp root = MapServerDataCenter.getSimpleAdminDivision();
+        if (nodeId != 0) {
+            Optional<AdministrativeDivisionTmp> rootOpt = getRoot(MapServerDataCenter.getSimpleAdminDivision(), nodeId);
+            if (rootOpt.isPresent()) {
+                root = rootOpt.get();
+            }
+        }
+        Map<Integer, String> resultMap = new LinkedHashMap<>();
+        reWrap2List(root, resultMap);
+        Map<String, Object> ok = ResponseMapUtil.ok(resultMap);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
+    }
+
+    private void reWrap2List(AdministrativeDivisionTmp root, Map<Integer, String> resultMap) {
+        resultMap.put(root.getId(), root.getName());
+        root.getChildren().forEach(item -> {
+            reWrap2List(item, resultMap);
+        });
     }
 
 

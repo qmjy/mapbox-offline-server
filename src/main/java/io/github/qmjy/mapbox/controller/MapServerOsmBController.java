@@ -29,8 +29,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.geometry.jts.GeometryBuilder;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -213,21 +215,31 @@ public class MapServerOsmBController {
             if (administrativeDivision.containsKey(nodeId)) {
                 SimpleFeature simpleFeature = administrativeDivision.get(nodeId);
                 Object geometry = simpleFeature.getAttribute("geometry");
-                if (geometry instanceof MultiPolygon polygon) {
-                    String[] groups = locations.split(";");
-                    HashMap<String, Boolean> resultMap = new HashMap<>();
-                    for (String location : groups) {
-                        String[] split = location.split(",");
-                        GeometryBuilder geometryBuilder = new GeometryBuilder();
-                        Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
-                        boolean contains = polygon.covers(point);
-                        resultMap.put(location, contains);
-                    }
-                    Map<String, Object> ok = ResponseMapUtil.ok(resultMap);
-                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
-                }
+                HashMap<String, Boolean> resultMap = getStringBooleanHashMap(locations, geometry);
+                Map<String, Object> ok = ResponseMapUtil.ok(resultMap);
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
             }
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
+    }
+
+    private static HashMap<String, Boolean> getStringBooleanHashMap(String locations, Object geometry) {
+        Geometry geo = null;
+        if (geometry instanceof MultiPolygon polygon) {
+            geo = polygon;
+        } else if (geometry instanceof Polygon polygon) {
+            geo = polygon;
+        } else {
+            return new HashMap<>();
+        }
+        String[] groups = locations.split(";");
+        HashMap<String, Boolean> resultMap = new HashMap<>();
+        for (String location : groups) {
+            String[] split = location.split(",");
+            GeometryBuilder geometryBuilder = new GeometryBuilder();
+            Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
+            resultMap.put(location, geo.covers(point));
+        }
+        return resultMap;
     }
 }

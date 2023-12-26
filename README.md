@@ -1,6 +1,7 @@
 # mapbox-offline-server
 
-Mapbox GL offline server with java(JDK 21).
+Mapbox GL offline server with java(JDK 21).  
+启动项目后可以通过 http://localhost:10101/swagger-ui/index.html 查看开放接口。
 
 ## 特性列表
 

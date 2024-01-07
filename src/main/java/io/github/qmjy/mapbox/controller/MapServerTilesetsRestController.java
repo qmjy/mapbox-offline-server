@@ -16,9 +16,17 @@
 
 package io.github.qmjy.mapbox.controller;
 
-import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.MapServerDataCenter;
+import io.github.qmjy.mapbox.config.AppConfig;
+import io.github.qmjy.mapbox.model.MbtilesOfMerge;
+import io.github.qmjy.mapbox.model.MbtilesOfMergeProgress;
+import io.github.qmjy.mapbox.service.AsyncService;
+import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +43,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Optional;
+import java.util.*;
 
 
 /**
@@ -47,7 +55,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/tilesets")
 @Tag(name = "地图瓦片服务管理", description = "Mapbox离线服务接口能力")
-public class MapServerTilesetsController {
+public class MapServerTilesetsRestController {
+    @Autowired
+    private AsyncService asyncService;
     @Autowired
     private MapServerDataCenter mapServerDataCenter;
     @Autowired
@@ -69,7 +79,6 @@ public class MapServerTilesetsController {
                                                          @PathVariable("x") String x, @PathVariable("y") String y) {
         return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_JPEG);
     }
-
 
     /**
      * 加载图片瓦片数据
@@ -123,6 +132,50 @@ public class MapServerTilesetsController {
                 }
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+
+    /**
+     * 将多个mbtiles文件合并成一个mbtiles文件。
+     * 部分文件不存在则跳过，所有不存在或者目标文件已存在则合并失败。
+     *
+     * @return 任务任务ID和进度。
+     */
+    @PostMapping(value = "/merge")
+    @ResponseBody
+    @Operation(summary = "合并多个Mbtiles文件", description = "将多个mbtiles文件合并成一个mbtiles文件。")
+    @Parameter(name = "mergeInfo", description = "合并对象模型")
+    @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)))
+    public ResponseEntity<Map<String, Object>> merge(@RequestBody MbtilesOfMerge mergeInfo) {
+        List<String> sourceNamePaths = new ArrayList<>();
+        String basePath = appConfig.getDataPath() + File.separator + "tilesets" + File.separator;
+
+        String[] split = mergeInfo.getSourceNames().split(";");
+        for (String fileName : split) {
+            String filePath = basePath + fileName;
+            if (new File(filePath).exists() || fileName.toLowerCase(Locale.getDefault()).endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+                sourceNamePaths.add(filePath);
+            }
+        }
+        if (sourceNamePaths.isEmpty()) {
+            Map<String, Object> ok = ResponseMapUtil.nok(ResponseMapUtil.STATUS_NOT_FOUND, "至少得存在一个合法的mbtiles文件，且文件已存在！");
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
+        }
+
+        if (new File(basePath + mergeInfo.getTargetName()).exists()) {
+            Map<String, Object> ok = ResponseMapUtil.nok(ResponseMapUtil.STATUS_RESOURCE_ALREADY_EXISTS, "目标资源已存在！");
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
+        }
+        String taskId = asyncService.computeTaskId(sourceNamePaths);
+        Optional<MbtilesOfMergeProgress> taskOpt = asyncService.getTask(taskId);
+        if (taskOpt.isPresent()) {
+            Map<String, Object> ok = ResponseMapUtil.ok(taskOpt.get());
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
+        } else {
+            asyncService.submit(taskId, sourceNamePaths, basePath + mergeInfo.getTargetName());
+            Map<String, Object> ok = ResponseMapUtil.ok(new MbtilesOfMergeProgress(taskId, 0));
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
         }
     }
 

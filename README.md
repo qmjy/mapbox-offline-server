@@ -18,6 +18,10 @@ Mapbox GL offline server with java(JDK 21).
 - 支持判断经纬度坐标是否在某一个行政区划范围内；
 - 国际化支持；
 
+3. 工具支持
+
+- 支持mbtiles文件合并；
+
 ## 资源结构
 
 > 本项目自带了WGS84、CGCS2000坐标系的Mapbox资源文件。

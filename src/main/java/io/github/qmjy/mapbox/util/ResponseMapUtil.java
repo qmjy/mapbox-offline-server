@@ -43,6 +43,11 @@ public class ResponseMapUtil {
      * 响应结果：App参数设置错误
      */
     public static final int STATUS_PARAM_CONFIG_ERROR_APP = 3;
+
+    /**
+     * 相应结果：资源已存在
+     */
+    public static final int STATUS_RESOURCE_ALREADY_EXISTS = 4;
     /**
      * 响应结果：其他
      */

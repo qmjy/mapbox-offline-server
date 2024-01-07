@@ -18,15 +18,28 @@ package io.github.qmjy.mapbox.service;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
+import io.github.qmjy.mapbox.model.MbtilesOfMergeProgress;
+import io.github.qmjy.mapbox.model.MbtileInfoToCopy;
+import io.github.qmjy.mapbox.util.JdbcUtils;
+import org.hsqldb.jdbc.JDBCBlob;
+import org.hsqldb.types.BlobData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class AsyncService {
@@ -35,17 +48,22 @@ public class AsyncService {
     private AppConfig appConfig;
 
     /**
+     * taskId:完成百分比
+     */
+    private Map<String, Integer> taskProgress = new HashMap<>();
+
+    /**
      * 每10秒检查一次，数据有更新则刷新
      */
     @Scheduled(fixedRate = 1000)
     public void processFixedRate() {
-        //TODO
+        //TODO nothing to do yet
     }
 
     /**
      * 加载数据文件
      */
-    @Async
+    @Async("asyncServiceExecutor")
     public void asyncTask() {
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             File dataFolder = new File(appConfig.getDataPath());
@@ -56,6 +74,85 @@ public class AsyncService {
             }
         }
     }
+
+    /**
+     * 提交文件合并任务
+     *
+     * @param sourceNamePaths 待合并的文件列表
+     * @param targetFilePath  目标文件名字
+     */
+    @Async("asyncServiceExecutor")
+    public void submit(String taskId, List<String> sourceNamePaths, String targetFilePath) {
+        taskProgress.put(taskId, 0);
+
+        //filePath:mbtilesDetails
+        Map<String, MbtileInfoToCopy> needCopies = new HashMap<>();
+        AtomicReference<String> largestFile = new AtomicReference<>("");
+        AtomicLong totalCount = new AtomicLong();
+        long completeCount = 0;
+        sourceNamePaths.forEach(item -> {
+            if (largestFile.get().isBlank() || new File(item).length() > new File(largestFile.get()).length()) {
+                largestFile.set(item);
+            }
+            MbtileInfoToCopy value = wrapModel(item);
+            totalCount.addAndGet(value.getCount());
+            needCopies.put(item, value);
+        });
+
+
+        //直接拷贝最大的文件，提升合并速度
+        File targetTmpFile = new File(targetFilePath + ".tmp");
+        try {
+            FileCopyUtils.copy(new File(largestFile.get()), targetTmpFile);
+            completeCount = needCopies.get(largestFile.get()).getCount();
+            taskProgress.put(taskId, (int) (completeCount * 100 / totalCount.get()));
+            needCopies.remove(largestFile.get());
+        } catch (IOException e) {
+            logger.info("Copy the largest file failed: {}", largestFile.get());
+            taskProgress.put(taskId, -1);
+            return;
+        }
+
+        Iterator<Map.Entry<String, MbtileInfoToCopy>> iterator = needCopies.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, MbtileInfoToCopy> next = iterator.next();
+            merge(next.getValue(), targetTmpFile);
+            completeCount += next.getValue().getCount();
+            taskProgress.put(taskId, (int) (completeCount * 100 / totalCount.get()));
+            iterator.remove();
+        }
+
+        targetTmpFile.renameTo(new File(targetFilePath));
+        taskProgress.put(taskId, 100);
+    }
+
+
+    public void merge(MbtileInfoToCopy mbtile, File targetTmpFile) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), targetTmpFile.getAbsolutePath());
+
+        int pageSize = 1000;
+        long totalPage = mbtile.getCount() % pageSize == 0 ? mbtile.getCount() / pageSize : mbtile.getCount() / pageSize + 1;
+        for (long currentPage = 1; currentPage < totalPage; currentPage++) {
+            List<Map<String, Object>> dataList = mbtile.getJdbcTemplate().queryForList("SELECT * FROM tiles LIMIT " + pageSize + " OFFSET " + (currentPage - 1) * pageSize);
+
+            //批量插入
+            jdbcTemplate.batchUpdate("INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES (?, ?, ?, ?)",
+                    dataList,
+                    pageSize,
+                    (PreparedStatement ps, Map<String, Object> rowDataMap) -> {
+                        ps.setInt(1, (int) rowDataMap.get("zoom_level"));
+                        ps.setInt(2, (int) rowDataMap.get("tile_column"));
+                        ps.setInt(3, (int) rowDataMap.get("tile_row"));
+                        ps.setBytes(4, (byte[]) rowDataMap.get("tile_data"));
+                    });
+        }
+    }
+
+    private MbtileInfoToCopy wrapModel(String item) {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), item);
+        return new MbtileInfoToCopy(item, jdbcTemplate);
+    }
+
 
     /**
      * data format from: <a href="https://osm-boundaries.com/">OSM-Boundaries</a>
@@ -96,6 +193,23 @@ public class AsyncService {
                 logger.info("Load tile file: {}", dbFile.getName());
                 MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
             }
+        }
+    }
+
+
+    public String computeTaskId(List<String> sourceNamePaths) {
+        Collections.sort(sourceNamePaths);
+        StringBuilder sb = new StringBuilder();
+        sourceNamePaths.forEach(sb::append);
+        return DigestUtils.md5DigestAsHex(sb.toString().getBytes());
+    }
+
+    public Optional<MbtilesOfMergeProgress> getTask(String taskId) {
+        if (taskProgress.containsKey(taskId)) {
+            Integer i = taskProgress.get(taskId);
+            return Optional.of(new MbtilesOfMergeProgress(taskId, i));
+        } else {
+            return Optional.empty();
         }
     }
 }

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -29,7 +30,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
 @EnableAsync
-public class ExecutorConfig {
+public class ExecutorConfig implements AsyncConfigurer {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecutorConfig.class);
 
@@ -44,7 +45,7 @@ public class ExecutorConfig {
     @Value("${async.executor.thread.name.prefix}")
     private String namePrefix;
 
-    @Bean(name = "taskExecutor")
+    @Bean("asyncServiceExecutor")
     public Executor asyncServiceExecutor() {
         logger.info("开启SpringBoot的线程池！");
 

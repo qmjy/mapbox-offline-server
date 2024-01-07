@@ -16,6 +16,7 @@
 
 package io.github.qmjy.mapbox.model;
 
+import io.github.qmjy.mapbox.util.JdbcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -46,10 +47,7 @@ public class TilesFileModel {
     }
 
     private void initJdbc(String className, File file) {
-        DataSourceBuilder<?> ds = DataSourceBuilder.create();
-        ds.driverClassName(className);
-        ds.url("jdbc:sqlite:" + file.getAbsolutePath());
-        this.jdbcTemplate = new JdbcTemplate(ds.build());
+        this.jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(className, file.getAbsolutePath());
     }
 
     private void loadMetaData() {

@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.2.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -62,22 +62,6 @@
     </properties>
 
     <dependencies>
-        <!--外部依赖-->
-        <!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
-        <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/systems.uom/systems-quantity -->
-        <dependency>
-            <groupId>systems.uom</groupId>
-            <artifactId>systems-quantity</artifactId>
-            <version>2.1</version>
-        </dependency>
-        <!--外部依赖-->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -113,6 +97,14 @@
             <artifactId>gt-geojson-core</artifactId>
             <version>30.0</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.geotools/gt-tpk -->
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-tpk</artifactId>
+            <version>30.0</version>
+        </dependency>
+
     </dependencies>
 
     <repositories>

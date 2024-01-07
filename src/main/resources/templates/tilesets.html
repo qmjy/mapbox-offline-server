@@ -25,45 +25,23 @@
 <h1>瓦片数据库列表</h1>
 <hr>
 
-<table th:if="${tileFiles}" cellspacing="10">
+<table th:if="${tileFiles}" style="border-spacing:10px">
     <tr>
         <th>名称</th>
+        <th>文件格式</th>
+        <th>文件大小</th>
         <th>元数据</th>
     </tr>
     <tr th:each="file : ${tileFiles}">
         <td><a th:href="@{'/tilesets/'+${file.getName()}}" th:text="${file.getName()}"></a></td>
+        <td th:text="${file.getType()}"></td>
+        <td th:text="${file.getFileSize()}" style="text-align:right"></td>
         <td></td>
     </tr>
 </table>
 
 <!--/* tileFiles为空时显示 */-->
 <div th:unless="${tileFiles}">未检测到瓦片数据库文件</div>
-
-<hr>
-<div class="notice">未检测到样式文件目录，则请检查服务器启动参数：“--dataPath=xxx”,且文件结构如下:
-    <pre>
-    data
-    │
-    ├─fonts
-    │  └─Arial Regular
-    │         0-255.pbf
-    │         15616-15871.pbf
-    │         15872-16127.pbf
-    │
-    ├─sprites
-    │  └─streets
-    │          sprite.json
-    │          sprite.png
-    │          sprite@2x.json
-    │          sprite@2x.png
-    │
-    ├─styles
-    │      world.json
-    │
-    └─tilesets
-            Beijing.mbtiles
-            Hongkong.mbtiles
-</pre>
 </div>
 </body>
 </html>

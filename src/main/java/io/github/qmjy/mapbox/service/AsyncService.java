@@ -116,26 +116,26 @@ public class AsyncService {
         Iterator<Map.Entry<String, MbtileInfoToCopy>> iterator = needCopies.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, MbtileInfoToCopy> next = iterator.next();
-            merge(next.getValue(), targetTmpFile);
+            mergeTo(next.getValue(), targetTmpFile);
             completeCount += next.getValue().getCount();
             taskProgress.put(taskId, (int) (completeCount * 100 / totalCount.get()));
             iterator.remove();
+
+            logger.info("Merged file: {}", next.getValue().getFilePath());
         }
 
-        targetTmpFile.renameTo(new File(targetFilePath));
+        boolean b = targetTmpFile.renameTo(new File(targetFilePath));
+        System.out.println("重命名文件结果：" + b);
         taskProgress.put(taskId, 100);
     }
 
 
-    public void merge(MbtileInfoToCopy mbtile, File targetTmpFile) {
+    public void mergeTo(MbtileInfoToCopy mbtile, File targetTmpFile) {
         JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), targetTmpFile.getAbsolutePath());
-
-        int pageSize = 1000;
+        int pageSize = 5000;
         long totalPage = mbtile.getCount() % pageSize == 0 ? mbtile.getCount() / pageSize : mbtile.getCount() / pageSize + 1;
-        for (long currentPage = 1; currentPage < totalPage; currentPage++) {
-            List<Map<String, Object>> dataList = mbtile.getJdbcTemplate().queryForList("SELECT * FROM tiles LIMIT " + pageSize + " OFFSET " + (currentPage - 1) * pageSize);
-
-            //批量插入
+        for (long currentPage = 0; currentPage < totalPage; currentPage++) {
+            List<Map<String, Object>> dataList = mbtile.getJdbcTemplate().queryForList("SELECT * FROM tiles LIMIT " + pageSize + " OFFSET " + currentPage * pageSize);
             jdbcTemplate.batchUpdate("INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES (?, ?, ?, ?)",
                     dataList,
                     pageSize,
@@ -146,6 +146,7 @@ public class AsyncService {
                         ps.setBytes(4, (byte[]) rowDataMap.get("tile_data"));
                     });
         }
+        JdbcUtils.getInstance().releaseJdbcTemplate(jdbcTemplate);
     }
 
     private MbtileInfoToCopy wrapModel(String item) {

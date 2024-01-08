@@ -16,8 +16,14 @@
 
 package io.github.qmjy.mapbox.util;
 
+import com.zaxxer.hikari.pool.HikariProxyConnection;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.ConnectionHolder;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class JdbcUtils {
 
@@ -35,5 +41,12 @@ public class JdbcUtils {
         ds.driverClassName(className);
         ds.url("jdbc:sqlite:" + filePath);
         return new JdbcTemplate(ds.build());
+    }
+
+    public void releaseJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        if (jdbcTemplate.getDataSource() != null) {
+            Connection connection = DataSourceUtils.getConnection(jdbcTemplate.getDataSource());
+            DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
+        }
     }
 }

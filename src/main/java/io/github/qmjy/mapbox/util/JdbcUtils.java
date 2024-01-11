@@ -24,6 +24,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class JdbcUtils {
 
@@ -44,9 +45,6 @@ public class JdbcUtils {
     }
 
     public void releaseJdbcTemplate(JdbcTemplate jdbcTemplate) {
-        if (jdbcTemplate.getDataSource() != null) {
-            Connection connection = DataSourceUtils.getConnection(jdbcTemplate.getDataSource());
-            DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
-        }
+//        jdbcTemplate.getDataSource().getConnection().close();
     }
 }

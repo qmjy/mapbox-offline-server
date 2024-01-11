@@ -19,6 +19,7 @@ package io.github.qmjy.mapbox.controller;
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.geometry.jts.GeometryBuilder;
@@ -74,8 +75,8 @@ public class MapServerGeoController {
      */
     @Operation(summary = "地理逆编码查询", description = "通过经纬度查询行政区划概要信息，通过区划ID可获取行政区划详细信息。")
     @GetMapping("regeo")
-    public ResponseEntity<Map<String, Object>> regeo(@RequestParam(value = "location") String location,
-                                                     @RequestParam(value = "langType", required = false, defaultValue = "0") int langType) {
+    public ResponseEntity<Map<String, Object>> regeo(@Parameter(description = "待查询的经纬度坐标，例如：104.071883,30.671974") @RequestParam(value = "location") String location,
+                                                     @Parameter(description = "返回的数据语言。0：本地语言（default）；1：英语") @RequestParam(value = "langType", required = false, defaultValue = "0") int langType) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
@@ -94,11 +95,13 @@ public class MapServerGeoController {
                     GeometryBuilder geometryBuilder = new GeometryBuilder();
                     Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
                     if (polygon.covers(point)) {
+                        String parentPath = getParentFullPath(simpleFeature, langType);
 
                         HashMap<Object, Object> data = new HashMap<>();
                         data.put("id", simpleFeature.getAttribute("osm_id"));
                         data.put("name", langType == 0 ? simpleFeature.getAttribute("local_name") : simpleFeature.getAttribute("name_en"));
                         data.put("adminLevel", simpleFeature.getAttribute("admin_level"));
+                        data.put("fullPath", parentPath + data.get("name"));
 
                         Map<String, Object> ok = ResponseMapUtil.ok(data);
                         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
@@ -107,5 +110,20 @@ public class MapServerGeoController {
             }
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
+    }
+
+    private String getParentFullPath(SimpleFeature simpleFeature, int langType) {
+        String parentsString = (String) simpleFeature.getAttribute("parents");
+        String[] parents = parentsString.split(",");
+        StringBuilder sb = new StringBuilder();
+        for (int j = parents.length - 1; j >= 0; j--) {
+            SimpleFeature feature = MapServerDataCenter.getAdministrativeDivision().get(Integer.parseInt(parents[j]));
+            if (langType == 0) {
+                sb.append(feature.getAttribute("local_name"));
+            } else {
+                sb.append(feature.getAttribute("name_en")).append(" ");
+            }
+        }
+        return sb.toString();
     }
 }

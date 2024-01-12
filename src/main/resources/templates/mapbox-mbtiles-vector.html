@@ -49,79 +49,131 @@
                 }
             },
             "layers": [
-            {
-                "id": "background",
-                "type": "background",
-                "layout": {
-                    "visibility": "visible"
+                {
+                    "id": "background",
+                    "type": "background",
+                    "layout": {
+                        "visibility": "visible"
+                    },
+                    "paint": {
+                        "background-color": "hsl(203, 100%, 12%)"
+                    }
                 },
-                "paint": {
-                    "background-color": "hsl(200, 98%, 24%)"
-                }
-            },
-            {
-                "id": "waterway",
-                "type": "line",
-                "source": "osm-tiles",
-                "source-layer": "waterway",
-                "paint": {
-                  "line-color": "#00ffff"
-                }
-            },
-            {
-                "id": "transportation",
-                "type": "line",
-                "source": "osm-tiles",
-                "source-layer": "transportation",
-                "paint": {
-                  "line-color": "#f2934a",
-                  "line-opacity": 1,
-                  "line-width": 1,
+                {
+                    "id": "landuse",
+                    "type": "fill",
+                    "source": "osm-tiles",
+                    "source-layer": "landuse",
+                    "paint": {
+                        "fill-color": "#444444"
+                    }
                 },
-            },
-            {
-                "id": "building",
-                "type": "fill",
-                "source": "osm-tiles",
-                "source-layer": "building",
-                "paint": {
-                  "fill-color": "#eeeeee"
-                }
-            },
-            {
-                "id": "place",
-                "type": "symbol",
-                "source": "osm-tiles",
-                "source-layer": "place",
-                "layout": {
-                    "text-field": [
-                        "get",
-                        "name"
-                    ],
-                    "text-size": 12,
-                    "text-allow-overlap": false,
-                    "text-offset": [
-                        0,
-                        0
-                    ],
-                    "text-anchor": "center",
-                    "text-justify": "center",
-                    "text-font": [
-                        "Arial Unicode MS Regular"
-                    ]
+                {
+                    "id": "landcover",
+                    "type": "fill",
+                    "source": "osm-tiles",
+                    "source-layer": "landcover",
+                    "paint": {
+                        "fill-color": "hsl(200, 82%, 44%)"
+                    }
                 },
-                "paint": {
-                    "text-halo-color": "#444444",
-                    "text-halo-width": 1,
-                    "text-color": "#FFFFFF"
+                {
+                    "id": "water",
+                    "type": "fill",
+                    "source": "osm-tiles",
+                    "source-layer": "water",
+                    "paint": {
+                        "fill-color": "#015179"
+                    }
+                },
+                {
+                    "id": "building",
+                    "type": "fill",
+                    "source": "osm-tiles",
+                    "source-layer": "building",
+                    "paint": {
+                        "fill-color": "hsl(200, 96%, 48%)"
+                    }
+                },
+                {
+                    "id": "transportation_name",
+                    "type": "line",
+                    "source": "osm-tiles",
+                    "source-layer": "transportation_name"
+                },
+                {
+                    "id": "transportation",
+                    "type": "line",
+                    "source": "osm-tiles",
+                    "source-layer": "transportation",
+                    "paint": {
+                        "line-color": "hsl(195, 93%, 32%)",
+                        "line-opacity": 1,
+                        "line-width": 1
+                    }
+                },
+                {
+                    "id": "place",
+                    "type": "symbol",
+                    "source": "osm-tiles",
+                    "source-layer": "place",
+                    "layout": {
+                        "text-field": [
+                            "get",
+                            "name"
+                        ],
+                        "text-size": 12,
+                        "text-allow-overlap": false,
+                        "text-offset": [
+                            0,
+                            0
+                        ],
+                        "text-anchor": "center",
+                        "text-justify": "center",
+                        "text-font": [
+                            "Arial Unicode MS Regular"
+                        ]
+                    },
+                    "paint": {
+                        "text-halo-color": "#444444",
+                        "text-halo-width": 1,
+                        "text-color": "#FFFFFF"
+                    }
+                },
+                {
+                    "id": "poi",
+                    "type": "symbol",
+                    "source": "osm-tiles",
+                    "source-layer": "poi",
+                    "layout": {
+                        "text-field": [
+                            "get",
+                            "name"
+                        ],
+                        "text-size": 12,
+                        "text-allow-overlap": false,
+                        "text-offset": [
+                            0,
+                            0
+                        ],
+                        "text-anchor": "center",
+                        "text-justify": "center",
+                        "text-font": [
+                            "Arial Unicode MS Regular"
+                        ]
+                    },
+                    "paint": {
+                        "text-halo-color": "#444444",
+                        "text-halo-width": 1,
+                        "text-color": "#FFFFFF"
+                    }
                 }
-            }
             ]
-        },
-        center: [110,30],
-        zoom: 3,
-        hash: true
-    })
+                },
+                center: [110,30],
+                zoom: 3,
+                hash: true
+            })
 
     map.on('load', () => {
         map.addSource('China', {

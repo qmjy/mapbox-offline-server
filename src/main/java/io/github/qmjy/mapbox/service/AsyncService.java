@@ -18,11 +18,10 @@ package io.github.qmjy.mapbox.service;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
+import io.github.qmjy.mapbox.model.MbtileMergeFile;
+import io.github.qmjy.mapbox.model.MbtileMergeWrapper;
 import io.github.qmjy.mapbox.model.MbtilesOfMergeProgress;
-import io.github.qmjy.mapbox.model.MbtileInfoToCopy;
 import io.github.qmjy.mapbox.util.JdbcUtils;
-import org.hsqldb.jdbc.JDBCBlob;
-import org.hsqldb.types.BlobData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class AsyncService {
@@ -50,7 +47,7 @@ public class AsyncService {
     /**
      * taskId:完成百分比
      */
-    private Map<String, Integer> taskProgress = new HashMap<>();
+    private final Map<String, Integer> taskProgress = new HashMap<>();
 
     /**
      * 每10秒检查一次，数据有更新则刷新
@@ -76,7 +73,7 @@ public class AsyncService {
     }
 
     /**
-     * 提交文件合并任务
+     * 提交文件合并任务。合并任务失败，则process is -1。
      *
      * @param sourceNamePaths 待合并的文件列表
      * @param targetFilePath  目标文件名字
@@ -84,53 +81,113 @@ public class AsyncService {
     @Async("asyncServiceExecutor")
     public void submit(String taskId, List<String> sourceNamePaths, String targetFilePath) {
         taskProgress.put(taskId, 0);
+        Optional<MbtileMergeWrapper> wrapperOpt = arrange(sourceNamePaths);
 
-        //filePath:mbtilesDetails
-        Map<String, MbtileInfoToCopy> needCopies = new HashMap<>();
-        AtomicReference<String> largestFile = new AtomicReference<>("");
-        AtomicLong totalCount = new AtomicLong();
-        long completeCount = 0;
-        sourceNamePaths.forEach(item -> {
-            if (largestFile.get().isBlank() || new File(item).length() > new File(largestFile.get()).length()) {
-                largestFile.set(item);
+        if (wrapperOpt.isPresent()) {
+            MbtileMergeWrapper wrapper = wrapperOpt.get();
+            Map<String, MbtileMergeFile> needMerges = wrapper.getNeedMerges();
+            long totalCount = wrapper.getTotalCount();
+            String largestFilePath = wrapper.getLargestFilePath();
+
+            long completeCount = 0;
+            //直接拷贝最大的文件，提升合并速度
+            File targetTmpFile = new File(targetFilePath + ".tmp");
+            try {
+                FileCopyUtils.copy(new File(largestFilePath), targetTmpFile);
+                completeCount = needMerges.get(largestFilePath).getCount();
+                taskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
+                needMerges.remove(largestFilePath);
+            } catch (IOException e) {
+                logger.info("Copy the largest file failed: {}", largestFilePath);
+                taskProgress.put(taskId, -1);
+                return;
             }
-            MbtileInfoToCopy value = wrapModel(item);
-            totalCount.addAndGet(value.getCount());
-            needCopies.put(item, value);
-        });
 
+            Iterator<Map.Entry<String, MbtileMergeFile>> iterator = needMerges.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, MbtileMergeFile> next = iterator.next();
+                mergeTo(next.getValue(), targetTmpFile);
+                completeCount += next.getValue().getCount();
+                taskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
+                iterator.remove();
 
-        //直接拷贝最大的文件，提升合并速度
-        File targetTmpFile = new File(targetFilePath + ".tmp");
-        try {
-            FileCopyUtils.copy(new File(largestFile.get()), targetTmpFile);
-            completeCount = needCopies.get(largestFile.get()).getCount();
-            taskProgress.put(taskId, (int) (completeCount * 100 / totalCount.get()));
-            needCopies.remove(largestFile.get());
-        } catch (IOException e) {
-            logger.info("Copy the largest file failed: {}", largestFile.get());
+                logger.info("Merged file: {}", next.getValue().getFilePath());
+            }
+
+            updateMetadata(wrapper, targetTmpFile);
+
+            boolean b = targetTmpFile.renameTo(new File(targetFilePath));
+            System.out.println("重命名文件结果：" + b);
+            taskProgress.put(taskId, 100);
+        } else {
             taskProgress.put(taskId, -1);
-            return;
         }
+    }
 
-        Iterator<Map.Entry<String, MbtileInfoToCopy>> iterator = needCopies.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, MbtileInfoToCopy> next = iterator.next();
-            mergeTo(next.getValue(), targetTmpFile);
-            completeCount += next.getValue().getCount();
-            taskProgress.put(taskId, (int) (completeCount * 100 / totalCount.get()));
-            iterator.remove();
+    private void updateMetadata(MbtileMergeWrapper wrapper, File targetTmpFile) {
+        String bounds = wrapper.getMinLon() + "," + wrapper.getMinLat() + "," + wrapper.getMaxLon() + "," + wrapper.getMaxLat();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), targetTmpFile.getAbsolutePath());
+        jdbcTemplate.update("UPDATE metadata SET value = " + wrapper.getMinZoom() + " WHERE name = 'minzoom'");
+        jdbcTemplate.update("UPDATE metadata SET value = " + wrapper.getMaxZoom() + " WHERE name = 'maxzoom'");
+        jdbcTemplate.update("UPDATE metadata SET value = '" + bounds + "' WHERE name = 'bounds'");
+    }
 
-            logger.info("Merged file: {}", next.getValue().getFilePath());
+    private Optional<MbtileMergeWrapper> arrange(List<String> sourceNamePaths) {
+        MbtileMergeWrapper mbtileMergeWrapper = new MbtileMergeWrapper();
+
+        for (String item : sourceNamePaths) {
+            if (mbtileMergeWrapper.getLargestFilePath() == null || mbtileMergeWrapper.getLargestFilePath().isBlank() || new File(item).length() > new File(mbtileMergeWrapper.getLargestFilePath()).length()) {
+                mbtileMergeWrapper.setLargestFilePath(item);
+            }
+
+            MbtileMergeFile value = wrapModel(item);
+            Map<String, String> metadata = value.getMetaMap();
+
+            String format = metadata.get("format");
+            if (mbtileMergeWrapper.getFormat().isBlank()) {
+                mbtileMergeWrapper.setFormat(format);
+            } else {
+                //比较mbtiles文件格式是否一致
+                if (!mbtileMergeWrapper.getFormat().equals(format)) {
+                    logger.error("These Mbtiles files have different formats!");
+                    return Optional.empty();
+                }
+            }
+
+            int minZoom = Integer.parseInt(metadata.get("minzoom"));
+            if (mbtileMergeWrapper.getMinZoom() > minZoom) {
+                mbtileMergeWrapper.setMinZoom(minZoom);
+            }
+
+            int maxZoom = Integer.parseInt(metadata.get("maxzoom"));
+            if (mbtileMergeWrapper.getMaxZoom() < maxZoom) {
+                mbtileMergeWrapper.setMaxZoom(maxZoom);
+            }
+
+            //Such as: 120.85098267,30.68516394,122.03475952,31.87872381
+            String[] split = metadata.get("bounds").split(",");
+
+            if (mbtileMergeWrapper.getMinLat() > Double.parseDouble(split[1])) {
+                mbtileMergeWrapper.setMinLat(Double.parseDouble(split[1]));
+            }
+            if (mbtileMergeWrapper.getMaxLat() < Double.parseDouble(split[3])) {
+                mbtileMergeWrapper.setMaxLat(Double.parseDouble(split[3]));
+            }
+            if (mbtileMergeWrapper.getMinLon() > Double.parseDouble(split[0])) {
+                mbtileMergeWrapper.setMinLon(Double.parseDouble(split[0]));
+            }
+            if (mbtileMergeWrapper.getMaxLon() < Double.parseDouble(split[2])) {
+                mbtileMergeWrapper.setMaxLon(Double.parseDouble(split[2]));
+            }
+
+            mbtileMergeWrapper.addToTotal(value.getCount());
+            mbtileMergeWrapper.getNeedMerges().put(item, value);
         }
-
-        boolean b = targetTmpFile.renameTo(new File(targetFilePath));
-        System.out.println("重命名文件结果：" + b);
-        taskProgress.put(taskId, 100);
+        return Optional.of(mbtileMergeWrapper);
     }
 
 
-    public void mergeTo(MbtileInfoToCopy mbtile, File targetTmpFile) {
+    public void mergeTo(MbtileMergeFile mbtile, File targetTmpFile) {
         JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), targetTmpFile.getAbsolutePath());
         int pageSize = 5000;
         long totalPage = mbtile.getCount() % pageSize == 0 ? mbtile.getCount() / pageSize : mbtile.getCount() / pageSize + 1;
@@ -149,9 +206,9 @@ public class AsyncService {
         JdbcUtils.getInstance().releaseJdbcTemplate(jdbcTemplate);
     }
 
-    private MbtileInfoToCopy wrapModel(String item) {
+    private MbtileMergeFile wrapModel(String item) {
         JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), item);
-        return new MbtileInfoToCopy(item, jdbcTemplate);
+        return new MbtileMergeFile(item, jdbcTemplate);
     }
 
 

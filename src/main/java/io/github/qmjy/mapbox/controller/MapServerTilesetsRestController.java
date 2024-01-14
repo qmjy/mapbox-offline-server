@@ -145,7 +145,7 @@ public class MapServerTilesetsRestController {
     @PostMapping(value = "/merge")
     @ResponseBody
     @Operation(summary = "合并多个Mbtiles文件", description = "将多个mbtiles文件合并成一个mbtiles文件。")
-    @Parameter(name = "mergeInfo", description = "合并对象模型")
+    @Parameter(name = "mergeInfo", description = "合并对象模型，多个文件用英文分号分割")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)))
     public ResponseEntity<Map<String, Object>> merge(@RequestBody MbtilesOfMerge mergeInfo) {
         List<String> sourceNamePaths = new ArrayList<>();

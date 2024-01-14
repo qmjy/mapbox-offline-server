@@ -22,13 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MbtileInfoToCopy {
+public class MbtileMergeFile {
     private final JdbcTemplate jdbcTemplate;
     private final String filePath;
     private final Map<String, String> metaMap = new HashMap<>();
     private long count;
 
-    public MbtileInfoToCopy(String item, JdbcTemplate jdbcTemplate) {
+    public MbtileMergeFile(String item, JdbcTemplate jdbcTemplate) {
         this.filePath = item;
         this.jdbcTemplate = jdbcTemplate;
         init();

@@ -85,6 +85,11 @@ public class MapServerGeoController {
             logger.error(msg);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         }
+
+        if (location.trim().isEmpty() || location.indexOf(",") <= 0) {
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound("参数不合法，请检查参数！"));
+        }
+
         Integer[] array = administrativeDivisionLevel.keySet().toArray(new Integer[0]);
         Arrays.sort(array);
         for (int i = array.length - 1; i >= 0; i--) {

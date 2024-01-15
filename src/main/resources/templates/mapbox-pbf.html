@@ -93,6 +93,57 @@
         hash: true
     })
 
+    map.on('load', () => {
+        map.addSource('China', {
+            type: 'geojson',
+            data: '/static/China.json'
+        });
+
+        map.addLayer({
+            'id': 'ChinaBounds',
+            'type': 'line',
+            'source': 'China',
+            "paint": {
+              "line-color": "hsl(202, 100%, 72%)",
+              "line-opacity": 0.5,
+              "line-width": 3,
+            },
+        });
+
+        map.addLayer({
+            'id': 'Provice',
+            'type': 'symbol',
+            source: 'China',
+            layout: {
+                'text-field': ['get', 'name'],
+                'text-size': 12,
+                "text-allow-overlap": false,
+                "text-offset": [0, 0],
+                "text-anchor": "center",
+                "text-justify": "center",
+                'text-font': ['Arial Unicode MS Regular'],
+            },
+            paint: {
+                "text-halo-color": "#444444",
+		        "text-halo-width": 1,
+                "text-color": '#FFFFFF'
+            }
+        });
+
+        if(metaData.center){
+            setTimeout(function(){
+                var center = metaData.center.split(",")
+                map.flyTo({
+                    center: [center[0], center[1]],
+                    zoom: center[2],
+                    essential: true
+                });
+            }, 2000 )
+        }else{
+            console.log("no center set!")
+        }
+    });
+
     map.addControl(new mapboxgl.NavigationControl())
     map.addControl(new mapboxgl.FullscreenControl())
     map.addControl(new mapboxgl.ScaleControl())

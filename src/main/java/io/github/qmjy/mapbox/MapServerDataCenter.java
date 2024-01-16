@@ -19,9 +19,12 @@ package io.github.qmjy.mapbox;
 import io.github.qmjy.mapbox.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapbox.model.FontsFileModel;
 import io.github.qmjy.mapbox.model.TilesFileModel;
+import lombok.Getter;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.tpk.TPKFile;
+import org.geotools.tpk.TPKZoomLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,6 +47,11 @@ public class MapServerDataCenter {
      * 瓦片数据库文件模型
      */
     private static final Map<String, TilesFileModel> tilesMap = new HashMap<>();
+
+
+    private static final Map<String, Map<Long, TPKZoomLevel>> tpkMap = new HashMap<>();
+    private static final Map<String, TPKFile> tpkFileMap = new HashMap<>();
+
     /**
      * 字体文件模型
      */
@@ -52,16 +60,19 @@ public class MapServerDataCenter {
     /**
      * 行政区划数据。key:行政级别、value:区划对象列表
      */
+    @Getter
     private static final Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = new HashMap<>();
 
     /**
      * 行政区划数据。key:区划ID、value:区划对象
      */
+    @Getter
     private static final Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
 
     /**
      * 行政区划层级树
      */
+    @Getter
     private static AdministrativeDivisionTmp simpleAdminDivision;
 
     /**
@@ -74,6 +85,19 @@ public class MapServerDataCenter {
         TilesFileModel dbFileModel = new TilesFileModel(file, className);
         tilesMap.put(file.getName(), dbFileModel);
     }
+
+    /**
+     * 初始化TPK文件
+     *
+     * @param tpk tpk地图数据文件
+     */
+    public static void initTpk(File tpk) {
+        Map<Long, TPKZoomLevel> zoomLevelMap = new HashMap<>();
+        TPKFile tpkFile = new TPKFile(tpk, zoomLevelMap);
+        tpkMap.put(tpk.getName(), zoomLevelMap);
+        tpkFileMap.put(tpk.getName(), tpkFile);
+    }
+
 
     /**
      * 初始化字体库文件
@@ -231,6 +255,18 @@ public class MapServerDataCenter {
         }
     }
 
+    public Map<String, Object> getTpkMetaData(String fileName) {
+        Map<String, Object> dataMap = new HashMap<>();
+        if (StringUtils.hasLength(fileName)) {
+            TPKFile tpkFile = tpkFileMap.get(fileName);
+            dataMap.put("bounds", tpkFile.getBounds());
+            dataMap.put("format", tpkFile.getImageFormat());
+            dataMap.put("maxzoom", tpkFile.getMaxZoomLevel());
+            dataMap.put("minzoom", tpkFile.getMinZoomLevel());
+        }
+        return dataMap;
+    }
+
     /**
      * 获取字符文件目录
      *
@@ -244,17 +280,5 @@ public class MapServerDataCenter {
         } else {
             return Optional.empty();
         }
-    }
-
-    public static Map<Integer, List<SimpleFeature>> getAdministrativeDivisionLevel() {
-        return administrativeDivisionLevel;
-    }
-
-    public static Map<Integer, SimpleFeature> getAdministrativeDivision() {
-        return administrativeDivision;
-    }
-
-    public static AdministrativeDivisionTmp getSimpleAdminDivision() {
-        return simpleAdminDivision;
     }
 }

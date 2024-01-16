@@ -1,7 +1,7 @@
 # mapbox-offline-server
 
 Mapbox GL offline server with java(JDK 21).  
-启动项目后可以通过 http://localhost:10101/ 查看开放接口。
+启动项目后可以通过 http://localhost:10101/ 查看开放接口，目前主要支持mbtiles、tpk两种地图格式数据。
 
 ## 特性列表
 
@@ -9,6 +9,7 @@ Mapbox GL offline server with java(JDK 21).
 
 - 支持mbtiles瓦片数据发布；
 - 支持mapbox离线静态资源发布；
+- 支持底图数据的元数据查看；
 
 2. 支持全球行政区划级联数据查询；
 

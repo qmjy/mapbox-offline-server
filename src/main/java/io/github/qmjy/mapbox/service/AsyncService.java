@@ -244,8 +244,22 @@ public class AsyncService {
 
     private void wrapTilesFile(File dataFolder) {
         File tilesetsFolder = new File(dataFolder, "tilesets");
-        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES));
+        searchMbtiles(tilesetsFolder);
+        searchTpk(tilesetsFolder);
+    }
 
+    private void searchTpk(File tilesetsFolder) {
+        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_TPK));
+        if (files != null) {
+            for (File tpk : files) {
+                logger.info("Load tpk tile file: {}", tpk.getName());
+                MapServerDataCenter.initTpk(tpk);
+            }
+        }
+    }
+
+    private void searchMbtiles(File tilesetsFolder) {
+        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES));
         if (files != null) {
             for (File dbFile : files) {
                 logger.info("Load tile file: {}", dbFile.getName());

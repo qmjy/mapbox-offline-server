@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 
@@ -115,10 +116,9 @@ public class MapServerTilesetsRestController {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             return getArrayResourceResponseEntity(tileset, z, x, y, AppConfig.APPLICATION_X_PROTOBUF_VALUE);
         } else {
-            StringBuilder sb = new StringBuilder(appConfig.getDataPath());
-            sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator)
-                    .append(z).append(File.separator).append(x).append(File.separator).append(y).append(AppConfig.FILE_EXTENSION_NAME_PBF);
-            File pbfFile = new File(sb.toString());
+            String sb = appConfig.getDataPath() + File.separator + "tilesets" + File.separator + tileset + File.separator +
+                    z + File.separator + x + File.separator + y + AppConfig.FILE_EXTENSION_NAME_PBF;
+            File pbfFile = new File(sb);
             if (pbfFile.exists()) {
                 try {
                     byte[] buffer = FileCopyUtils.copyToByteArray(pbfFile);
@@ -133,6 +133,56 @@ public class MapServerTilesetsRestController {
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    /**
+     * 获取指定底图数据的元数据
+     *
+     * @param tileset 底图数据文件名称
+     * @return 元数据
+     */
+    @GetMapping(value = "/{tileset}/metadata", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    @Operation(summary = "获取底图数据的元数据", description = "获取底图数据的元数据。")
+    public ResponseEntity<Map<String, Object>> metadata(@Parameter(description = "待查询的底图文件或文件夹名字，例如：admin.mbtiles。") @PathVariable("tileset") String tileset) {
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+            Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
+            if (jdbcTemplateOpt.isPresent()) {
+                JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
+                String sql = "SELECT * FROM metadata";
+                try {
+                    List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+                    return ResponseEntity.ok().body(ResponseMapUtil.ok(wrapMap(maps)));
+                } catch (EmptyResultDataAccessException e) {
+                    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
+                }
+            }
+        }
+
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
+            Map<String, Object> tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(tpkMetaData));
+        }
+
+        StringBuilder sb = new StringBuilder(appConfig.getDataPath());
+        sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");
+        if (new File(sb.toString()).exists()) {
+            try {
+                String s = Files.readString(Path.of(sb.toString()));
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(s));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
+    }
+
+    private Map<String, Object> wrapMap(List<Map<String, Object>> maps) {
+        Map<String, Object> result = new HashMap<>();
+        for (Map<String, Object> map : maps) {
+            result.put(String.valueOf(map.get("name")), map.get("value"));
+        }
+        return result;
     }
 
 
@@ -153,9 +203,8 @@ public class MapServerTilesetsRestController {
 
         String[] split = mergeInfo.getSourceNames().split(";");
         for (String fileName : split) {
-            String filePath = basePath + fileName;
-            if (new File(filePath).exists() || fileName.toLowerCase(Locale.getDefault()).endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
-                sourceNamePaths.add(filePath);
+            if (new File(basePath + fileName).exists() || fileName.toLowerCase(Locale.getDefault()).endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+                sourceNamePaths.add(basePath + fileName);
             }
         }
         if (sourceNamePaths.isEmpty()) {
@@ -179,14 +228,16 @@ public class MapServerTilesetsRestController {
         }
     }
 
-    private ResponseEntity<ByteArrayResource> getByteArrayResourceResponseEntity(String tileset, String z, String x, String y, MediaType mediaType) {
+    private ResponseEntity<ByteArrayResource> getByteArrayResourceResponseEntity(String tileset, String z, String
+            x, String y, MediaType mediaType) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             return getArrayResourceResponseEntity(tileset, z, x, y, mediaType);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    private ResponseEntity<ByteArrayResource> getArrayResourceResponseEntity(String tileset, String z, String x, String y, MediaType mediaType) {
+    private ResponseEntity<ByteArrayResource> getArrayResourceResponseEntity(String tileset, String z, String
+            x, String y, MediaType mediaType) {
         Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
         if (jdbcTemplateOpt.isPresent()) {
             JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();

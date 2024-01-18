@@ -20,6 +20,7 @@ import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.MbtilesOfMerge;
 import io.github.qmjy.mapbox.model.MbtilesOfMergeProgress;
+import io.github.qmjy.mapbox.model.MetaData;
 import io.github.qmjy.mapbox.service.AsyncService;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -160,7 +161,7 @@ public class MapServerTilesetsRestController {
         }
 
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
-            Map<String, Object> tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
+            MetaData tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(tpkMetaData));
         }
 

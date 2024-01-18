@@ -18,6 +18,7 @@ package io.github.qmjy.mapbox;
 
 import io.github.qmjy.mapbox.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapbox.model.FontsFileModel;
+import io.github.qmjy.mapbox.model.MetaData;
 import io.github.qmjy.mapbox.model.TilesFileModel;
 import lombok.Getter;
 import org.geotools.api.feature.simple.SimpleFeature;
@@ -255,16 +256,17 @@ public class MapServerDataCenter {
         }
     }
 
-    public Map<String, Object> getTpkMetaData(String fileName) {
-        Map<String, Object> dataMap = new HashMap<>();
+    public MetaData getTpkMetaData(String fileName) {
+        MetaData metaData = new MetaData();
         if (StringUtils.hasLength(fileName)) {
             TPKFile tpkFile = tpkFileMap.get(fileName);
-            dataMap.put("bounds", tpkFile.getBounds());
-            dataMap.put("format", tpkFile.getImageFormat());
-            dataMap.put("maxzoom", tpkFile.getMaxZoomLevel());
-            dataMap.put("minzoom", tpkFile.getMinZoomLevel());
+            metaData.setBounds(tpkFile.getBounds().toString());
+            metaData.setCrs(tpkFile.getBounds().getCoordinateReferenceSystem().getName().toString());
+            metaData.setFormat(tpkFile.getImageFormat());
+            metaData.setMaxzoom(tpkFile.getMaxZoomLevel());
+            metaData.setMinzoom(tpkFile.getMinZoomLevel());
         }
-        return dataMap;
+        return metaData;
     }
 
     /**

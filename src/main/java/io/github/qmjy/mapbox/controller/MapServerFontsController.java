@@ -16,11 +16,10 @@
 
 package io.github.qmjy.mapbox.controller;
 
+import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.FontsFileModel;
-import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Optional;
 
 /**
@@ -67,7 +65,6 @@ public class MapServerFontsController {
             try {
                 File file = new File(fileName);
                 byte[] buffer = FileCopyUtils.copyToByteArray(file);
-                IOUtils.readFully(Files.newInputStream(file.toPath()), buffer);
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
                 ByteArrayResource resource = new ByteArrayResource(buffer);

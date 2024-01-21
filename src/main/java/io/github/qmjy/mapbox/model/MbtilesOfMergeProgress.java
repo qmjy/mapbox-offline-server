@@ -16,28 +16,15 @@
 
 package io.github.qmjy.mapbox.model;
 
+import lombok.Data;
+
+@Data
 public class MbtilesOfMergeProgress {
     private String taskId;
     private int progress;
 
     public MbtilesOfMergeProgress(String taskId, int progress) {
         this.taskId = taskId;
-        this.progress = progress;
-    }
-
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
-    }
-
-    public int getProgress() {
-        return progress;
-    }
-
-    public void setProgress(int progress) {
         this.progress = progress;
     }
 }

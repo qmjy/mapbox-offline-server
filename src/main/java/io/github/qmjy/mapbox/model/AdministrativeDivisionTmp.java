@@ -16,6 +16,8 @@
 
 package io.github.qmjy.mapbox.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.geotools.api.feature.simple.SimpleFeature;
 
 import java.util.ArrayList;
@@ -26,12 +28,14 @@ import java.util.List;
  *
  * @author liushaofeng
  */
+@Getter
 public class AdministrativeDivisionTmp {
     private final int id;
     private final int parentId;
     private final String name;
     private final String nameEn;
     private final int adminLevel;
+    @Setter
     private List<AdministrativeDivisionTmp> children = new ArrayList<>();
 
     public AdministrativeDivisionTmp(SimpleFeature simpleFeature, int parentId) {
@@ -41,33 +45,5 @@ public class AdministrativeDivisionTmp {
         this.nameEn = nameEnObj == null ? "" : String.valueOf(nameEnObj);
         this.parentId = parentId;
         this.adminLevel = simpleFeature.getAttribute("admin_level") == null ? -1 : (int) simpleFeature.getAttribute("admin_level");
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public int getParentId() {
-        return parentId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getNameEn() {
-        return nameEn;
-    }
-
-    public int getAdminLevel() {
-        return adminLevel;
-    }
-
-    public List<AdministrativeDivisionTmp> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<AdministrativeDivisionTmp> children) {
-        this.children = children;
     }
 }

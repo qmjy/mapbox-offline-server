@@ -36,6 +36,11 @@ public class AppConfig {
 
     public static final MediaType APPLICATION_X_PROTOBUF_VALUE = MediaType.valueOf("application/x-protobuf");
 
+    public static final long BBOX_BOUND_LEFT = -180L;
+    public static final long BBOX_BOUND_RIGHT = 180L;
+    public static final long BBOX_BOUND_TOP = 90L;
+    public static final long BBOX_BOUND_BOTTOM = -90L;
+
     @Value("${spring.datasource.driver-class-name}")
     private String driverClassName;
 

@@ -18,8 +18,7 @@ package io.github.qmjy.mapbox.model;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.Getter;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.json.JsonParserFactory;
 
@@ -31,6 +30,7 @@ import java.util.Map;
  *
  * @author liushaofeng
  */
+@Getter
 public class AdministrativeDivisionOrigin {
     @Schema(description = "行政区划节点ID", example = "-2110264")
     private final int id;
@@ -56,33 +56,5 @@ public class AdministrativeDivisionOrigin {
         this.geometry = geometry;
         JsonParser jsonParser = JsonParserFactory.getJsonParser();
         tags.putAll(jsonParser.parseMap(tagsData));
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getParentsId() {
-        return parentsId;
-    }
-
-    public int getAdminLevel() {
-        return adminLevel;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getNameEn() {
-        return nameEn;
-    }
-
-    public String getGeometry() {
-        return geometry;
-    }
-
-    public Map<String, Object> getTags() {
-        return tags;
     }
 }

@@ -18,7 +18,6 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
-import io.github.qmjy.mapbox.config.DataSourceApplicationRunner;
 import io.github.qmjy.mapbox.model.TilesViewModel;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;

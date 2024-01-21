@@ -16,8 +16,11 @@
 
 package io.github.qmjy.mapbox.model;
 
+import lombok.Getter;
+
 import java.io.File;
 
+@Getter
 public class TilesViewModel {
     private final String name;
     private final String type;
@@ -54,23 +57,5 @@ public class TilesViewModel {
             sizeName = size.toString() + "B";
         }
         return sizeName;
-    }
-
-
-    /**
-     * 获取瓦片文件名称
-     *
-     * @return 瓦片文件名称
-     */
-    public String getName() {
-        return name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getFileSize() {
-        return fileSize;
     }
 }

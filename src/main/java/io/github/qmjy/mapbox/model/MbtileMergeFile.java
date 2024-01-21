@@ -16,12 +16,14 @@
 
 package io.github.qmjy.mapbox.model;
 
+import lombok.Getter;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Getter
 public class MbtileMergeFile {
     private final JdbcTemplate jdbcTemplate;
     private final String filePath;
@@ -44,19 +46,4 @@ public class MbtileMergeFile {
         this.count = Long.parseLong(maps.getFirst().get("count").toString());
     }
 
-    public JdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public long getCount() {
-        return count;
-    }
-
-    public Map<String, String> getMetaMap() {
-        return metaMap;
-    }
 }

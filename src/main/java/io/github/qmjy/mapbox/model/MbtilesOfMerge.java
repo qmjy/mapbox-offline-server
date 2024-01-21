@@ -17,7 +17,9 @@
 package io.github.qmjy.mapbox.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
+@Data
 @Schema(description = "待合并mbtiles文件对象信息")
 public class MbtilesOfMerge {
 
@@ -25,20 +27,4 @@ public class MbtilesOfMerge {
     private String sourceNames;
     @Schema(description = "合并完成后的文件名字，不能与现有的mbtiles文件重名。例如：'target.mbtiles'")
     private String targetName;
-
-    public String getSourceNames() {
-        return sourceNames;
-    }
-
-    public void setSourceNames(String sourceNames) {
-        this.sourceNames = sourceNames;
-    }
-
-    public String getTargetName() {
-        return targetName;
-    }
-
-    public void setTargetName(String targetName) {
-        this.targetName = targetName;
-    }
 }

@@ -25,6 +25,7 @@ import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.tpk.TPKFile;
+import org.geotools.tpk.TPKTile;
 import org.geotools.tpk.TPKZoomLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +98,35 @@ public class MapServerDataCenter {
         TPKFile tpkFile = new TPKFile(tpk, zoomLevelMap);
         tpkMap.put(tpk.getName(), zoomLevelMap);
         tpkFileMap.put(tpk.getName(), tpkFile);
+    }
+
+    /**
+     * TPK文件的元数据
+     *
+     * @param fileName TPK文件
+     * @return tpk文件的元数据
+     */
+    public MetaData getTpkMetaData(String fileName) {
+        MetaData metaData = new MetaData();
+        if (StringUtils.hasLength(fileName)) {
+            TPKFile tpkFile = tpkFileMap.get(fileName);
+            metaData.setBounds(tpkFile.getBounds().toString());
+            metaData.setCrs(tpkFile.getBounds().getCoordinateReferenceSystem().getName().toString());
+            metaData.setFormat(tpkFile.getImageFormat());
+            metaData.setMaxzoom(tpkFile.getMaxZoomLevel());
+            metaData.setMinzoom(tpkFile.getMinZoomLevel());
+        }
+        return metaData;
+    }
+
+    /**
+     * 获取TPK文件数据
+     *
+     * @param fileName 文件名
+     * @return tpk文件数据
+     */
+    public TPKFile getTpkData(String fileName) {
+        return tpkFileMap.get(fileName);
     }
 
 
@@ -256,18 +286,6 @@ public class MapServerDataCenter {
         }
     }
 
-    public MetaData getTpkMetaData(String fileName) {
-        MetaData metaData = new MetaData();
-        if (StringUtils.hasLength(fileName)) {
-            TPKFile tpkFile = tpkFileMap.get(fileName);
-            metaData.setBounds(tpkFile.getBounds().toString());
-            metaData.setCrs(tpkFile.getBounds().getCoordinateReferenceSystem().getName().toString());
-            metaData.setFormat(tpkFile.getImageFormat());
-            metaData.setMaxzoom(tpkFile.getMaxZoomLevel());
-            metaData.setMinzoom(tpkFile.getMinZoomLevel());
-        }
-        return metaData;
-    }
 
     /**
      * 获取字符文件目录

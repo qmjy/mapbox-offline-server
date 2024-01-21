@@ -29,7 +29,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.geotools.tpk.TPKFile;
+import org.geotools.tpk.TPKTile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -49,7 +50,7 @@ import java.util.*;
 
 
 /**
- * Mbtiles支持的数据库访问API。<br>
+ * Mbtiles、TPK支持的数据库访问API。<br>
  * MBTiles 1.3 规范定义：<a href="https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md">MBTiles 1.3</a>
  *
  * @author liushaofeng
@@ -77,10 +78,18 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpg", produces = MediaType.IMAGE_JPEG_VALUE)
     @ResponseBody
     @Operation(summary = "获取JPG格式瓦片数据", description = "获取JPG格式瓦片数据。")
-    public ResponseEntity<ByteArrayResource> loadJpgTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
-                                                         @PathVariable("x") String x, @PathVariable("y") String y) {
-        return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_JPEG);
+    public ResponseEntity<ByteArrayResource> loadJpgTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z, @PathVariable("x") int x, @PathVariable("y") int y) {
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
+            String lowerCase = mapServerDataCenter.getTpkMetaData(tileset).getFormat().toLowerCase(Locale.getDefault());
+            if (!lowerCase.endsWith("jpg") && !lowerCase.endsWith("jpeg")) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return getByteArrayResourceResponseEntityInTpk(tileset, z, x, y);
+        } else {
+            return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_JPEG);
+        }
     }
+
 
     /**
      * 加载图片瓦片数据
@@ -94,9 +103,15 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.png", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
     @Operation(summary = "获取PNG格式瓦片数据", description = "获取PNG格式瓦片数据。")
-    public ResponseEntity<ByteArrayResource> loadPngTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
-                                                         @PathVariable("x") String x, @PathVariable("y") String y) {
-        return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_PNG);
+    public ResponseEntity<ByteArrayResource> loadPngTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z, @PathVariable("x") int x, @PathVariable("y") int y) {
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
+            if (!mapServerDataCenter.getTpkMetaData(tileset).getFormat().toLowerCase(Locale.getDefault()).endsWith("png")) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return getByteArrayResourceResponseEntityInTpk(tileset, z, x, y);
+        } else {
+            return getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_PNG);
+        }
     }
 
 
@@ -112,18 +127,19 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.pbf", produces = "application/x-protobuf")
     @ResponseBody
     @Operation(summary = "获取PBF格式瓦片数据", description = "获取PBF格式瓦片数据。")
-    public ResponseEntity<ByteArrayResource> loadPbfTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z,
-                                                         @PathVariable("x") String x, @PathVariable("y") String y) {
+    public ResponseEntity<ByteArrayResource> loadPbfTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z, @PathVariable("x") int x, @PathVariable("y") int y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             return getArrayResourceResponseEntity(tileset, z, x, y, AppConfig.APPLICATION_X_PROTOBUF_VALUE);
         } else {
-            String sb = appConfig.getDataPath() + File.separator + "tilesets" + File.separator + tileset + File.separator +
-                    z + File.separator + x + File.separator + y + AppConfig.FILE_EXTENSION_NAME_PBF;
+            if (tileset.indexOf(".") > 0) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            String sb = appConfig.getDataPath() + File.separator + "tilesets" + File.separator + tileset + File.separator + z + File.separator + x + File.separator + y + AppConfig.FILE_EXTENSION_NAME_PBF;
             File pbfFile = new File(sb);
             if (pbfFile.exists()) {
                 try {
                     byte[] buffer = FileCopyUtils.copyToByteArray(pbfFile);
-                    IOUtils.readFully(Files.newInputStream(pbfFile.toPath()), buffer);
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
                     ByteArrayResource resource = new ByteArrayResource(buffer);
@@ -134,6 +150,21 @@ public class MapServerTilesetsRestController {
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    private ResponseEntity<ByteArrayResource> getByteArrayResourceResponseEntityInTpk(String tileset, String z, int x, int y) {
+        String format = mapServerDataCenter.getTpkMetaData(tileset).getFormat();
+        TPKFile tpkData = mapServerDataCenter.getTpkData(tileset);
+        List<TPKTile> tiles = tpkData.getTiles(Long.parseLong(z), AppConfig.BBOX_BOUND_TOP, AppConfig.BBOX_BOUND_BOTTOM, AppConfig.BBOX_BOUND_LEFT, AppConfig.BBOX_BOUND_RIGHT, format);
+        for (TPKTile tile : tiles) {
+            if (tile.row == y && tile.col == x) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
+                ByteArrayResource resource = new ByteArrayResource(tile.tileData);
+                return ResponseEntity.ok().headers(headers).contentLength(tile.tileData.length).body(resource);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -150,9 +181,8 @@ public class MapServerTilesetsRestController {
             Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
             if (jdbcTemplateOpt.isPresent()) {
                 JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
-                String sql = "SELECT * FROM metadata";
                 try {
-                    List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+                    List<Map<String, Object>> maps = jdbcTemplate.queryForList("SELECT * FROM metadata");
                     return ResponseEntity.ok().body(ResponseMapUtil.ok(wrapMap(maps)));
                 } catch (EmptyResultDataAccessException e) {
                     return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
@@ -229,16 +259,14 @@ public class MapServerTilesetsRestController {
         }
     }
 
-    private ResponseEntity<ByteArrayResource> getByteArrayResourceResponseEntity(String tileset, String z, String
-            x, String y, MediaType mediaType) {
+    private ResponseEntity<ByteArrayResource> getByteArrayResourceResponseEntity(String tileset, String z, int x, int y, MediaType mediaType) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             return getArrayResourceResponseEntity(tileset, z, x, y, mediaType);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    private ResponseEntity<ByteArrayResource> getArrayResourceResponseEntity(String tileset, String z, String
-            x, String y, MediaType mediaType) {
+    private ResponseEntity<ByteArrayResource> getArrayResourceResponseEntity(String tileset, String z, int x, int y, MediaType mediaType) {
         Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
         if (jdbcTemplateOpt.isPresent()) {
             JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();

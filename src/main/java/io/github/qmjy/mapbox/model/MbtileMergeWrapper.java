@@ -16,9 +16,12 @@
 
 package io.github.qmjy.mapbox.model;
 
+import lombok.Data;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Data
 public class MbtileMergeWrapper {
     /**
      * 所有需要合并的文件列表。filePath:mbtiles details
@@ -44,88 +47,4 @@ public class MbtileMergeWrapper {
     private double maxLat = 0L;
     private double minLon = Double.MAX_VALUE;
     private double maxLon = 0L;
-
-    public Map<String, MbtileMergeFile> getNeedMerges() {
-        return needMerges;
-    }
-
-    public void setNeedMerges(Map<String, MbtileMergeFile> needMerges) {
-        this.needMerges = needMerges;
-    }
-
-    public long getTotalCount() {
-        return totalCount;
-    }
-
-    public void setTotalCount(long totalCount) {
-        this.totalCount = totalCount;
-    }
-
-    public void addToTotal(long data) {
-        this.totalCount += data;
-    }
-
-    public String getLargestFilePath() {
-        return largestFilePath;
-    }
-
-    public void setLargestFilePath(String largestFilePath) {
-        this.largestFilePath = largestFilePath;
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public void setFormat(String format) {
-        this.format = format;
-    }
-
-    public int getMinZoom() {
-        return minZoom;
-    }
-
-    public void setMinZoom(int minZoom) {
-        this.minZoom = minZoom;
-    }
-
-    public int getMaxZoom() {
-        return maxZoom;
-    }
-
-    public void setMaxZoom(int maxZoom) {
-        this.maxZoom = maxZoom;
-    }
-
-    public double getMinLat() {
-        return minLat;
-    }
-
-    public void setMinLat(double minLat) {
-        this.minLat = minLat;
-    }
-
-    public double getMaxLat() {
-        return maxLat;
-    }
-
-    public void setMaxLat(double maxLat) {
-        this.maxLat = maxLat;
-    }
-
-    public double getMinLon() {
-        return minLon;
-    }
-
-    public void setMinLon(double minLon) {
-        this.minLon = minLon;
-    }
-
-    public double getMaxLon() {
-        return maxLon;
-    }
-
-    public void setMaxLon(double maxLon) {
-        this.maxLon = maxLon;
-    }
 }

@@ -17,17 +17,15 @@
 package io.github.qmjy.mapbox.model;
 
 
+import lombok.Getter;
+
 import java.io.File;
 
-
+@Getter
 public class FontsFileModel {
     private final File folder;
 
     public FontsFileModel(File fontFolder) {
         this.folder = fontFolder;
-    }
-
-    public File getFolder() {
-        return folder;
     }
 }

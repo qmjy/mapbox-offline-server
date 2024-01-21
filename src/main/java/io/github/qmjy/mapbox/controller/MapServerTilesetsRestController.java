@@ -57,7 +57,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/tilesets")
-@Tag(name = "地图瓦片服务管理", description = "Mapbox离线服务接口能力")
+@Tag(name = "地图瓦片服务管理", description = "地图瓦片服务接口能力")
 public class MapServerTilesetsRestController {
     @Autowired
     private AsyncService asyncService;
@@ -145,7 +145,7 @@ public class MapServerTilesetsRestController {
                     ByteArrayResource resource = new ByteArrayResource(buffer);
                     return ResponseEntity.ok().headers(headers).contentLength(buffer.length).body(resource);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -202,7 +202,7 @@ public class MapServerTilesetsRestController {
                 String s = Files.readString(Path.of(sb.toString()));
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(s));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());

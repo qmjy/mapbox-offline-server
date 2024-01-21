@@ -101,19 +101,13 @@
 
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-tile-client</artifactId>
+            <artifactId>gt-wms</artifactId>
             <version>${geotools.version.301}</version>
         </dependency>
 
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-geotiff</artifactId>
-            <version>${geotools.version.301}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-mbtiles</artifactId>
+            <artifactId>gt-epsg-hsql</artifactId>
             <version>${geotools.version.301}</version>
         </dependency>
 
@@ -122,12 +116,6 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-tpk</artifactId>
             <version>${geotools.version.301}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt2-tile</artifactId>
-            <version>2.5-M1</version>
         </dependency>
 
         <dependency>

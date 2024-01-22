@@ -75,6 +75,22 @@ public class MapServerTilesetsRestController {
      * @param y       地图的y轴瓦片坐标
      * @return jpg格式的瓦片数据
      */
+    @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpeg", produces = MediaType.IMAGE_JPEG_VALUE)
+    @ResponseBody
+    @Operation(summary = "获取JPG格式瓦片数据", description = "获取JPG格式瓦片数据。")
+    public ResponseEntity<ByteArrayResource> loadJpegTile(@PathVariable("tileset") String tileset, @PathVariable("z") String z, @PathVariable("x") int x, @PathVariable("y") int y) {
+        return this.loadJpgTile(tileset, z, x, y);
+    }
+
+    /**
+     * 加载图片瓦片数据
+     *
+     * @param tileset 瓦片数据库名称
+     * @param z       地图缩放层级
+     * @param x       地图的x轴瓦片坐标
+     * @param y       地图的y轴瓦片坐标
+     * @return jpg格式的瓦片数据
+     */
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpg", produces = MediaType.IMAGE_JPEG_VALUE)
     @ResponseBody
     @Operation(summary = "获取JPG格式瓦片数据", description = "获取JPG格式瓦片数据。")

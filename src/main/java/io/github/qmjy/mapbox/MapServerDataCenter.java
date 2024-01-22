@@ -21,11 +21,12 @@ import io.github.qmjy.mapbox.model.FontsFileModel;
 import io.github.qmjy.mapbox.model.MetaData;
 import io.github.qmjy.mapbox.model.TilesFileModel;
 import lombok.Getter;
+import org.geotools.api.data.FileDataStore;
+import org.geotools.api.data.FileDataStoreFinder;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.tpk.TPKFile;
-import org.geotools.tpk.TPKTile;
 import org.geotools.tpk.TPKZoomLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,9 @@ public class MapServerDataCenter {
 
     private static final Map<String, Map<Long, TPKZoomLevel>> tpkMap = new HashMap<>();
     private static final Map<String, TPKFile> tpkFileMap = new HashMap<>();
+
+
+    private static final Map<String, FileDataStore> shpDataStores = new HashMap<>();
 
     /**
      * 字体文件模型
@@ -100,6 +104,21 @@ public class MapServerDataCenter {
         tpkFileMap.put(tpk.getName(), tpkFile);
     }
 
+    public static void initShapefile(File shapefile) {
+        FileDataStore dataStore = null;
+        try {
+            dataStore = FileDataStoreFinder.getDataStore(shapefile);
+        } catch (IOException e) {
+            logger.error("FileDataStoreFinder.getDataStore() failed: " + shapefile.getAbsolutePath());
+        }
+        shpDataStores.put(shapefile.getName(), dataStore);
+    }
+
+    public static FileDataStore getShpDataStores(String shapefile) {
+        return shpDataStores.get(shapefile);
+    }
+
+
     /**
      * TPK文件的元数据
      *
@@ -112,7 +131,7 @@ public class MapServerDataCenter {
             TPKFile tpkFile = tpkFileMap.get(fileName);
             metaData.setBounds(tpkFile.getBounds().toString());
             metaData.setCrs(tpkFile.getBounds().getCoordinateReferenceSystem().getName().toString());
-            metaData.setFormat(tpkFile.getImageFormat());
+            metaData.setFormat(tpkFile.getImageFormat().toLowerCase(Locale.getDefault()));
             metaData.setMaxzoom(tpkFile.getMaxZoomLevel());
             metaData.setMinzoom(tpkFile.getMinZoomLevel());
         }

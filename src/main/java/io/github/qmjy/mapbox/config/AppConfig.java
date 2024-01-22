@@ -29,6 +29,7 @@ public class AppConfig {
 
     public static final String FILE_EXTENSION_NAME_MBTILES = ".mbtiles";
     public static final String FILE_EXTENSION_NAME_TPK = ".tpk";
+    public static final String FILE_EXTENSION_NAME_SHP = ".shp";
     public static final String FILE_EXTENSION_NAME_PBF = ".pbf";
     public static final String FILE_EXTENSION_NAME_JSON = ".json";
     public static final String FILE_EXTENSION_NAME_GEOJSON = ".geojson";

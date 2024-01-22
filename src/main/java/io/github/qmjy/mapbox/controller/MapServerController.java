@@ -18,6 +18,7 @@ package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
+import io.github.qmjy.mapbox.model.MetaData;
 import io.github.qmjy.mapbox.model.TilesViewModel;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -83,7 +84,8 @@ public class MapServerController extends BaseController {
                         }
                         return false;
                     } else {
-                        return pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
+                        String name = pathname.getName();
+                        return name.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES) || name.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK);
                     }
                 });
                 model.addAttribute("tileFiles", wrapThymeleafModel(files));
@@ -112,6 +114,12 @@ public class MapServerController extends BaseController {
             model.addAttribute("metaData", tileMetaData);
 
             return "pbf".equals(tileMetaData.get("format")) ? "mapbox-mbtiles-vector" : "mapbox-mbtiles-raster";
+        } else if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
+            model.addAttribute("tilesetName", tileset);
+            MetaData tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
+            model.addAttribute("metaData", tpkMetaData);
+
+            return "mapbox-mbtiles-raster";
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");

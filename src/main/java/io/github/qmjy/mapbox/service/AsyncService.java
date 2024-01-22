@@ -65,12 +65,13 @@ public class AsyncService {
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
-                wrapTilesFile(dataFolder);
+                wrapMapFile(dataFolder);
                 wrapFontsFile(dataFolder);
                 wrapOSMBFile(dataFolder);
             }
         }
     }
+
 
     /**
      * 提交文件合并任务。合并任务失败，则process is -1。
@@ -242,10 +243,22 @@ public class AsyncService {
         }
     }
 
-    private void wrapTilesFile(File dataFolder) {
+
+    private void wrapMapFile(File dataFolder) {
         File tilesetsFolder = new File(dataFolder, "tilesets");
         searchMbtiles(tilesetsFolder);
         searchTpk(tilesetsFolder);
+        searchShapefile(tilesetsFolder);
+    }
+
+    private void searchShapefile(File tilesetsFolder) {
+        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_SHP));
+        if (files != null) {
+            for (File shapefile : files) {
+                logger.info("Load shapefile: {}", shapefile.getName());
+                MapServerDataCenter.initShapefile(shapefile);
+            }
+        }
     }
 
     private void searchTpk(File tilesetsFolder) {

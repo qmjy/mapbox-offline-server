@@ -16,41 +16,47 @@
 
 package io.github.qmjy.mapbox.controller;
 
+import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.geotools.ows.ServiceException;
-import org.geotools.ows.wms.CRSEnvelope;
-import org.geotools.ows.wms.WMSCapabilities;
-import org.geotools.ows.wms.WebMapServer;
-import org.geotools.ows.wms.request.GetMapRequest;
-import org.geotools.ows.wms.response.GetMapResponse;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.style.Style;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.map.FeatureLayer;
+import org.geotools.map.Layer;
+import org.geotools.map.MapContent;
+import org.geotools.referencing.CRS;
+import org.geotools.renderer.GTRenderer;
+import org.geotools.renderer.lite.StreamingRenderer;
+import org.geotools.styling.SLD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Arrays;
 
+/**
+ * WMS服务
+ */
 @RestController
 @RequestMapping("/api/wms")
 @Tag(name = "地图WMS服务管理", description = "地图wms服务接口能力")
 public class MapServerWMSRestController {
     private static final Logger logger = LoggerFactory.getLogger(MapServerWMSRestController.class);
-    private final WebMapServer webMapServer;
-    private final ResourceLoader resourceLoader;
 
-    public MapServerWMSRestController(WebMapServer webMapServer, ResourceLoader resourceLoader) {
-        this.webMapServer = webMapServer;
-        this.resourceLoader = resourceLoader;
-    }
 
     /**
      * 返回WMS服务的Capabilities文档，通常是一个XML文件，描述了服务的能力和可用的图层
@@ -59,9 +65,7 @@ public class MapServerWMSRestController {
      */
     @GetMapping(value = "/capabilities", produces = MediaType.APPLICATION_XML_VALUE)
     public String getCapabilities() {
-        WMSCapabilities capabilities = webMapServer.getCapabilities();
-        // 这里可以返回Capabilities的XML表示，你可能需要使用一个Marshaller来转换
-        return capabilities.toString();
+        return "";
     }
 
     /**
@@ -73,75 +77,97 @@ public class MapServerWMSRestController {
      * @param width  宽度
      * @param height 高度
      * @param srs    坐标系
-     * @param format 图像格式
      * @return 地图数据
      */
-    @GetMapping(value = "/map", produces = MediaType.IMAGE_PNG_VALUE)
+    @GetMapping(value = "/map/{shapefile}", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<ByteArrayResource> getMap(
-            @RequestParam(name = "layers", required = true) String layers,
-            @RequestParam(name = "styles", required = false) String styles,
-            @RequestParam(name = "bbox", required = true) String bbox,
-            @RequestParam(name = "width", required = true) int width,
-            @RequestParam(name = "height", required = true) int height,
-            @RequestParam(name = "srs", required = true) String srs,
-            @RequestParam(name = "format", required = true) String format) throws IOException {
+            @PathVariable("shapefile") String shapefile,
+            @RequestParam(value = "layers", defaultValue = "") String layers,
+            @RequestParam(value = "styles", defaultValue = "") String styles,
+            @RequestParam(value = "bbox", defaultValue = "") String bbox,
+            @RequestParam(value = "width", defaultValue = "500") int width,
+            @RequestParam(value = "height", defaultValue = "500") int height,
+            @RequestParam(value = "srs", defaultValue = "EPSG:4326") String srs) {
 
         String[] split = bbox.split(",");
         if (split.length != 4) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        GetMapRequest request = webMapServer.createGetMapRequest();
-        request.addLayer(layers, styles);
-        request.setBBox(new CRSEnvelope("EPSG:4326", Double.parseDouble(split[0]),
-                Double.parseDouble(split[1]), Double.parseDouble(split[2]), Double.parseDouble(split[3])));
-        request.setDimensions(width, height);
-        request.setSRS(srs);
-        request.setFormat(format);
+        ShapefileDataStore shapefileDataStore = (ShapefileDataStore) MapServerDataCenter.getShpDataStores(shapefile);
 
         try {
-            GetMapResponse getMapResponse = webMapServer.issueRequest(request);
-            String contentType = getMapResponse.getContentType();
-            System.out.printf("获得的ContentType: " + contentType);
+//            String typeName = shapefileDataStore.getTypeNames()[0];
+            FeatureSource<SimpleFeatureType, SimpleFeature> featureSource = shapefileDataStore.getFeatureSource(layers);
 
-            InputStream inputStream = getMapResponse.getInputStream();
+            // 创建样式,这里可以根据styleName来应用不同的样式
+            Style style = SLD.createSimpleStyle(featureSource.getSchema());
 
-            int count = inputStream.available();
-            byte[] bytes = new byte[count];
-            int read = inputStream.read(bytes);
+            // 创建地图
+            MapContent mapContent = new MapContent();
+            Layer layer = new FeatureLayer(featureSource, style);
+            mapContent.addLayer(layer);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.IMAGE_PNG);  //TODO 依据上面的contentType转换，而不是直接写死
-            ByteArrayResource resource = new ByteArrayResource(bytes);
-            return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
-        } catch (ServiceException e) {
-            logger.error("WebMapServer issue request failed！");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            //        // 渲染地图
+            GTRenderer renderer = new StreamingRenderer();
+            renderer.setMapContent(mapContent);
+
+            // 设置渲染选项
+            RenderingHints hints = new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            hints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            hints.put(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+            renderer.setJava2DHints(hints);
+
+
+            // 创建地图图像
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = image.createGraphics();
+            g2d.setRenderingHints(hints);
+            // 渲染地图, 获取WGS 84坐标系的CoordinateReferenceSystem实例
+            renderer.paint(g2d, new Rectangle(width, height), getReferencedEnvelope(split, srs));
+
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                // 将BufferedImage写入ByteArrayOutputStream，并指定图片格式（如PNG）
+                ImageIO.write(image, "PNG", baos);
+                byte[] bytes = baos.toByteArray();
+
+                // 清理资源
+                g2d.dispose();
+                mapContent.dispose();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.IMAGE_PNG);
+                ByteArrayResource resource = new ByteArrayResource(bytes);
+                return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(resource);
+            } catch (IOException e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-//   public void test(){
-//       // 加载Shapefile文件
-//       Resource resource = resourceLoader.getResource("classpath:your_shapefile.shp");
-//       File shapefile = resource.getFile();
-//       ShapefileDataStore dataStore = new ShapefileDataStore(shapefile.toURI().toURL());
-//       String typeName = dataStore.getTypeNames()[0];
-//       SimpleFeatureSource featureSource = dataStore.getFeatureSource(typeName);
-//       // 创建样式
-//       Style style = SLD.createSimpleStyle(featureSource.getSchema());
-//
-//       // 创建地图
-//       MapContent map = new MapContent();
-//       Layer layer = new FeatureLayer(featureSource, style);
-//       map.addLayer(layer);
-//       // 渲染地图
-//       GTRenderer renderer = new StreamingRenderer();
-//       renderer.setMapContent(map);
-//       BufferedImage image = renderer.render(null);
-//       // 输出图片
-//       ImageIO.write(image, "png", outputStream);
-//       // 清理资源
-//       map.dispose();
-//       dataStore.dispose();
-//   }
+    private ReferencedEnvelope getReferencedEnvelope(String[] coordinates, String epsg) {
+        try {
+            // 假设边界框字符串格式为 "minLon,minLat,maxLon,maxLat"
+            double minLon = Double.parseDouble(coordinates[0]);
+            double minLat = Double.parseDouble(coordinates[1]);
+            double maxLon = Double.parseDouble(coordinates[2]);
+            double maxLat = Double.parseDouble(coordinates[3]);
+
+            CoordinateReferenceSystem crs = CRS.decode(epsg);
+            // 创建ReferencedEnvelope对象
+            return new ReferencedEnvelope(minLon, maxLon, minLat, maxLat, crs);
+        } catch (Exception e) {
+            logger.error("Build referenced envelope failed: " + Arrays.toString(coordinates));
+            return null;
+        }
+    }
+
+    @GetMapping(value = "/feature", produces = MediaType.APPLICATION_XML_VALUE)
+    public void getFeatureInfo() {
+
+    }
+
 }

@@ -47,4 +47,8 @@ public class MbtileMergeWrapper {
     private double maxLat = 0L;
     private double minLon = Double.MAX_VALUE;
     private double maxLon = 0L;
+
+    public void addToTotal(long count) {
+        this.totalCount += count;
+    }
 }

@@ -31,7 +31,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.tpk.TPKFile;
 import org.geotools.tpk.TPKTile;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
@@ -59,12 +58,15 @@ import java.util.*;
 @RequestMapping("/api/tilesets")
 @Tag(name = "地图瓦片服务管理", description = "地图瓦片服务接口能力")
 public class MapServerTilesetsRestController {
-    @Autowired
-    private AsyncService asyncService;
-    @Autowired
-    private MapServerDataCenter mapServerDataCenter;
-    @Autowired
-    private AppConfig appConfig;
+    private final AsyncService asyncService;
+    private final MapServerDataCenter mapServerDataCenter;
+    private final AppConfig appConfig;
+
+    public MapServerTilesetsRestController(AsyncService asyncService, MapServerDataCenter mapServerDataCenter, AppConfig appConfig) {
+        this.asyncService = asyncService;
+        this.mapServerDataCenter = mapServerDataCenter;
+        this.appConfig = appConfig;
+    }
 
     /**
      * 加载图片瓦片数据

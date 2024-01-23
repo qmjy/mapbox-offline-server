@@ -16,15 +16,11 @@
 
 package io.github.qmjy.mapbox.util;
 
-import com.zaxxer.hikari.pool.HikariProxyConnection;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.ConnectionHolder;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Objects;
+import javax.sql.DataSource;
 
 public class JdbcUtils {
 
@@ -45,6 +41,9 @@ public class JdbcUtils {
     }
 
     public void releaseJdbcTemplate(JdbcTemplate jdbcTemplate) {
-//        jdbcTemplate.getDataSource().getConnection().close();
+        DataSource dataSource = jdbcTemplate.getDataSource();
+        if (dataSource instanceof HikariDataSource ds) {
+            ds.close();
+        }
     }
 }

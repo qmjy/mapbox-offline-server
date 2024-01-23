@@ -24,7 +24,6 @@ import io.github.qmjy.mapbox.model.MbtilesOfMergeProgress;
 import io.github.qmjy.mapbox.util.JdbcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -41,13 +40,16 @@ import java.util.*;
 @Service
 public class AsyncService {
     private final Logger logger = LoggerFactory.getLogger(AsyncService.class);
-    @Autowired
-    private AppConfig appConfig;
+    private final AppConfig appConfig;
 
     /**
      * taskId:完成百分比
      */
     private final Map<String, Integer> taskProgress = new HashMap<>();
+
+    public AsyncService(AppConfig appConfig) {
+        this.appConfig = appConfig;
+    }
 
     /**
      * 每10秒检查一次，数据有更新则刷新
@@ -104,22 +106,25 @@ public class AsyncService {
                 return;
             }
 
+            JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), targetTmpFile.getAbsolutePath());
             Iterator<Map.Entry<String, MbtileMergeFile>> iterator = needMerges.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<String, MbtileMergeFile> next = iterator.next();
-                mergeTo(next.getValue(), targetTmpFile);
+                mergeTo(next.getValue(), jdbcTemplate);
                 completeCount += next.getValue().getCount();
                 taskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
                 iterator.remove();
-
                 logger.info("Merged file: {}", next.getValue().getFilePath());
             }
 
             updateMetadata(wrapper, targetTmpFile);
+            JdbcUtils.getInstance().releaseJdbcTemplate(jdbcTemplate);
 
-            boolean b = targetTmpFile.renameTo(new File(targetFilePath));
-            System.out.println("重命名文件结果：" + b);
-            taskProgress.put(taskId, 100);
+            if (targetTmpFile.renameTo(new File(targetFilePath))) {
+                taskProgress.put(taskId, 100);
+            } else {
+                logger.info("Rename file failed: {}", targetFilePath);
+            }
         } else {
             taskProgress.put(taskId, -1);
         }
@@ -188,8 +193,7 @@ public class AsyncService {
     }
 
 
-    public void mergeTo(MbtileMergeFile mbtile, File targetTmpFile) {
-        JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), targetTmpFile.getAbsolutePath());
+    public void mergeTo(MbtileMergeFile mbtile, JdbcTemplate jdbcTemplate) {
         int pageSize = 5000;
         long totalPage = mbtile.getCount() % pageSize == 0 ? mbtile.getCount() / pageSize : mbtile.getCount() / pageSize + 1;
         for (long currentPage = 0; currentPage < totalPage; currentPage++) {
@@ -204,7 +208,6 @@ public class AsyncService {
                         ps.setBytes(4, (byte[]) rowDataMap.get("tile_data"));
                     });
         }
-        JdbcUtils.getInstance().releaseJdbcTemplate(jdbcTemplate);
     }
 
     private MbtileMergeFile wrapModel(String item) {

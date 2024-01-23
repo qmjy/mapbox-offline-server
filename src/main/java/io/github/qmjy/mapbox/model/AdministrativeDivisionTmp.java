@@ -29,7 +29,7 @@ import java.util.List;
  * @author liushaofeng
  */
 @Getter
-public class AdministrativeDivisionTmp {
+public class AdministrativeDivisionTmp implements Cloneable {
     private final int id;
     private final int parentId;
     private final String name;
@@ -45,5 +45,36 @@ public class AdministrativeDivisionTmp {
         this.nameEn = nameEnObj == null ? "" : String.valueOf(nameEnObj);
         this.parentId = parentId;
         this.adminLevel = simpleFeature.getAttribute("admin_level") == null ? -1 : (int) simpleFeature.getAttribute("admin_level");
+    }
+
+    public AdministrativeDivisionTmp(int id, int parentId, String name, String nameEn, int adminLevel) {
+        this.id = id;
+        this.parentId = parentId;
+        this.name = name;
+        this.nameEn = nameEn;
+        this.adminLevel = adminLevel;
+    }
+
+    /**
+     * 复制一份数据出来，不能在原始引用上修改子节点为空。本clone方法为"/api/geo/admins"接口定制clone方法
+     *
+     * @return clone后的对象
+     */
+    @Override
+    public AdministrativeDivisionTmp clone() {
+        try {
+            AdministrativeDivisionTmp clone = (AdministrativeDivisionTmp) super.clone();
+            ArrayList<AdministrativeDivisionTmp> newChildren = new ArrayList<>();
+
+            List<AdministrativeDivisionTmp> oldChildren = this.getChildren();
+            for (AdministrativeDivisionTmp tmp : oldChildren) {
+                newChildren.add(new AdministrativeDivisionTmp(tmp.getId(), tmp.getParentId(), tmp.getName(), tmp.getNameEn(), tmp.getAdminLevel()));
+            }
+
+            clone.setChildren(newChildren);
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

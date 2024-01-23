@@ -174,12 +174,14 @@ public class MapServerTilesetsRestController {
         String format = mapServerDataCenter.getTpkMetaData(tileset).getFormat();
         TPKFile tpkData = mapServerDataCenter.getTpkData(tileset);
         List<TPKTile> tiles = tpkData.getTiles(Long.parseLong(z), AppConfig.BBOX_BOUND_TOP, AppConfig.BBOX_BOUND_BOTTOM, AppConfig.BBOX_BOUND_LEFT, AppConfig.BBOX_BOUND_RIGHT, format);
-        for (TPKTile tile : tiles) {
-            if (tile.row == y && tile.col == x) {
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
-                ByteArrayResource resource = new ByteArrayResource(tile.tileData);
-                return ResponseEntity.ok().headers(headers).contentLength(tile.tileData.length).body(resource);
+        if (tiles != null) {
+            for (TPKTile tile : tiles) {
+                if (tile.row == y && tile.col == x) {
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
+                    ByteArrayResource resource = new ByteArrayResource(tile.tileData);
+                    return ResponseEntity.ok().headers(headers).contentLength(tile.tileData.length).body(resource);
+                }
             }
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);

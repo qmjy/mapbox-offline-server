@@ -129,11 +129,13 @@ public class MapServerDataCenter {
         MetaData metaData = new MetaData();
         if (StringUtils.hasLength(fileName)) {
             TPKFile tpkFile = tpkFileMap.get(fileName);
-            metaData.setBounds(tpkFile.getBounds().toString());
-            metaData.setCrs(tpkFile.getBounds().getCoordinateReferenceSystem().getName().toString());
-            metaData.setFormat(tpkFile.getImageFormat().toLowerCase(Locale.getDefault()));
-            metaData.setMaxzoom(tpkFile.getMaxZoomLevel());
-            metaData.setMinzoom(tpkFile.getMinZoomLevel());
+            if (tpkFile != null) {
+                metaData.setBounds(tpkFile.getBounds().toString());
+                metaData.setCrs(tpkFile.getBounds().getCoordinateReferenceSystem().getName().toString());
+                metaData.setFormat(tpkFile.getImageFormat().toLowerCase(Locale.getDefault()));
+                metaData.setMaxzoom(tpkFile.getMaxZoomLevel());
+                metaData.setMinzoom(tpkFile.getMinZoomLevel());
+            }
         }
         return metaData;
     }

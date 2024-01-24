@@ -117,22 +117,21 @@ public class AsyncService {
                 logger.info("Merged file: {}", next.getValue().getFilePath());
             }
 
-            updateMetadata(wrapper, targetTmpFile);
+            updateMetadata(wrapper, jdbcTemplate);
             JdbcUtils.getInstance().releaseJdbcTemplate(jdbcTemplate);
 
             if (targetTmpFile.renameTo(new File(targetFilePath))) {
                 taskProgress.put(taskId, 100);
             } else {
-                logger.info("Rename file failed: {}", targetFilePath);
+                logger.error("Rename file failed: {}", targetFilePath);
             }
         } else {
             taskProgress.put(taskId, -1);
         }
     }
 
-    private void updateMetadata(MbtileMergeWrapper wrapper, File targetTmpFile) {
+    private void updateMetadata(MbtileMergeWrapper wrapper, JdbcTemplate jdbcTemplate) {
         String bounds = wrapper.getMinLon() + "," + wrapper.getMinLat() + "," + wrapper.getMaxLon() + "," + wrapper.getMaxLat();
-        JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), targetTmpFile.getAbsolutePath());
         jdbcTemplate.update("UPDATE metadata SET value = " + wrapper.getMinZoom() + " WHERE name = 'minzoom'");
         jdbcTemplate.update("UPDATE metadata SET value = " + wrapper.getMaxZoom() + " WHERE name = 'maxzoom'");
         jdbcTemplate.update("UPDATE metadata SET value = '" + bounds + "' WHERE name = 'bounds'");

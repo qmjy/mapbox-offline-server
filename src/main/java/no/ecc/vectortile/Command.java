@@ -13,17 +13,27 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package no.ecc.vectortile;
 
-package io.github.qmjy.mapbox.model;
+final class Command {
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+    /**
+     * MoveTo: 1. (2 parameters follow)
+     */
+    static final int MoveTo = 1;
 
-@Data
-@Schema(description = "待合并mbtiles文件对象信息")
-public class MbtilesOfMerge {
-    @Schema(description = "待合并的mbtiles文件名称列表，多个名字用';'分割。")
-    private String sourceNames;
-    @Schema(description = "合并完成后的文件名字，不能与现有的mbtiles文件重名。例如：'target.mbtiles'")
-    private String targetName;
+    /**
+     * LineTo: 2. (2 parameters follow)
+     */
+    static final int LineTo = 2;
+
+    /**
+     * ClosePath: 7. (no parameters follow)
+     */
+    static final int ClosePath = 7;
+
+    private Command() {
+
+    }
+
 }

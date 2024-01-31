@@ -22,12 +22,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Mbtiles瓦片数据文件模型
@@ -40,13 +45,17 @@ public class TilesFileModel {
     private final String filePath;
     private JdbcTemplate jdbcTemplate;
     private final Map<String, String> metaDataMap = new HashMap<>();
+    //maptiler的数据是gzip压缩；bbbike的未被压缩；
+    private boolean isCompressed = false;
 
     public TilesFileModel(File file, String className) {
         this.filePath = file.getAbsolutePath();
 
         initJdbc(className, file);
         loadMetaData();
+        this.isCompressed = compressed();
     }
+
 
     private void initJdbc(String className, File file) {
         this.jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(className, file.getAbsolutePath());
@@ -60,6 +69,22 @@ public class TilesFileModel {
             }
         } catch (DataAccessException e) {
             logger.error("Load map meta data failed: {}", filePath);
+        }
+    }
+
+    private boolean compressed() {
+        String sql = "SELECT tile_data FROM tiles limit 1";
+        try {
+            byte[] data = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
+            if (data == null || data.length < 2) {
+                return false;
+            }
+            new GZIPInputStream(new ByteArrayInputStream(data));
+            // 如果能顺利创建GZIPInputStream，并且没有抛出IOException，那么这很可能是GZIP压缩的数据
+            return true;
+        } catch (EmptyResultDataAccessException | IOException e) {
+            // 如果在创建GZIPInputStream时发生异常，这很可能不是一个有效的GZIP流
+            return false;
         }
     }
 }

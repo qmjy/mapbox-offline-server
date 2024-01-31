@@ -45,11 +45,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 /**
@@ -117,6 +121,29 @@ public class MapServerTilesetsRestController {
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    /**
+     * 加载图片瓦片数据
+     *
+     * @param tileset 瓦片数据库名称
+     * @param z       地图缩放层级
+     * @param x       地图的x轴瓦片坐标
+     * @param y       地图的y轴瓦片坐标
+     * @return png格式的瓦片数据
+     */
+    @GetMapping(value = "/{tileset}/{z}/{x}/{y}.webp", produces = AppConfig.IMAGE_WEBP_VALUE)
+    @ResponseBody
+    @Operation(summary = "获取WEBP格式瓦片数据", description = "获取WEBP格式瓦片数据。")
+    public ResponseEntity<ByteArrayResource> loadWebpTile(@PathVariable("tileset") String tileset, @PathVariable("z") int z, @PathVariable("x") int x, @PathVariable("y") int y) {
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+            Optional<byte[]> OptionalResource = getByteArrayResourceResponseEntity(tileset, z, x, y);
+            if (OptionalResource.isPresent()) {
+                byte[] bytes = OptionalResource.get();
+                return wrapResponse(bytes, AppConfig.IMAGE_WEBP);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 
@@ -262,9 +289,7 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/metadata", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @Operation(summary = "获取底图数据的元数据", description = "获取底图数据的元数据。")
-    public ResponseEntity<Map<String, Object>> metadata
-    (@Parameter(description = "待查询的底图文件或文件夹名字，例如：admin.mbtiles。") @PathVariable("tileset") String
-             tileset) {
+    public ResponseEntity<Map<String, Object>> metadata(@Parameter(description = "待查询的底图文件或文件夹名字，例如：admin.mbtiles。") @PathVariable("tileset") String tileset) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
             if (jdbcTemplateOpt.isPresent()) {
@@ -362,17 +387,47 @@ public class MapServerTilesetsRestController {
     }
 
     private Optional<byte[]> getBytesFromSqlite(String tileset, int z, int x, int y) {
+        boolean compressed = MapServerDataCenter.getTilesMap().get(tileset).isCompressed();
         Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
         if (jdbcTemplateOpt.isPresent()) {
             JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
             String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
             try {
                 byte[] value = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
-                return value == null ? Optional.empty() : Optional.of(value);
+                return value == null ? Optional.empty() : Optional.of(compressed ? decompress(value) : value);
             } catch (EmptyResultDataAccessException e) {
                 return Optional.empty();
             }
         }
         return Optional.empty();
+    }
+
+    private byte[] compress(byte[] data) {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            GZIPOutputStream gzip = new GZIPOutputStream(out);
+            gzip.write(data);
+            gzip.close();
+            return out.toByteArray();
+        } catch (IOException e) {
+            return new byte[0];
+        }
+    }
+
+    private byte[] decompress(byte[] compressedData) {
+        try {
+            ByteArrayInputStream in = new ByteArrayInputStream(compressedData);
+            GZIPInputStream gunzip = new GZIPInputStream(in);
+            byte[] buffer = new byte[2048];
+            int n;
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            while ((n = gunzip.read(buffer)) >= 0) {
+                out.write(buffer, 0, n);
+            }
+            gunzip.close();
+            return out.toByteArray();
+        } catch (IOException e) {
+            return new byte[0];
+        }
     }
 }

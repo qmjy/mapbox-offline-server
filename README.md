@@ -22,6 +22,7 @@ Mapbox GL offline server with java(JDK 21).
 3. 工具支持
 
 - 支持mbtiles文件合并；
+- 支持mapbox vector tile文件解析并以可读的形式展现；
 
 ## 资源结构
 

@@ -49,6 +49,7 @@ public class MapServerDataCenter {
     /**
      * 瓦片数据库文件模型
      */
+    @Getter
     private static final Map<String, TilesFileModel> tilesMap = new HashMap<>();
 
 

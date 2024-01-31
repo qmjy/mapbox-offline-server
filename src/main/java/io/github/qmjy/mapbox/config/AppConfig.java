@@ -34,8 +34,17 @@ public class AppConfig {
     public static final String FILE_EXTENSION_NAME_JSON = ".json";
     public static final String FILE_EXTENSION_NAME_GEOJSON = ".geojson";
     public static final String FILE_EXTENSION_NAME_PNG = ".png";
-
     public static final MediaType APPLICATION_X_PROTOBUF_VALUE = MediaType.valueOf("application/x-protobuf");
+
+    /**
+     * A String equivalent of {@link AppConfig#IMAGE_WEBP}.
+     */
+    public static final String IMAGE_WEBP_VALUE = "image/webp";
+
+    /**
+     * Public constant media type for {@code image/jpeg}.
+     */
+    public static final MediaType IMAGE_WEBP = MediaType.valueOf("image/webp");
 
     public static final long BBOX_BOUND_LEFT = -180L;
     public static final long BBOX_BOUND_RIGHT = 180L;

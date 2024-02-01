@@ -66,7 +66,6 @@ import java.util.zip.GZIPOutputStream;
 @RequestMapping("/api/tilesets")
 @Tag(name = "地图瓦片服务管理", description = "地图瓦片服务接口能力")
 public class MapServerTilesetsRestController {
-
     private static final Logger logger = LoggerFactory.getLogger(MapServerTilesetsRestController.class);
     private final AsyncService asyncService;
     private final MapServerDataCenter mapServerDataCenter;
@@ -207,7 +206,7 @@ public class MapServerTilesetsRestController {
             if (pbfFile.exists()) {
                 try {
                     byte[] buffer = FileCopyUtils.copyToByteArray(pbfFile);
-                    return wrapResponse(buffer, AppConfig.APPLICATION_X_PROTOBUF_VALUE);
+                    return wrapResponse(decompress(buffer), AppConfig.APPLICATION_X_PROTOBUF_VALUE);
                 } catch (IOException e) {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }

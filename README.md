@@ -1,6 +1,6 @@
 # mapbox-offline-server
 
-Mapbox GL offline server with java(JDK 21).  
+Map tile offline server with java(JDK 21).  
 启动项目后可以通过 http://localhost:10101/ 查看开放接口，目前主要支持mbtiles、tpk两种地图格式数据。
 
 ## 特性列表
@@ -22,7 +22,7 @@ Mapbox GL offline server with java(JDK 21).
 3. 工具支持
 
 - 支持mbtiles文件合并；
-- 支持mapbox vector tile文件解析并以可读的形式展现；
+- 支持mvt文件解析并以可读的形式展现；
 
 ## 资源结构
 
@@ -52,7 +52,6 @@ data
 │      world.json
 ├─tilesets
 │      Beijing.mbtiles
-│      Hongkong.mbtiles
 └─OSMB
        China.geojson
 ```

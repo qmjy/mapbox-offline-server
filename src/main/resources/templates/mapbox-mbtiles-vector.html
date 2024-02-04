@@ -56,7 +56,7 @@
                         "visibility": "visible"
                     },
                     "paint": {
-                        "background-color": "hsl(203, 100%, 12%)"
+                        "background-color": "#00263D"
                     }
                 },
                 {
@@ -93,7 +93,7 @@
                     "source": "osm-tiles",
                     "source-layer": "building",
                     "paint": {
-                        "fill-color": "hsl(200, 96%, 48%)"
+                        "fill-color": "#05A2F0"
                     }
                 },
                 {
@@ -157,12 +157,56 @@
                     "source-layer": "transportation_name"
                 },
                 {
+                    "id": "primary",
+                    "type": "line",
+                    "source": "osm-tiles",
+                    "source-layer": "transportation",
+                    "filter": ["all", ["==", "class", "primary"]],
+                    "layout": {
+                        "visibility": "visible"
+                    },
+                    "paint": {
+                        "line-color": "#70CBFF",
+                        "line-width": 3
+                    }
+                },
+                {
+                    "id": "secondary",
+                    "type": "line",
+                    "source": "osm-tiles",
+                    "source-layer": "transportation",
+                    "filter": ["all", ["==", "class", "secondary"]],
+                    "layout": {
+                        "visibility": "visible"
+                    },
+                    "paint": {
+                        "line-color": "#287dad",
+                        "line-width": 2
+                    },
+                    "minzoom": 6
+                },
+                {
+                    "id": "tertiary",
+                    "type": "line",
+                    "source": "osm-tiles",
+                    "source-layer": "transportation",
+                    "filter": ["all", ["==", "class", "tertiary"]],
+                    "layout": {
+                        "visibility": "visible"
+                    },
+                    "paint": {
+                        "line-color": "#06789D",
+                        "line-width": 1
+                    },
+                    "minzoom": 12
+                },
+                {
                     "id": "transportation",
                     "type": "line",
                     "source": "osm-tiles",
                     "source-layer": "transportation",
                     "paint": {
-                        "line-color": "hsl(195, 93%, 32%)",
+                        "line-color": "rgba(240,240,240,0.3)",
                         "line-opacity": 1,
                         "line-width": 1
                     }
@@ -208,10 +252,6 @@
                         "text-size": 12,
                         "text-offset": [0,1],
                         "text-allow-overlap": false,
-                        "text-offset": [
-                            0,
-                            0
-                        ],
                         "text-anchor": "center",
                         "text-justify": "center",
                         "text-font": [
@@ -277,7 +317,7 @@
             'type': 'line',
             'source': 'China',
             "paint": {
-              "line-color": "hsl(202, 100%, 72%)",
+              "line-color": "#70CBFF",
               "line-opacity": 0.5,
               "line-width": 3,
             },

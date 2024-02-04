@@ -17,12 +17,15 @@
 package io.github.qmjy.mapbox.config;
 
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 
+
+@Getter
 @Component
 @ConfigurationProperties
 public class AppConfig {
@@ -46,12 +49,7 @@ public class AppConfig {
      */
     public static final MediaType IMAGE_WEBP = MediaType.valueOf("image/webp");
 
-    public static final long BBOX_BOUND_LEFT = -180L;
-    public static final long BBOX_BOUND_RIGHT = 180L;
-    public static final long BBOX_BOUND_TOP = 90L;
-    public static final long BBOX_BOUND_BOTTOM = -90L;
-
-    @Value("${spring.datasource.driver-class-name}")
+     @Value("${spring.datasource.driver-class-name}")
     private String driverClassName;
 
     /**
@@ -60,12 +58,6 @@ public class AppConfig {
     @Value("${data-path}")
     private String dataPath = "";
 
-
-    public String getDriverClassName() {
-        return driverClassName;
-    }
-
-    public String getDataPath() {
-        return dataPath;
+    private AppConfig() {
     }
 }

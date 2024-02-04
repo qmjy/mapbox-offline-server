@@ -19,7 +19,6 @@ package io.github.qmjy.mapbox.config;
 import io.github.qmjy.mapbox.service.AsyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -30,8 +29,11 @@ import org.springframework.stereotype.Component;
 public class DataSourceApplicationRunner implements ApplicationRunner {
     private final Logger logger = LoggerFactory.getLogger(DataSourceApplicationRunner.class);
 
-    @Autowired
-    private AsyncService asyncService;
+    private final AsyncService asyncService;
+
+    public DataSourceApplicationRunner(AsyncService asyncService) {
+        this.asyncService = asyncService;
+    }
 
     @Override
     public void run(ApplicationArguments args) throws Exception {

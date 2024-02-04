@@ -218,7 +218,7 @@ public class MapServerTilesetsRestController {
     private ResponseEntity<ByteArrayResource> getByteArrayResourceResponseEntityInTpk(String tileset, int z, int x, int y) {
         String format = mapServerDataCenter.getTpkMetaData(tileset).getFormat();
         TPKFile tpkData = mapServerDataCenter.getTpkData(tileset);
-        List<TPKTile> tiles = tpkData.getTiles(z, AppConfig.BBOX_BOUND_TOP, AppConfig.BBOX_BOUND_BOTTOM, AppConfig.BBOX_BOUND_LEFT, AppConfig.BBOX_BOUND_RIGHT, format);
+        List<TPKTile> tiles = tpkData.getTiles(z, tpkData.getMaxColumn(z), 0, 0, tpkData.getMaxRow(z), format);
         if (tiles != null) {
             for (TPKTile tile : tiles) {
                 if (tile.row == y && tile.col == x) {

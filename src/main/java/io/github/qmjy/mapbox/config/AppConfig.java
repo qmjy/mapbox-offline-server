@@ -24,7 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 
-
 @Getter
 @Component
 @ConfigurationProperties
@@ -49,7 +48,7 @@ public class AppConfig {
      */
     public static final MediaType IMAGE_WEBP = MediaType.valueOf("image/webp");
 
-     @Value("${spring.datasource.driver-class-name}")
+    @Value("${spring.datasource.driver-class-name}")
     private String driverClassName;
 
     /**

@@ -26,7 +26,7 @@ Map tile offline server with java(JDK 21).
 
 ## 资源结构
 
-> 本项目自带了WGS84、CGCS2000坐标系的Mapbox资源文件。
+> 本项目自带了WGS84(WKID=4326)、CGCS2000(WKID=4490)坐标系的Mapbox资源文件。
 
 mapbox离线服务至少需要包含四种资源文件：mapbox-gl、fonts、sprites、tilesets。
 行政区划服务相关需需要包含一种资源文件：geojson。

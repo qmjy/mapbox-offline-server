@@ -23,6 +23,7 @@ import io.github.qmjy.mapbox.model.MbtilesOfMergeProgress;
 import io.github.qmjy.mapbox.model.MetaData;
 import io.github.qmjy.mapbox.model.osm.pbf.OsmPbfTileOfReadable;
 import io.github.qmjy.mapbox.service.AsyncService;
+import io.github.qmjy.mapbox.util.IOUtils;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,15 +48,11 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 
 /**
@@ -208,7 +205,7 @@ public class MapServerTilesetsRestController {
             if (pbfFile.exists()) {
                 try {
                     byte[] buffer = FileCopyUtils.copyToByteArray(pbfFile);
-                    return wrapResponse(decompress(buffer), AppConfig.APPLICATION_X_PROTOBUF_VALUE);
+                    return wrapResponse(IOUtils.decompress(buffer), AppConfig.APPLICATION_X_PROTOBUF_VALUE);
                 } catch (IOException e) {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
@@ -403,7 +400,7 @@ public class MapServerTilesetsRestController {
             String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
             try {
                 byte[] value = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
-                return value == null ? Optional.empty() : Optional.of(compressed ? decompress(value) : value);
+                return value == null ? Optional.empty() : Optional.of(compressed ? IOUtils.decompress(value) : value);
             } catch (EmptyResultDataAccessException e) {
                 return Optional.empty();
             }
@@ -411,32 +408,4 @@ public class MapServerTilesetsRestController {
         return Optional.empty();
     }
 
-    private byte[] compress(byte[] data) {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            GZIPOutputStream gzip = new GZIPOutputStream(out);
-            gzip.write(data);
-            gzip.close();
-            return out.toByteArray();
-        } catch (IOException e) {
-            return new byte[0];
-        }
-    }
-
-    private byte[] decompress(byte[] compressedData) {
-        try {
-            ByteArrayInputStream in = new ByteArrayInputStream(compressedData);
-            GZIPInputStream gunzip = new GZIPInputStream(in);
-            byte[] buffer = new byte[2048];
-            int n;
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            while ((n = gunzip.read(buffer)) >= 0) {
-                out.write(buffer, 0, n);
-            }
-            gunzip.close();
-            return out.toByteArray();
-        } catch (IOException e) {
-            return new byte[0];
-        }
-    }
 }

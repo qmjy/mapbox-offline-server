@@ -33,6 +33,12 @@ public class JdbcUtils {
         return INSTANCE;
     }
 
+    /**
+     * 创建外部JDBC链接
+     * @param className JDBC连接ClassName
+     * @param filePath JDBC文件路径
+     * @return JdbcTemplate
+     */
     public JdbcTemplate getJdbcTemplate(String className, String filePath) {
         DataSourceBuilder<?> ds = DataSourceBuilder.create();
         ds.driverClassName(className);
@@ -40,6 +46,10 @@ public class JdbcUtils {
         return new JdbcTemplate(ds.build());
     }
 
+    /**
+     * 释放JDBC链接
+     * @param jdbcTemplate 待释放的JdbcTemplate
+     */
     public void releaseJdbcTemplate(JdbcTemplate jdbcTemplate) {
         DataSource dataSource = jdbcTemplate.getDataSource();
         if (dataSource instanceof HikariDataSource ds) {

@@ -18,10 +18,10 @@ package io.github.qmjy.mapbox.service;
 
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
-import io.github.qmjy.mapbox.model.MbtileMergeFile;
-import io.github.qmjy.mapbox.model.MbtileMergeWrapper;
-import io.github.qmjy.mapbox.model.MbtilesOfMergeProgress;
+import io.github.qmjy.mapbox.model.*;
+import io.github.qmjy.mapbox.util.IOUtils;
 import io.github.qmjy.mapbox.util.JdbcUtils;
+import no.ecc.vectortile.VectorTileDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,7 +30,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,17 +41,20 @@ public class AsyncService {
     private final Logger logger = LoggerFactory.getLogger(AsyncService.class);
     private final AppConfig appConfig;
 
+    private final MapServerDataCenter mapServerDataCenter;
+
     /**
      * taskId:完成百分比
      */
-    private final Map<String, Integer> taskProgress = new HashMap<>();
+    private final Map<String, Integer> mergeTaskProgress = new HashMap<>();
 
-    public AsyncService(AppConfig appConfig) {
+    public AsyncService(AppConfig appConfig, MapServerDataCenter mapServerDataCenter) {
         this.appConfig = appConfig;
+        this.mapServerDataCenter = mapServerDataCenter;
     }
 
     /**
-     * 每10秒检查一次，数据有更新则刷新
+     * 每10秒检查一次
      */
     @Scheduled(fixedRate = 1000)
     public void processFixedRate() {
@@ -60,18 +62,60 @@ public class AsyncService {
     }
 
     /**
-     * 加载数据文件
+     * 初始化瓦片数据库的POI信息
      */
     @Async("asyncServiceExecutor")
-    public void asyncTask() {
-        if (StringUtils.hasLength(appConfig.getDataPath())) {
-            File dataFolder = new File(appConfig.getDataPath());
-            if (dataFolder.isDirectory() && dataFolder.exists()) {
-                wrapMapFile(dataFolder);
-                wrapFontsFile(dataFolder);
-                wrapOSMBFile(dataFolder);
+    public void asyncMbtilesToPOI(File tilesetFile) {
+        Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tilesetFile.getName());
+        if ("pbf".equals(tileMetaData.get("format")) || "mvt".equals(tileMetaData.get("format"))) {
+
+            String idxFilePath = tilesetFile.getAbsolutePath() + ".idx";
+            if (!new File(idxFilePath).exists()) {
+                JdbcTemplate idxJdbcTemp = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), idxFilePath);
+                idxJdbcTemp.execute("CREATE TABLE poi(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, geometry TEXT NOT NULL, geometry_type INTEGER NOT NULL);");
+
+                TilesFileModel tilesFileModel = mapServerDataCenter.getTilesFileModel(tilesetFile.getName());
+                extractPoi2Idx(tilesFileModel, idxJdbcTemp);
+                JdbcUtils.getInstance().releaseJdbcTemplate(idxJdbcTemp);
             }
         }
+    }
+
+    private void extractPoi2Idx(TilesFileModel tilesFileModel, JdbcTemplate idxJdbcTemp) {
+        JdbcTemplate jdbcTemplate = tilesFileModel.getJdbcTemplate();
+
+        int pageSize = 5000;
+        long totalPage = tilesFileModel.getTilesCount() % pageSize == 0 ? tilesFileModel.getTilesCount() / pageSize : tilesFileModel.getTilesCount() / pageSize + 1;
+        for (long currentPage = 0; currentPage < totalPage; currentPage++) {
+            List<Map<String, Object>> dataList = jdbcTemplate.queryForList("SELECT * FROM tiles LIMIT " + pageSize + " OFFSET " + currentPage * pageSize);
+            for (Map<String, Object> rowDataMap : dataList) {
+                byte[] data = (byte[]) rowDataMap.get("tile_data");
+                List<Poi> pois = extractPoi(tilesFileModel.isCompressed() ? IOUtils.decompress(data) : data);
+                idxJdbcTemp.batchUpdate("INSERT INTO poi(name, geometry, geometry_type) VALUES (?, ?, ?)", pois, pois.size(),
+                        (PreparedStatement ps, Poi poi) -> {
+                            ps.setString(1, poi.getName());
+                            ps.setString(2, poi.getGeometry());
+                            ps.setInt(3, poi.getGeometryType());
+                        });
+            }
+        }
+    }
+
+    private List<Poi> extractPoi(byte[] data) {
+        List<Poi> objects = new ArrayList<>();
+        try {
+            VectorTileDecoder.FeatureIterable decode = new VectorTileDecoder().decode(data);
+            List<VectorTileDecoder.Feature> list = decode.asList();
+            for (VectorTileDecoder.Feature feature : list) {
+                Poi poi = new Poi(feature);
+                if (poi.getName() != null) {
+                    objects.add(poi);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return objects;
     }
 
 
@@ -83,7 +127,7 @@ public class AsyncService {
      */
     @Async("asyncServiceExecutor")
     public void submit(String taskId, List<String> sourceNamePaths, String targetFilePath) {
-        taskProgress.put(taskId, 0);
+        mergeTaskProgress.put(taskId, 0);
         Optional<MbtileMergeWrapper> wrapperOpt = arrange(sourceNamePaths);
 
         if (wrapperOpt.isPresent()) {
@@ -98,11 +142,11 @@ public class AsyncService {
             try {
                 FileCopyUtils.copy(new File(largestFilePath), targetTmpFile);
                 completeCount = needMerges.get(largestFilePath).getCount();
-                taskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
+                mergeTaskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
                 needMerges.remove(largestFilePath);
             } catch (IOException e) {
                 logger.info("Copy the largest file failed: {}", largestFilePath);
-                taskProgress.put(taskId, -1);
+                mergeTaskProgress.put(taskId, -1);
                 return;
             }
 
@@ -112,7 +156,7 @@ public class AsyncService {
                 Map.Entry<String, MbtileMergeFile> next = iterator.next();
                 mergeTo(next.getValue(), jdbcTemplate);
                 completeCount += next.getValue().getCount();
-                taskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
+                mergeTaskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
                 iterator.remove();
                 logger.info("Merged file: {}", next.getValue().getFilePath());
             }
@@ -121,12 +165,12 @@ public class AsyncService {
             JdbcUtils.getInstance().releaseJdbcTemplate(jdbcTemplate);
 
             if (targetTmpFile.renameTo(new File(targetFilePath))) {
-                taskProgress.put(taskId, 100);
+                mergeTaskProgress.put(taskId, 100);
             } else {
                 logger.error("Rename file failed: {}", targetFilePath);
             }
         } else {
-            taskProgress.put(taskId, -1);
+            mergeTaskProgress.put(taskId, -1);
         }
     }
 
@@ -215,75 +259,6 @@ public class AsyncService {
     }
 
 
-    /**
-     * data format from: <a href="https://osm-boundaries.com/">OSM-Boundaries</a>
-     *
-     * @param dataFolder 行政区划边界数据
-     */
-    private void wrapOSMBFile(File dataFolder) {
-        File boundariesFolder = new File(dataFolder, "OSMB");
-        File[] files = boundariesFolder.listFiles();
-        if (files != null) {
-            for (File boundary : files) {
-                if (!boundary.isDirectory() && boundary.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_GEOJSON)) {
-                    logger.info("Load boundary file: {}", boundary.getName());
-                    MapServerDataCenter.initBoundaryFile(boundary);
-                }
-            }
-        }
-    }
-
-    private void wrapFontsFile(File dataFolder) {
-        File tilesetsFolder = new File(dataFolder, "fonts");
-        File[] files = tilesetsFolder.listFiles();
-        if (files != null) {
-            for (File fontFolder : files) {
-                if (fontFolder.isDirectory()) {
-                    MapServerDataCenter.initFontsFile(fontFolder);
-                }
-            }
-        }
-    }
-
-
-    private void wrapMapFile(File dataFolder) {
-        File tilesetsFolder = new File(dataFolder, "tilesets");
-        searchMbtiles(tilesetsFolder);
-        searchTpk(tilesetsFolder);
-        searchShapefile(tilesetsFolder);
-    }
-
-    private void searchShapefile(File tilesetsFolder) {
-        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_SHP));
-        if (files != null) {
-            for (File shapefile : files) {
-                logger.info("Load shapefile: {}", shapefile.getName());
-                MapServerDataCenter.initShapefile(shapefile);
-            }
-        }
-    }
-
-    private void searchTpk(File tilesetsFolder) {
-        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_TPK));
-        if (files != null) {
-            for (File tpk : files) {
-                logger.info("Load tpk tile file: {}", tpk.getName());
-                MapServerDataCenter.initTpk(tpk);
-            }
-        }
-    }
-
-    private void searchMbtiles(File tilesetsFolder) {
-        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES));
-        if (files != null) {
-            for (File dbFile : files) {
-                logger.info("Load tile file: {}", dbFile.getName());
-                MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
-            }
-        }
-    }
-
-
     public String computeTaskId(List<String> sourceNamePaths) {
         Collections.sort(sourceNamePaths);
         StringBuilder sb = new StringBuilder();
@@ -292,8 +267,8 @@ public class AsyncService {
     }
 
     public Optional<MbtilesOfMergeProgress> getTask(String taskId) {
-        if (taskProgress.containsKey(taskId)) {
-            Integer i = taskProgress.get(taskId);
+        if (mergeTaskProgress.containsKey(taskId)) {
+            Integer i = mergeTaskProgress.get(taskId);
             return Optional.of(new MbtilesOfMergeProgress(taskId, i));
         } else {
             return Optional.empty();

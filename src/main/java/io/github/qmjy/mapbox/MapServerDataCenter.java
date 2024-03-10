@@ -292,6 +292,16 @@ public class MapServerDataCenter {
         }
     }
 
+    /**
+     * 返回瓦片文件对象
+     *
+     * @param fileName 瓦片集文件名称
+     * @return 瓦片集文件对象
+     */
+    public TilesFileModel getTilesFileModel(String fileName) {
+        return tilesMap.get(fileName);
+    }
+
 
     /**
      * 返回瓦片数据库文件的元数据

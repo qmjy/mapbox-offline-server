@@ -20,7 +20,6 @@ import io.github.qmjy.mapbox.util.JdbcUtils;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -44,6 +42,7 @@ public class TilesFileModel {
     private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
     private final String filePath;
     private JdbcTemplate jdbcTemplate;
+    private final long tilesCount;
     private final Map<String, String> metaDataMap = new HashMap<>();
     //maptiler的数据是gzip压缩；bbbike的未被压缩；
     private boolean isCompressed = false;
@@ -54,6 +53,7 @@ public class TilesFileModel {
         initJdbc(className, file);
         loadMetaData();
         this.isCompressed = compressed();
+        this.tilesCount = count();
     }
 
 
@@ -86,5 +86,11 @@ public class TilesFileModel {
             // 如果在创建GZIPInputStream时发生异常，这很可能不是一个有效的GZIP流
             return false;
         }
+    }
+
+    private long count() {
+        String sql = "SELECT COUNT(*) AS count FROM tiles";
+        Map<String, Object> result = jdbcTemplate.queryForMap(sql);
+        return (int) result.get("count");
     }
 }

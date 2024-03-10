@@ -21,6 +21,7 @@ import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.MbtilesOfMerge;
 import io.github.qmjy.mapbox.model.MbtilesOfMergeProgress;
 import io.github.qmjy.mapbox.model.MetaData;
+import io.github.qmjy.mapbox.model.osm.pbf.OsmPbfTileOfReadable;
 import io.github.qmjy.mapbox.service.AsyncService;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import no.ecc.vectortile.VectorTileDecoder;
 import org.geotools.tpk.TPKFile;
 import org.geotools.tpk.TPKTile;
@@ -242,15 +244,23 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}/pbf", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @Operation(summary = "获取mapbox vector pbf原始数据", description = "解析mapbox vector pbf原始数据，以可读的json格式进行展示。瓦片文件名称和坐标地址须正确。目前只支持本服务器上mapbox vector规范下的PBF瓦片数据解析。")
-    public ResponseEntity<Map<String, Object>> decodePbf(@PathVariable("tileset") String tileset, @PathVariable("z") int z, @PathVariable("x") int x, @PathVariable("y") int y) {
+    public ResponseEntity<Map<String, Object>> decodePbf(HttpServletRequest req,
+                                                         @PathVariable("tileset") String tileset,
+                                                         @PathVariable("z") int z,
+                                                         @PathVariable("x") int x,
+                                                         @PathVariable("y") int y) {
+        OsmPbfTileOfReadable tileOfReadable = new OsmPbfTileOfReadable(req, z, x, y);
+
         Optional<byte[]> optionalBytes = getPbfBytes(tileset, z, x, y);
         if (optionalBytes.isPresent()) {
             byte[] bytes = optionalBytes.get();
+            tileOfReadable.setTileLength(bytes.length);
 
             VectorTileDecoder vectorTileDecoder = new VectorTileDecoder();
             try {
                 VectorTileDecoder.FeatureIterable decode = vectorTileDecoder.decode(bytes);
-                Map<String, Object> ok = ResponseMapUtil.ok(decode);
+                tileOfReadable.wrapStatistics(decode);
+                Map<String, Object> ok = ResponseMapUtil.ok(tileOfReadable);
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
             } catch (IOException e) {
                 throw new RuntimeException(e);

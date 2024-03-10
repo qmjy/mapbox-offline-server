@@ -157,56 +157,12 @@
                     "source-layer": "transportation_name"
                 },
                 {
-                    "id": "primary",
-                    "type": "line",
-                    "source": "osm-tiles",
-                    "source-layer": "transportation",
-                    "filter": ["all", ["==", "class", "primary"]],
-                    "layout": {
-                        "visibility": "visible"
-                    },
-                    "paint": {
-                        "line-color": "#70CBFF",
-                        "line-width": 3
-                    }
-                },
-                {
-                    "id": "secondary",
-                    "type": "line",
-                    "source": "osm-tiles",
-                    "source-layer": "transportation",
-                    "filter": ["all", ["==", "class", "secondary"]],
-                    "layout": {
-                        "visibility": "visible"
-                    },
-                    "paint": {
-                        "line-color": "#287dad",
-                        "line-width": 2
-                    },
-                    "minzoom": 6
-                },
-                {
-                    "id": "tertiary",
-                    "type": "line",
-                    "source": "osm-tiles",
-                    "source-layer": "transportation",
-                    "filter": ["all", ["==", "class", "tertiary"]],
-                    "layout": {
-                        "visibility": "visible"
-                    },
-                    "paint": {
-                        "line-color": "#06789D",
-                        "line-width": 1
-                    },
-                    "minzoom": 12
-                },
-                {
                     "id": "transportation",
                     "type": "line",
                     "source": "osm-tiles",
                     "source-layer": "transportation",
                     "paint": {
-                        "line-color": "rgba(240,240,240,0.3)",
+                        "line-color": "#06789D",
                         "line-opacity": 1,
                         "line-width": 1
                     }

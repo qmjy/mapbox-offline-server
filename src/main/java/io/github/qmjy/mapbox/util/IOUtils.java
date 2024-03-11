@@ -22,8 +22,17 @@ import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+/**
+ * IO工具类
+ */
 public class IOUtils {
 
+    /**
+     * GZIP压缩数据
+     *
+     * @param data 待压缩的数据
+     * @return 压缩后的GZIP数据
+     */
     public static byte[] compress(byte[] data) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -36,6 +45,12 @@ public class IOUtils {
         }
     }
 
+    /**
+     * 解压缩数据
+     *
+     * @param compressedData GZIP数据
+     * @return 解压后的数据
+     */
     public static byte[] decompress(byte[] compressedData) {
         try {
             ByteArrayInputStream in = new ByteArrayInputStream(compressedData);

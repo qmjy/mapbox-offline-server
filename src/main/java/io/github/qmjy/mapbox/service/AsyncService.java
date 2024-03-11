@@ -85,21 +85,32 @@ public class AsyncService {
         JdbcTemplate jdbcTemplate = tilesFileModel.getJdbcTemplate();
 
         int pageSize = 5000;
+        List<Poi> cache = new ArrayList<>();
+
         long totalPage = tilesFileModel.getTilesCount() % pageSize == 0 ? tilesFileModel.getTilesCount() / pageSize : tilesFileModel.getTilesCount() / pageSize + 1;
         for (long currentPage = 0; currentPage < totalPage; currentPage++) {
             List<Map<String, Object>> dataList = jdbcTemplate.queryForList("SELECT * FROM tiles LIMIT " + pageSize + " OFFSET " + currentPage * pageSize);
             for (Map<String, Object> rowDataMap : dataList) {
                 byte[] data = (byte[]) rowDataMap.get("tile_data");
-                List<Poi> pois = extractPoi(tilesFileModel.isCompressed() ? IOUtils.decompress(data) : data);
-                idxJdbcTemp.batchUpdate("INSERT INTO poi(name, geometry, geometry_type) VALUES (?, ?, ?)", pois, pois.size(),
-                        (PreparedStatement ps, Poi poi) -> {
-                            ps.setString(1, poi.getName());
-                            ps.setString(2, poi.getGeometry());
-                            ps.setInt(3, poi.getGeometryType());
-                        });
+                List<Poi> poiList = extractPoi(tilesFileModel.isCompressed() ? IOUtils.decompress(data) : data);
+                cache.addAll(poiList);
+                if (cache.size() > pageSize) {
+                    batchUpdate(idxJdbcTemp, cache);
+                    cache.clear();
+                }
             }
         }
+        batchUpdate(idxJdbcTemp, cache);
     }
+
+    private static void batchUpdate(JdbcTemplate idxJdbcTemp, List<Poi> poiList) {
+        idxJdbcTemp.batchUpdate("INSERT INTO poi(name, geometry, geometry_type) VALUES (?, ?, ?)", poiList, poiList.size(), (PreparedStatement ps, Poi poi) -> {
+            ps.setString(1, poi.getName());
+            ps.setString(2, poi.getGeometry());
+            ps.setInt(3, poi.getGeometryType());
+        });
+    }
+
 
     private List<Poi> extractPoi(byte[] data) {
         List<Poi> objects = new ArrayList<>();
@@ -241,15 +252,12 @@ public class AsyncService {
         long totalPage = mbtile.getCount() % pageSize == 0 ? mbtile.getCount() / pageSize : mbtile.getCount() / pageSize + 1;
         for (long currentPage = 0; currentPage < totalPage; currentPage++) {
             List<Map<String, Object>> dataList = mbtile.getJdbcTemplate().queryForList("SELECT * FROM tiles LIMIT " + pageSize + " OFFSET " + currentPage * pageSize);
-            jdbcTemplate.batchUpdate("INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES (?, ?, ?, ?)",
-                    dataList,
-                    pageSize,
-                    (PreparedStatement ps, Map<String, Object> rowDataMap) -> {
-                        ps.setInt(1, (int) rowDataMap.get("zoom_level"));
-                        ps.setInt(2, (int) rowDataMap.get("tile_column"));
-                        ps.setInt(3, (int) rowDataMap.get("tile_row"));
-                        ps.setBytes(4, (byte[]) rowDataMap.get("tile_data"));
-                    });
+            jdbcTemplate.batchUpdate("INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES (?, ?, ?, ?)", dataList, pageSize, (PreparedStatement ps, Map<String, Object> rowDataMap) -> {
+                ps.setInt(1, (int) rowDataMap.get("zoom_level"));
+                ps.setInt(2, (int) rowDataMap.get("tile_column"));
+                ps.setInt(3, (int) rowDataMap.get("tile_row"));
+                ps.setBytes(4, (byte[]) rowDataMap.get("tile_data"));
+            });
         }
     }
 

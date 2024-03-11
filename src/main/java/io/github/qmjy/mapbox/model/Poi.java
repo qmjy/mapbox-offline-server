@@ -30,6 +30,12 @@ public class Poi {
      */
     private int geometryType = -1;
 
+    public Poi(String name, String geometry, int geometryType) {
+        this.name = name;
+        this.geometry = geometry;
+        this.geometryType = geometryType;
+    }
+
     public Poi(VectorTileDecoder.Feature feature) {
         if (feature.getAttributes().get("name") != null) {
             this.name = (String) feature.getAttributes().get("name");
@@ -54,4 +60,6 @@ public class Poi {
             }
         }
     }
+
+
 }

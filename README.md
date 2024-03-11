@@ -23,6 +23,7 @@ Map tile offline server with java(JDK 21).
 
 - 支持mbtiles文件合并；
 - 支持mvt(pbf)文件解析并以可读的形式展现；
+- 支持POI离线服务器（自动从mbtiles数据解析）；
 
 ## 资源结构
 
@@ -56,7 +57,13 @@ data
        China.geojson
 ```
 
-## 字体下载
+## 资源
+
+### POI数据下载
+
+POI数据可从[规划云](http://guihuayun.com/poi/)下载。
+
+### 字体下载
 
 SimSun Regular（宋体）：https://pan.baidu.com/s/1lv69EP5QlaUnlKZlH4-qlA  
 Microsoft YaHei Regular（雅黑）：https://pan.baidu.com/s/1-tJr-PpKSFRxlfhWwtc0Kw  

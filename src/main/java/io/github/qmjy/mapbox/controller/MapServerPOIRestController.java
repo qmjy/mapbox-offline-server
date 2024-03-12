@@ -17,26 +17,29 @@
 package io.github.qmjy.mapbox.controller;
 
 import io.github.qmjy.mapbox.config.AppConfig;
-import io.github.qmjy.mapbox.model.Poi;
+import io.github.qmjy.mapbox.model.PoiPoint;
+import io.github.qmjy.mapbox.util.GeometryUtils;
 import io.github.qmjy.mapbox.util.JdbcUtils;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.WKTReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * POI相关访问接口
@@ -73,12 +76,28 @@ public class MapServerPOIRestController {
         File pbfFile = new File(poiFilePath);
         if (pbfFile.exists()) {
             JdbcTemplate idxJdbcTemp = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), poiFilePath);
-            String sql = "SELECT * FROM poi WHERE name LIKE '%?%'";
-            List<Poi> query = idxJdbcTemp.query(sql, (rs, rowNum) -> new Poi(rs.getString("name"), rs.getString("geometry"), rs.getInt("geometry_type")), keywords);
-
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(null);
+            String sql = "SELECT * FROM poi WHERE name LIKE ? LIMIT 10";
+            List<Map<String, Object>> maps = idxJdbcTemp.queryForList(sql, "%" + keywords + "%");
+            List<PoiPoint> dataList = new ArrayList<>();
+            maps.forEach(stringObjectMap -> {
+                dataList.add(formatPoiPoint((String) stringObjectMap.get("name"), (String) stringObjectMap.get("geometry"), (int) stringObjectMap.get("geometry_type")));
+            });
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(dataList));
         } else {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound("Can't find POI data or POI index service not ready yet!"));
         }
     }
+
+    private PoiPoint formatPoiPoint(String name, String wellKnownText, int geometryType) {
+        switch (geometryType) {
+            case 0:
+                Optional<Geometry> geometry = GeometryUtils.toGeometry(wellKnownText);
+                Point point = (Point) geometry.get();
+                Coordinate coordinate = point.getCoordinate();
+                return new PoiPoint(name, coordinate.toString());
+            default:
+                return new PoiPoint(name, null);
+        }
+    }
+
 }

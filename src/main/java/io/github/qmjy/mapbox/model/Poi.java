@@ -44,6 +44,12 @@ public class Poi {
                 case Point point -> {
                     this.geometryType = 0;
                 }
+                case MultiPoint multiPoint -> {
+                    this.geometryType = 1;
+                }
+                case LinearRing linearRing -> {
+                    this.geometryType = 3;
+                }
                 case LineString lineString -> {
                     this.geometryType = 2;
                 }
@@ -56,10 +62,11 @@ public class Poi {
                 case MultiPolygon multiPolygon -> {
                     this.geometryType = 6;
                 }
+                case GeometryCollection geometryCollection -> {
+                    this.geometryType = 7;
+                }
                 case null, default -> System.out.println();
             }
         }
     }
-
-
 }

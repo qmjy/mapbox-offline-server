@@ -3,6 +3,8 @@
 Map tile offline server with java(JDK 21).  
 启动项目后可以通过 http://localhost:10101/ 查看开放接口，目前主要支持mbtiles、tpk两种地图格式数据。
 
+![Mapbox Offline Demo](./assets/chengdu.png)
+
 ## 特性列表
 
 1. 支持瓦片离线服务，主要用于Mapbox离线场景；
@@ -29,9 +31,10 @@ Map tile offline server with java(JDK 21).
 
 > 本项目自带了WGS84(WKID=4326)、CGCS2000(WKID=4490)坐标系的Mapbox资源文件。
 
-mapbox离线服务至少需要包含四种资源文件：mapbox-gl、fonts、sprites、tilesets。
-行政区划服务相关需需要包含一种资源文件：geojson。
-在运行本服务之前需要按照如下结构配置数据目录，然后通过“--dataPath=xxx”的方式启动服务。
+- mapbox离线服务至少需要包含四种资源文件：mapbox-gl、fonts、sprites、tilesets；
+- 行政区划服务相关需需要包含一种资源文件：geojson；
+- 在运行本服务之前需要按照如下结构配置数据目录，然后通过“--dataPath=xxx”的方式启动服务；
+- mapbox最新版本不支持离线，可以使用Maplibre代替；
 
 ```bash
 data

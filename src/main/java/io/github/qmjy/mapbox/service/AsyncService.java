@@ -22,6 +22,7 @@ import io.github.qmjy.mapbox.model.*;
 import io.github.qmjy.mapbox.util.IOUtils;
 import io.github.qmjy.mapbox.util.JdbcUtils;
 import no.ecc.vectortile.VectorTileDecoder;
+import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class AsyncService {
@@ -75,6 +77,7 @@ public class AsyncService {
                 idxJdbcTemp.execute("CREATE TABLE poi(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, geometry TEXT NOT NULL, geometry_type INTEGER NOT NULL);");
 
                 TilesFileModel tilesFileModel = mapServerDataCenter.getTilesFileModel(tilesetFile.getName());
+                tilesFileModel.countSize();
                 extractPoi2Idx(tilesFileModel, idxJdbcTemp);
                 JdbcUtils.getInstance().releaseJdbcTemplate(idxJdbcTemp);
             }
@@ -118,9 +121,12 @@ public class AsyncService {
             VectorTileDecoder.FeatureIterable decode = new VectorTileDecoder().decode(data);
             List<VectorTileDecoder.Feature> list = decode.asList();
             for (VectorTileDecoder.Feature feature : list) {
-                Poi poi = new Poi(feature);
-                if (poi.getName() != null) {
-                    objects.add(poi);
+                //TODO 目前就只先保存点类型的数据
+                if (feature.getGeometry() instanceof Point) {
+                    Poi poi = new Poi(feature);
+                    if (poi.getName() != null) {
+                        objects.add(poi);
+                    }
                 }
             }
         } catch (IOException e) {

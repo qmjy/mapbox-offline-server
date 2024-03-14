@@ -41,9 +41,9 @@ import java.util.zip.GZIPInputStream;
 public class TilesFileModel {
     private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
     private final String filePath;
-    private JdbcTemplate jdbcTemplate;
-    private final long tilesCount;
     private final Map<String, String> metaDataMap = new HashMap<>();
+    private JdbcTemplate jdbcTemplate;
+    private long tilesCount = -1;
     //maptiler的数据是gzip压缩；bbbike的未被压缩；
     private boolean isCompressed = false;
 
@@ -53,9 +53,13 @@ public class TilesFileModel {
         initJdbc(className, file);
         loadMetaData();
         this.isCompressed = compressed();
-        this.tilesCount = count();
     }
 
+    public void countSize() {
+        String sql = "SELECT COUNT(*) AS count FROM tiles";
+        Map<String, Object> result = jdbcTemplate.queryForMap(sql);
+        tilesCount = (int) result.get("count");
+    }
 
     private void initJdbc(String className, File file) {
         this.jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(className, file.getAbsolutePath());
@@ -86,11 +90,5 @@ public class TilesFileModel {
             // 如果在创建GZIPInputStream时发生异常，这很可能不是一个有效的GZIP流
             return false;
         }
-    }
-
-    private long count() {
-        String sql = "SELECT COUNT(*) AS count FROM tiles";
-        Map<String, Object> result = jdbcTemplate.queryForMap(sql);
-        return (int) result.get("count");
     }
 }

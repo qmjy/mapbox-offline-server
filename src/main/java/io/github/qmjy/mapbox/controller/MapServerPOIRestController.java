@@ -25,9 +25,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.io.WKTReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -89,15 +87,16 @@ public class MapServerPOIRestController {
     }
 
     private PoiPoint formatPoiPoint(String name, String wellKnownText, int geometryType) {
+        //TODO 目前就只先保存点类型的数据
         switch (geometryType) {
             case 0:
-                Optional<Geometry> geometry = GeometryUtils.toGeometry(wellKnownText);
-                Point point = (Point) geometry.get();
-                Coordinate coordinate = point.getCoordinate();
-                return new PoiPoint(name, coordinate.toString());
+                Optional<Geometry> geometryOpt = GeometryUtils.toGeometry(wellKnownText);
+                if (geometryOpt.isPresent()) {
+                    Point point = (Point) geometryOpt.get();
+                    return new PoiPoint(name, point.getX() + "," + point.getY());
+                }
             default:
                 return new PoiPoint(name, null);
         }
     }
-
 }

@@ -36,7 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class AsyncService {
@@ -74,7 +73,7 @@ public class AsyncService {
             String idxFilePath = tilesetFile.getAbsolutePath() + ".idx";
             if (!new File(idxFilePath).exists()) {
                 JdbcTemplate idxJdbcTemp = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), idxFilePath);
-                idxJdbcTemp.execute("CREATE TABLE poi(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, geometry TEXT NOT NULL, geometry_type INTEGER NOT NULL);");
+                idxJdbcTemp.execute("CREATE TABLE poi(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, tile_row INTEGER NOT NULL, tile_column INTEGER NOT NULL, zoom_level INTEGER NOT NULL, geometry TEXT NOT NULL, geometry_type INTEGER NOT NULL);");
 
                 TilesFileModel tilesFileModel = mapServerDataCenter.getTilesFileModel(tilesetFile.getName());
                 tilesFileModel.countSize();
@@ -88,14 +87,14 @@ public class AsyncService {
         JdbcTemplate jdbcTemplate = tilesFileModel.getJdbcTemplate();
 
         int pageSize = 5000;
-        List<Poi> cache = new ArrayList<>();
+        List<PoiCache> cache = new ArrayList<>();
 
         long totalPage = tilesFileModel.getTilesCount() % pageSize == 0 ? tilesFileModel.getTilesCount() / pageSize : tilesFileModel.getTilesCount() / pageSize + 1;
         for (long currentPage = 0; currentPage < totalPage; currentPage++) {
             List<Map<String, Object>> dataList = jdbcTemplate.queryForList("SELECT * FROM tiles LIMIT " + pageSize + " OFFSET " + currentPage * pageSize);
             for (Map<String, Object> rowDataMap : dataList) {
                 byte[] data = (byte[]) rowDataMap.get("tile_data");
-                List<Poi> poiList = extractPoi(tilesFileModel.isCompressed() ? IOUtils.decompress(data) : data);
+                List<PoiCache> poiList = extractPoi((int) rowDataMap.get("tile_row"), (int) rowDataMap.get("tile_column"), (int) rowDataMap.get("zoom_level"), tilesFileModel.isCompressed() ? IOUtils.decompress(data) : data);
                 cache.addAll(poiList);
                 if (cache.size() > pageSize) {
                     batchUpdate(idxJdbcTemp, cache);
@@ -106,24 +105,27 @@ public class AsyncService {
         batchUpdate(idxJdbcTemp, cache);
     }
 
-    private static void batchUpdate(JdbcTemplate idxJdbcTemp, List<Poi> poiList) {
-        idxJdbcTemp.batchUpdate("INSERT INTO poi(name, geometry, geometry_type) VALUES (?, ?, ?)", poiList, poiList.size(), (PreparedStatement ps, Poi poi) -> {
+    private static void batchUpdate(JdbcTemplate idxJdbcTemp, List<PoiCache> poiList) {
+        idxJdbcTemp.batchUpdate("INSERT INTO poi(name, geometry, geometry_type, zoom_level, tile_row, tile_column) VALUES (?, ?, ?, ?, ?, ?)", poiList, poiList.size(), (PreparedStatement ps, PoiCache poi) -> {
             ps.setString(1, poi.getName());
             ps.setString(2, poi.getGeometry());
             ps.setInt(3, poi.getGeometryType());
+            ps.setInt(4, poi.getZoomLevel());
+            ps.setInt(5, poi.getTileRow());
+            ps.setInt(6, poi.getTileColumn());
         });
     }
 
 
-    private List<Poi> extractPoi(byte[] data) {
-        List<Poi> objects = new ArrayList<>();
+    private List<PoiCache> extractPoi(int tileRow, int tileColumn, int zoomLevel, byte[] data) {
+        List<PoiCache> objects = new ArrayList<>();
         try {
             VectorTileDecoder.FeatureIterable decode = new VectorTileDecoder().decode(data);
             List<VectorTileDecoder.Feature> list = decode.asList();
             for (VectorTileDecoder.Feature feature : list) {
                 //TODO 目前就只先保存点类型的数据
                 if (feature.getGeometry() instanceof Point) {
-                    Poi poi = new Poi(feature);
+                    PoiCache poi = new PoiCache(tileRow, tileColumn, zoomLevel, feature);
                     if (poi.getName() != null) {
                         objects.add(poi);
                     }

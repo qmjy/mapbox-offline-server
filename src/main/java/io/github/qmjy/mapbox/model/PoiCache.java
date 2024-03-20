@@ -21,7 +21,10 @@ import no.ecc.vectortile.VectorTileDecoder;
 import org.locationtech.jts.geom.*;
 
 @Data
-public class Poi {
+public class PoiCache {
+    private int tileRow;
+    private int tileColumn;
+    private int zoomLevel;
     private String name;
     private String geometry;
 
@@ -30,13 +33,16 @@ public class Poi {
      */
     private int geometryType = -1;
 
-    public Poi(String name, String geometry, int geometryType) {
+    public PoiCache(String name, String geometry, int geometryType) {
         this.name = name;
         this.geometry = geometry;
         this.geometryType = geometryType;
     }
 
-    public Poi(VectorTileDecoder.Feature feature) {
+    public PoiCache(int tileRow, int tileColumn, int zoomLevel, VectorTileDecoder.Feature feature) {
+        this.tileRow = tileRow;
+        this.tileColumn = tileColumn;
+        this.zoomLevel = zoomLevel;
         if (feature.getAttributes().get("name") != null) {
             this.name = (String) feature.getAttributes().get("name");
             this.geometry = feature.getGeometry().toText();

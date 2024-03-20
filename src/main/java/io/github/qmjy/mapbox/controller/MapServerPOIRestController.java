@@ -23,7 +23,6 @@ import io.github.qmjy.mapbox.util.JdbcUtils;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
@@ -78,7 +77,7 @@ public class MapServerPOIRestController {
             List<Map<String, Object>> maps = idxJdbcTemp.queryForList(sql, "%" + keywords + "%");
             List<PoiPoint> dataList = new ArrayList<>();
             maps.forEach(stringObjectMap -> {
-                dataList.add(formatPoiPoint((String) stringObjectMap.get("name"), (String) stringObjectMap.get("geometry"), (int) stringObjectMap.get("geometry_type")));
+                dataList.add(formatPoiPoint(stringObjectMap));
             });
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(dataList));
         } else {
@@ -86,14 +85,22 @@ public class MapServerPOIRestController {
         }
     }
 
-    private PoiPoint formatPoiPoint(String name, String wellKnownText, int geometryType) {
+    private PoiPoint formatPoiPoint(Map<String, Object> stringObjectMap) {
+        String name = (String) stringObjectMap.get("name");
+        String wellKnownText = (String) stringObjectMap.get("geometry");
+        int geometryType = (int) stringObjectMap.get("geometry_type");
+        int x = (int) stringObjectMap.get("tile_row");
+        int y = (int) stringObjectMap.get("tile_column");
+        int z = (int) stringObjectMap.get("zoom_level");
+
         //TODO 目前就只先保存点类型的数据
         switch (geometryType) {
             case 0:
                 Optional<Geometry> geometryOpt = GeometryUtils.toGeometry(wellKnownText);
                 if (geometryOpt.isPresent()) {
                     Point point = (Point) geometryOpt.get();
-                    return new PoiPoint(name, point.getX() + "," + point.getY());
+                    double[] doubles = GeometryUtils.tile2LonLat(x, y, z, (int) point.getX(), (int) point.getY());
+                    return new PoiPoint(name, doubles[0] + "," + doubles[1]);
                 }
             default:
                 return new PoiPoint(name, null);

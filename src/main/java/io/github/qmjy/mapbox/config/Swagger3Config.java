@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.info.Info;
         info = @Info(
                 title = "Swagger3",
                 version = "1.0",
-                description = "Mapbox-offline-server开放接口文档，提供包含但不限于Mapbox离线部署的地图服务接口能力，旨在地图离线部署提供解决方案。",
+                description = "Map-offline-server开放接口文档，提供包含但不限于Map离线部署的地图服务接口能力，旨在地图离线部署提供解决方案。",
                 contact = @Contact(name = "Shaofeng Liu")
         ),
         externalDocs = @ExternalDocumentation(description = "开源地址", url = "https://github.com/qmjy/mapbox-offline-server")

@@ -16,44 +16,45 @@
 
 package io.github.qmjy.mapbox.model.osm.pbf;
 
-import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import lombok.Data;
 import org.locationtech.jts.geom.*;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Data
 public class Feature {
     private String type = "Feature";
     private Map<String, Object> geometry = new HashMap<>();
-    private Map<String, Object> properties;
+    private LinkedHashMap<?, ?> properties;
 
-    //TODO coordinates未填充
-    public Feature(JtsMvt mvt) {
-//        switch (feature.getGeometry()) {
-//            case Point point -> {
-//                geometry.put("type", "Point");
-//                geometry.put("coordinates", null);
-//            }
-//            case LineString lineString -> {
-//                geometry.put("type", "LineString");
-//                geometry.put("coordinates", null);
-//            }
-//            case Polygon polygon -> {
-//                geometry.put("type", "Polygon");
-//                geometry.put("coordinates", null);
-//            }
-//            case MultiPolygon multiPolygon -> {
-//                geometry.put("type", "MultiPolygon");
-//                geometry.put("coordinates", null);
-//            }
-//            case MultiLineString multiLineString -> {
-//                geometry.put("type", "MultiLineString");
-//                geometry.put("coordinates", null);
-//            }
-//            case null, default -> System.out.println();
-//        }
-//        properties = feature.getAttributes();
+    public Feature(Geometry value) {
+        switch (value.getGeometryN(0)) {
+            case Point point -> {
+                geometry.put("type", "Point");
+                geometry.put("coordinates", point.toString());
+            }
+            case LineString lineString -> {
+                geometry.put("type", "LineString");
+                geometry.put("coordinates", null);
+            }
+            case Polygon polygon -> {
+                geometry.put("type", "Polygon");
+                geometry.put("coordinates", null);
+            }
+            case MultiPolygon multiPolygon -> {
+                geometry.put("type", "MultiPolygon");
+                geometry.put("coordinates", null);
+            }
+            case MultiLineString multiLineString -> {
+                geometry.put("type", "MultiLineString");
+                geometry.put("coordinates", null);
+            }
+            case null, default -> System.out.println();
+        }
+        if (value.getUserData() instanceof LinkedHashMap<?, ?> hashMap) {
+            properties = hashMap;
+        }
     }
 }

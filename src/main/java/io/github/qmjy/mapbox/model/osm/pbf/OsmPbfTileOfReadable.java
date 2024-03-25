@@ -38,7 +38,7 @@ public class OsmPbfTileOfReadable {
     private long tileLength;
     private Date time = Calendar.getInstance().getTime();
     private String url;
-    private Map<String, Collection<Geometry>> features = new HashMap<>();
+    private Map<String, List<Feature>> features = new HashMap<>();
 
     public OsmPbfTileOfReadable(HttpServletRequest req, int z, int x, int y) {
         this.z = z;
@@ -55,9 +55,12 @@ public class OsmPbfTileOfReadable {
 
     public void wrapStatistics(JtsMvt mvt) {
         for (Map.Entry<String, JtsLayer> next : mvt.getLayersByName().entrySet()) {
+            List<Feature> featureList = features.computeIfAbsent(next.getKey(), k -> new ArrayList<>());
             JtsLayer value = next.getValue();
-            //TODO 待完善
-            features.put(next.getKey(), null);
+            Collection<Geometry> geometries = value.getGeometries();
+            geometries.forEach(item->{
+                featureList.add(new Feature(item));
+            });
         }
         statistics.setLayersCount(mvt.getLayers().size());
         statistics.updateLayerCount(mvt.getLayersByName());

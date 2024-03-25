@@ -16,9 +16,11 @@
 
 package io.github.qmjy.mapbox.model.osm.pbf;
 
+import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsLayer;
+import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
-import no.ecc.vectortile.VectorTileDecoder;
+import org.locationtech.jts.geom.Geometry;
 
 import java.util.*;
 
@@ -36,7 +38,7 @@ public class OsmPbfTileOfReadable {
     private long tileLength;
     private Date time = Calendar.getInstance().getTime();
     private String url;
-    private Map<String, List<Feature>> features = new HashMap<>();
+    private Map<String, Collection<Geometry>> features = new HashMap<>();
 
     public OsmPbfTileOfReadable(HttpServletRequest req, int z, int x, int y) {
         this.z = z;
@@ -51,20 +53,13 @@ public class OsmPbfTileOfReadable {
         headers.put("User-Agent", req.getHeader("User-Agent"));
     }
 
-    public void wrapStatistics(VectorTileDecoder.FeatureIterable decode) {
-        List<VectorTileDecoder.Feature> list = decode.asList();
-        for (VectorTileDecoder.Feature feature : list) {
-            List<Feature> featureList = features.get(feature.getLayerName());
-            if (featureList == null) {
-                ArrayList<Feature> value = new ArrayList<>();
-                value.add(new Feature(feature));
-                features.put(feature.getLayerName(), value);
-            } else {
-                featureList.add(new Feature(feature));
-            }
+    public void wrapStatistics(JtsMvt mvt) {
+        for (Map.Entry<String, JtsLayer> next : mvt.getLayersByName().entrySet()) {
+            JtsLayer value = next.getValue();
+            //TODO 待完善
+            features.put(next.getKey(), null);
         }
-        statistics.setFeaturesCount(list.size());
-        statistics.setLayersCount(decode.getLayerNames().size());
-        statistics.updateLayerCount(features);
+        statistics.setLayersCount(mvt.getLayers().size());
+        statistics.updateLayerCount(mvt.getLayersByName());
     }
 }

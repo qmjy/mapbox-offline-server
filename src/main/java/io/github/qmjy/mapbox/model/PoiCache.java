@@ -17,8 +17,8 @@
 package io.github.qmjy.mapbox.model;
 
 import lombok.Data;
-import no.ecc.vectortile.VectorTileDecoder;
-import org.locationtech.jts.geom.*;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
 
 @Data
 public class PoiCache {
@@ -33,46 +33,17 @@ public class PoiCache {
      */
     private int geometryType = -1;
 
-    public PoiCache(String name, String geometry, int geometryType) {
-        this.name = name;
-        this.geometry = geometry;
-        this.geometryType = geometryType;
+
+    public PoiCache(String name, int tileRow, int tileColumn, int zoomLevel, int geometryType, Point point) {
+        this(name, tileRow, tileColumn, zoomLevel, geometryType);
+        this.geometry = point.toText();
     }
 
-    public PoiCache(int tileRow, int tileColumn, int zoomLevel, VectorTileDecoder.Feature feature) {
+    public PoiCache(String name, int tileRow, int tileColumn, int zoomLevel, int geometryType) {
+        this.name = name;
         this.tileRow = tileRow;
         this.tileColumn = tileColumn;
         this.zoomLevel = zoomLevel;
-        if (feature.getAttributes().get("name") != null) {
-            this.name = (String) feature.getAttributes().get("name");
-            this.geometry = feature.getGeometry().toText();
-            switch (feature.getGeometry()) {
-                case Point point -> {
-                    this.geometryType = 0;
-                }
-                case MultiPoint multiPoint -> {
-                    this.geometryType = 1;
-                }
-                case LinearRing linearRing -> {
-                    this.geometryType = 3;
-                }
-                case LineString lineString -> {
-                    this.geometryType = 2;
-                }
-                case MultiLineString multiLineString -> {
-                    this.geometryType = 4;
-                }
-                case Polygon polygon -> {
-                    this.geometryType = 5;
-                }
-                case MultiPolygon multiPolygon -> {
-                    this.geometryType = 6;
-                }
-                case GeometryCollection geometryCollection -> {
-                    this.geometryType = 7;
-                }
-                case null, default -> System.out.println();
-            }
-        }
+        this.geometryType = geometryType;
     }
 }

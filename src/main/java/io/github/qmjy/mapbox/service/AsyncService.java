@@ -16,13 +16,15 @@
 
 package io.github.qmjy.mapbox.service;
 
+import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsLayer;
+import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.*;
 import io.github.qmjy.mapbox.util.IOUtils;
 import io.github.qmjy.mapbox.util.JdbcUtils;
-import no.ecc.vectortile.VectorTileDecoder;
-import org.locationtech.jts.geom.Point;
+import io.github.qmjy.mapbox.util.VectorTileUtils;
+import org.locationtech.jts.geom.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.FileCopyUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -84,6 +87,8 @@ public class AsyncService {
     }
 
     private void extractPoi2Idx(TilesFileModel tilesFileModel, JdbcTemplate idxJdbcTemp) {
+        //只从最高层级解析POI数据
+        String maxZoom = tilesFileModel.getMetaDataMap().get("maxzoom");
         JdbcTemplate jdbcTemplate = tilesFileModel.getJdbcTemplate();
 
         int pageSize = 5000;
@@ -91,7 +96,7 @@ public class AsyncService {
 
         long totalPage = tilesFileModel.getTilesCount() % pageSize == 0 ? tilesFileModel.getTilesCount() / pageSize : tilesFileModel.getTilesCount() / pageSize + 1;
         for (long currentPage = 0; currentPage < totalPage; currentPage++) {
-            List<Map<String, Object>> dataList = jdbcTemplate.queryForList("SELECT * FROM tiles LIMIT " + pageSize + " OFFSET " + currentPage * pageSize);
+            List<Map<String, Object>> dataList = jdbcTemplate.queryForList("SELECT * FROM tiles WHERE zoom_level = '" + maxZoom + "' LIMIT " + pageSize + " OFFSET " + currentPage * pageSize);
             for (Map<String, Object> rowDataMap : dataList) {
                 byte[] data = (byte[]) rowDataMap.get("tile_data");
                 List<PoiCache> poiList = extractPoi((int) rowDataMap.get("tile_row"), (int) rowDataMap.get("tile_column"), (int) rowDataMap.get("zoom_level"), tilesFileModel.isCompressed() ? IOUtils.decompress(data) : data);
@@ -116,23 +121,46 @@ public class AsyncService {
         });
     }
 
-
     private List<PoiCache> extractPoi(int tileRow, int tileColumn, int zoomLevel, byte[] data) {
+        Optional<JtsMvt> jtsMvt = VectorTileUtils.decodeJtsMvt(new ByteArrayInputStream(data));
         List<PoiCache> objects = new ArrayList<>();
-        try {
-            VectorTileDecoder.FeatureIterable decode = new VectorTileDecoder().decode(data);
-            List<VectorTileDecoder.Feature> list = decode.asList();
-            for (VectorTileDecoder.Feature feature : list) {
-                //TODO 目前就只先保存点类型的数据
-                if (feature.getGeometry() instanceof Point) {
-                    PoiCache poi = new PoiCache(tileRow, tileColumn, zoomLevel, feature);
-                    if (poi.getName() != null) {
-                        objects.add(poi);
+        if (jtsMvt.isPresent()) {
+            Collection<JtsLayer> layers = jtsMvt.get().getLayers();
+            layers.forEach(geometries -> {
+                for (Geometry geometry : geometries.getGeometries()) {
+                    LinkedHashMap<String, String> userData = (LinkedHashMap<String, String>) geometry.getUserData();
+                    String name = userData.get("name");
+                    if (name != null) {
+                        switch (geometry) {
+                            case Point point -> {
+                                objects.add(new PoiCache(name, tileRow, tileColumn, zoomLevel, 0, point));
+                            }
+                            case MultiPoint multiPoint -> {
+//                            objects.add(new PoiCache(name, tileRow, tileColumn, zoomLevel, 1));
+                            }
+                            case LinearRing linearRing -> {
+                                //                    objects.add(new PoiCache(name, tileRow, tileColumn, zoomLevel, 3));
+                            }
+                            case LineString lineString -> {
+                                //                          objects.add(new PoiCache(name, tileRow, tileColumn, zoomLevel, 2));
+                            }
+                            case MultiLineString multiLineString -> {
+                                //           objects.add(new PoiCache(name, tileRow, tileColumn, zoomLevel, 4));
+                            }
+                            case Polygon polygon -> {
+                                //        objects.add(new PoiCache(name, tileRow, tileColumn, zoomLevel, 5));
+                            }
+                            case MultiPolygon multiPolygon -> {
+                                //      objects.add(new PoiCache(name, tileRow, tileColumn, zoomLevel, 6));
+                            }
+                            case GeometryCollection geometryCollection -> {
+                                //     objects.add(new PoiCache(name, tileRow, tileColumn, zoomLevel, 7));
+                            }
+                            default -> throw new IllegalStateException("Unexpected value: " + geometry);
+                        }
                     }
                 }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            });
         }
         return objects;
     }
@@ -155,7 +183,7 @@ public class AsyncService {
             long totalCount = wrapper.getTotalCount();
             String largestFilePath = wrapper.getLargestFilePath();
 
-            long completeCount = 0;
+            long completeCount;
             //直接拷贝最大的文件，提升合并速度
             File targetTmpFile = new File(targetFilePath + ".tmp");
             try {

@@ -16,6 +16,7 @@
 
 package io.github.qmjy.mapbox.controller;
 
+import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.config.AppConfig;
 import io.github.qmjy.mapbox.model.MbtilesOfMerge;
@@ -25,6 +26,7 @@ import io.github.qmjy.mapbox.model.osm.pbf.OsmPbfTileOfReadable;
 import io.github.qmjy.mapbox.service.AsyncService;
 import io.github.qmjy.mapbox.util.IOUtils;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
+import io.github.qmjy.mapbox.util.VectorTileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,7 +34,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import no.ecc.vectortile.VectorTileDecoder;
 import org.geotools.tpk.TPKFile;
 import org.geotools.tpk.TPKTile;
 import org.slf4j.Logger;
@@ -48,6 +49,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -252,15 +254,11 @@ public class MapServerTilesetsRestController {
         if (optionalBytes.isPresent()) {
             byte[] bytes = optionalBytes.get();
             tileOfReadable.setTileLength(bytes.length);
-
-            VectorTileDecoder vectorTileDecoder = new VectorTileDecoder();
-            try {
-                VectorTileDecoder.FeatureIterable decode = vectorTileDecoder.decode(bytes);
-                tileOfReadable.wrapStatistics(decode);
+            Optional<JtsMvt> jtsMvt = VectorTileUtils.decodeJtsMvt(new ByteArrayInputStream(bytes));
+            if (jtsMvt.isPresent()) {
+                tileOfReadable.wrapStatistics(jtsMvt.get());
                 Map<String, Object> ok = ResponseMapUtil.ok(tileOfReadable);
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());

@@ -17,10 +17,11 @@
 
 package io.github.qmjy.mapbox.model.osm.pbf;
 
+import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsLayer;
 import lombok.Data;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 
 @Data
@@ -32,9 +33,11 @@ public class Statistics {
 
     private Map<String, Integer> layers = new HashMap<>();
 
-    public void updateLayerCount(Map<String, List<Feature>> featuresMap) {
-        for (Map.Entry<String, List<Feature>> next : featuresMap.entrySet()) {
-            layers.put(next.getKey(), next.getValue().size());
+    public void updateLayerCount(Map<String, JtsLayer> layersMap) {
+        for (Map.Entry<String, JtsLayer> next : layersMap.entrySet()) {
+            int size = next.getValue().getGeometries().size();
+            featuresCount += size;
+            layers.put(next.getKey(), size);
         }
     }
 }

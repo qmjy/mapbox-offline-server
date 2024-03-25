@@ -16,8 +16,8 @@
 
 package io.github.qmjy.mapbox.model.osm.pbf;
 
+import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import lombok.Data;
-import no.ecc.vectortile.VectorTileDecoder;
 import org.locationtech.jts.geom.*;
 
 import java.util.HashMap;
@@ -30,30 +30,30 @@ public class Feature {
     private Map<String, Object> properties;
 
     //TODO coordinates未填充
-    public Feature(VectorTileDecoder.Feature feature) {
-        switch (feature.getGeometry()) {
-            case Point point -> {
-                geometry.put("type", "Point");
-                geometry.put("coordinates", null);
-            }
-            case LineString lineString -> {
-                geometry.put("type", "LineString");
-                geometry.put("coordinates", null);
-            }
-            case Polygon polygon -> {
-                geometry.put("type", "Polygon");
-                geometry.put("coordinates", null);
-            }
-            case MultiPolygon multiPolygon -> {
-                geometry.put("type", "MultiPolygon");
-                geometry.put("coordinates", null);
-            }
-            case MultiLineString multiLineString -> {
-                geometry.put("type", "MultiLineString");
-                geometry.put("coordinates", null);
-            }
-            case null, default -> System.out.println();
-        }
-        properties = feature.getAttributes();
+    public Feature(JtsMvt mvt) {
+//        switch (feature.getGeometry()) {
+//            case Point point -> {
+//                geometry.put("type", "Point");
+//                geometry.put("coordinates", null);
+//            }
+//            case LineString lineString -> {
+//                geometry.put("type", "LineString");
+//                geometry.put("coordinates", null);
+//            }
+//            case Polygon polygon -> {
+//                geometry.put("type", "Polygon");
+//                geometry.put("coordinates", null);
+//            }
+//            case MultiPolygon multiPolygon -> {
+//                geometry.put("type", "MultiPolygon");
+//                geometry.put("coordinates", null);
+//            }
+//            case MultiLineString multiLineString -> {
+//                geometry.put("type", "MultiLineString");
+//                geometry.put("coordinates", null);
+//            }
+//            case null, default -> System.out.println();
+//        }
+//        properties = feature.getAttributes();
     }
 }

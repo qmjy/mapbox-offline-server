@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.geometry.jts.GeometryBuilder;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
@@ -39,6 +40,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 
 /**
@@ -64,9 +67,7 @@ public class MapServerOsmBController {
     @ResponseBody
     @Operation(summary = "获取省市区划级数据", description = "查询行政区划级联树数据。")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivision.class)))
-    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@Parameter(description = "行政区划的根节点") @RequestParam(value = "nodeId", required = false, defaultValue = "0") int nodeId,
-                                                                          @Parameter(description = "支持本地语言(0: default)和英语(1)。") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang,
-                                                                          @Parameter(description = "是否递归包含子节点。不递归：0(default)和递归(1)。") @RequestParam(value = "recursion", required = false, defaultValue = "0") int recursion) {
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@Parameter(description = "行政区划的根节点") @RequestParam(value = "nodeId", required = false, defaultValue = "0") int nodeId, @Parameter(description = "支持本地语言(0: default)和英语(1)。") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang, @Parameter(description = "是否递归包含子节点。不递归：0(default)和递归(1)。") @RequestParam(value = "recursion", required = false, defaultValue = "0") int recursion) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
@@ -158,13 +159,14 @@ public class MapServerOsmBController {
      * 查询指定节点行政区划明细数据
      *
      * @param nodeId 父节点
+     * @param type   返回的行政区划边界数据格式，默认为type为0返回WKT，1返回geojson
      * @return 行政区划数据
      */
     @GetMapping("/nodes/{nodeId}")
     @ResponseBody
     @Operation(summary = "获取省市区划节点详情数据", description = "查询行政区划节点详情数据。")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivisionOrigin.class)))
-    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId) {
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId, @RequestParam(value = "type", required = false, defaultValue = "0") int type) {
         if (MapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
@@ -183,13 +185,28 @@ public class MapServerOsmBController {
                 Object tags = simpleFeature.getAttribute("all_tags");
                 int adminLevel = (int) simpleFeature.getAttribute("admin_level");
 
-                AdministrativeDivisionOrigin data = new AdministrativeDivisionOrigin(
-                        osmId, parents, adminLevel, name, nameEn, String.valueOf(geometry), String.valueOf(tags));
+                AdministrativeDivisionOrigin data = new AdministrativeDivisionOrigin(osmId, parents, adminLevel, name, nameEn, getGeometryStr(geometry, type), String.valueOf(tags));
                 Map<String, Object> ok = ResponseMapUtil.ok(data);
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
             }
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
+    }
+
+    private String getGeometryStr(Object geometryObj, int type) {
+        if (type != 0) {
+            if (geometryObj instanceof Geometry geometry) {
+                GeometryJSON geoJsonWriter = new GeometryJSON();
+                StringWriter writer = new StringWriter();
+                try {
+                    geoJsonWriter.write(geometry, writer);
+                    return writer.toString();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return geometryObj.toString();
     }
 
     /**

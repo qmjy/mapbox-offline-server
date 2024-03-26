@@ -36,7 +36,7 @@ import java.util.Optional;
  * </pre></blockquote>
  * 4. 计算瓦片地理区域的右下角经纬度：使用瓦片左上角的经纬度和瓦片的地理尺寸，你可以计算出瓦片地理区域的右下角经纬度。<p>
  *
- * @author  Shaofeng Liu
+ * @author Shaofeng Liu
  * @since 1.0
  */
 public class GeometryUtils {
@@ -53,22 +53,24 @@ public class GeometryUtils {
     /**
      * 将瓦片坐标转换为经纬度坐标(256像素切片)
      *
-     * @param x         瓦片X坐标
-     * @param y         瓦片Y坐标
-     * @param z         缩放层级
-     * @param relativeX 瓦片内像素X坐标
-     * @param relativeY 瓦片内像素Y坐标
+     * @param xTile  瓦片X坐标
+     * @param yTile  瓦片Y坐标
+     * @param zoom   缩放层级
+     * @param xPixel 瓦片内像素X坐标
+     * @param yPixel 瓦片内像素Y坐标
+     * @param extent 瓦片像素宽度
      * @return 经纬度坐标
      */
-    public static double[] tile2LonLat(int x, int y, int z, int relativeX, int relativeY) {
-        // 计算瓦片左上角的像素坐标
-        double px = x * 256 + relativeX;
-        double py = y * 256 + relativeY;
+    public static double[] pixel2deg(int xTile, int yTile, int zoom, int xPixel, int yPixel, int extent) {
+        double n = Math.pow(2, zoom);
 
-        // 计算瓦片左上角的经度和纬度
-        double lon = (px / Math.pow(2, z)) * 360 - 180;
-        double lat = Math.toDegrees(Math.atan(Math.sinh(Math.PI * (1 - 2 * py / Math.pow(2, z)))));
-        return new double[]{lon, lat};
+        xTile = xTile + (xPixel / extent);
+        yTile = yTile + ((extent - yPixel) / extent);
+
+        double lonDeg = (xTile / n) * 360 - 180;
+        double latRad = Math.atan(Math.sinh(Math.PI * (1 - 2 * yTile / n)));
+        double latDeg = Math.toDegrees(latRad);
+        return new double[]{lonDeg, latDeg};
     }
 
 

@@ -89,9 +89,9 @@ public class MapServerPOIRestController {
         String name = (String) stringObjectMap.get("name");
         String wellKnownText = (String) stringObjectMap.get("geometry");
         int geometryType = (int) stringObjectMap.get("geometry_type");
-        int x = (int) stringObjectMap.get("tile_row");
-        int y = (int) stringObjectMap.get("tile_column");
-        int z = (int) stringObjectMap.get("zoom_level");
+        int tileRow = (int) stringObjectMap.get("tile_row");
+        int tileColumn = (int) stringObjectMap.get("tile_column");
+        int zoomLevel = (int) stringObjectMap.get("zoom_level");
 
         //TODO 目前就只先保存点类型的数据
         switch (geometryType) {
@@ -99,7 +99,7 @@ public class MapServerPOIRestController {
                 Optional<Geometry> geometryOpt = GeometryUtils.toGeometry(wellKnownText);
                 if (geometryOpt.isPresent()) {
                     Point point = (Point) geometryOpt.get();
-                    double[] doubles = GeometryUtils.tile2LonLat(x, y, z, (int) point.getX(), (int) point.getY());
+                    double[] doubles = GeometryUtils.pixel2deg(tileColumn, tileRow, zoomLevel, (int) point.getX(), (int) point.getY(), 4096);
                     return new PoiPoint(name, doubles[0] + "," + doubles[1]);
                 }
             default:

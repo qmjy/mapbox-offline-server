@@ -8,15 +8,15 @@ Map offline server with java(JDK 21).
 
 ## 地图服务器数据能力矩阵
 
-|           | mbtiles   | tpk       | geojson | shapefile | geopackage | osm.pbf   | OSMB(geojson) |
-|-----------|-----------|-----------|---------|-----------|------------|-----------|---------------|
-| 底图切片      | :ok_hand: | :ok_hand: |         |           |            |           |               |
-| 地理逆编码     |           |           |         |           |            |           | :ok_hand:     |
-| 地理编码      |           |           |         |           |            |           |               |
-| 路径规划      |           |           |         |           |            | :running: |               |
-| POI搜索     | :ok_hand: |           |         |           |            |           |               |
-| 静态地图      | :running: |           |         |           |            |           |               |
-| 行政区划（含边界） |           |           |         |           |            |           | :ok_hand:     |
+|           | mbtiles               | tpk                | geojson | shapefile | geopackage | osm.pbf               | OSMB(geojson)      |
+|-----------|-----------------------|--------------------|---------|-----------|------------|-----------------------|--------------------|
+| 底图切片      | :white_check_mark:    | :white_check_mark: |         |           |            |                       |                    |
+| 地理逆编码     |                       |                    |         |           |            |                       | :white_check_mark: |
+| 地理编码      |                       |                    |         |           |            |                       |                    |
+| 路径规划      |                       |                    |         |           |            | :black_square_button: |                    |
+| POI搜索     | :white_check_mark:    |                    |         |           |            |                       |                    |
+| 静态地图      | :black_square_button: |                    |         |           |            |                       |                    |
+| 行政区划（含边界） |                       |                    |         |           |            |                       | :white_check_mark: |
 
 
 ## 特性列表

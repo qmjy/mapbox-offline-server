@@ -68,7 +68,7 @@ public class GeometryUtils {
         yTile = yTile + ((extent - yPixel) / extent);
 
         double lonDeg = (xTile / n) * 360 - 180;
-        double latRad = Math.atan(Math.sinh(Math.PI * (1 - 2 * yTile / n)));
+        double latRad = 0 - Math.atan(Math.sinh(Math.PI * (1 - 2 * yTile / n)));
         double latDeg = Math.toDegrees(latRad);
         return new double[]{lonDeg, latDeg};
     }

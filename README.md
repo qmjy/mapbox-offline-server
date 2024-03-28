@@ -1,9 +1,23 @@
 # map-offline-server
 
-Map tile offline server with java(JDK 21).  
+Map offline server with java(JDK 21).  
+本项目旨在提供离线地图服务，为私有化地图部署提供解决方案。  
 启动项目后可以通过 http://localhost:10101/ 查看开放接口，目前主要支持mbtiles、tpk两种地图格式数据。
 
 ![Mapbox Offline Demo](./assets/chengdu.png)
+
+## 地图服务器数据能力矩阵
+
+|           | mbtiles | tpk  | geojson | shapefile | geopackage | osm.pbf | OSMB(geojson) |
+|-----------|---------|------|---------|-----------|------------|---------|---------------|
+| 底图切片      | :ok:    | :ok: |         |           |            |         |               |
+| 地理逆编码     |         |      |         |           |            |         | :ok:          |
+| 地理编码      |         |      |         |           |            |         |               |
+| 路径规划      |         |      |         |           |            |         |               |
+| POI搜索     | :ok:    |      |         |           |            |         |               |
+| 静态地图      |         |      |         |           |            |         |               |
+| 行政区划（含边界） |         |      |         |           |            |         | :ok:          |
+
 
 ## 特性列表
 
@@ -56,6 +70,7 @@ data
 │      world.json
 ├─tilesets
 │      Beijing.mbtiles
+│      Beijing.mbtiles.idx
 └─OSMB
        China.geojson
 ```

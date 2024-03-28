@@ -130,11 +130,11 @@
             <version>${geotools.version.301}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
+        <!-- https://mvnrepository.com/artifact/com.graphhopper/graphhopper-core -->
         <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>3.25.3</version>
+            <groupId>com.graphhopper</groupId>
+            <artifactId>graphhopper-core</artifactId>
+            <version>9.0-pre1</version>
         </dependency>
 
         <dependency>

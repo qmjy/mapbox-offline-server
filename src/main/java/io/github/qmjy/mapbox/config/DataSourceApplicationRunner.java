@@ -48,6 +48,17 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
                 wrapMapFile(dataFolder);
                 wrapFontsFile(dataFolder);
                 wrapOSMBFile(dataFolder);
+                wrapOsmPbfFile(dataFolder);
+            }
+        }
+    }
+
+    private void wrapOsmPbfFile(File dataFolder) {
+        File tilesetsFolder = new File(dataFolder, "osm.pbf");
+        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_OSM_PBF));
+        if (files != null) {
+            for (File dbFile : files) {
+                asyncService.loadOsmPbf(dbFile);
             }
         }
     }

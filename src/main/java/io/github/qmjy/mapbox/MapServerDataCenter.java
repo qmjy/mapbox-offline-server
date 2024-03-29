@@ -16,6 +16,7 @@
 
 package io.github.qmjy.mapbox;
 
+import com.graphhopper.GraphHopper;
 import io.github.qmjy.mapbox.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapbox.model.FontsFileModel;
 import io.github.qmjy.mapbox.model.MetaData;
@@ -82,6 +83,9 @@ public class MapServerDataCenter {
     @Getter
     private static AdministrativeDivisionTmp simpleAdminDivision;
 
+    @Getter
+    private static GraphHopper hopper;
+
     /**
      * 初始化数据源
      *
@@ -117,6 +121,10 @@ public class MapServerDataCenter {
 
     public static FileDataStore getShpDataStores(String shapefile) {
         return shpDataStores.get(shapefile);
+    }
+
+    public static void initHopper(GraphHopper hopper) {
+        MapServerDataCenter.hopper = hopper;
     }
 
 

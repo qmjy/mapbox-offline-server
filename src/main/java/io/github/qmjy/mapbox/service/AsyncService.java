@@ -16,6 +16,9 @@
 
 package io.github.qmjy.mapbox.service;
 
+import com.graphhopper.GraphHopper;
+import com.graphhopper.config.CHProfile;
+import com.graphhopper.config.Profile;
 import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsLayer;
 import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import io.github.qmjy.mapbox.MapServerDataCenter;
@@ -63,6 +66,28 @@ public class AsyncService {
     @Scheduled(fixedRate = 1000)
     public void processFixedRate() {
         //TODO nothing to do yet
+    }
+
+    /**
+     * 加载osm.pbf数据
+     *
+     * @param osmPbfFile osm.pbf数据
+     */
+    @Async("asyncServiceExecutor")
+    public void loadOsmPbf(File osmPbfFile) {
+        GraphHopper hopper = new GraphHopper();
+
+        hopper.setOSMFile(osmPbfFile.getAbsolutePath());
+        // 读取完OSM数据之后会构建路线图，此处配置图的存储路径
+        hopper.setGraphHopperLocation(osmPbfFile.getParent() + "/routing-graph-cache");
+
+        // 支持car、bike、foot三种交通方式的导航
+        hopper.setProfiles(new Profile("car").setVehicle("car").setWeighting("fastest").setTurnCosts(false));
+
+        //设置汽车
+        hopper.getCHPreparationHandler().setCHProfiles(new CHProfile("car"));
+        hopper.importOrLoad();
+        MapServerDataCenter.initHopper(hopper);
     }
 
     /**

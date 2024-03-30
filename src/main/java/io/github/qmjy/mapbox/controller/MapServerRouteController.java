@@ -43,10 +43,12 @@ import java.util.Map;
 @Tag(name = "路径规划", description = "驾车、骑行、步行路径规划")
 public class MapServerRouteController {
 
+
+    private static final int ROUTE_ERROR_CODE_NOT_READY = 10001;
     /**
      * 路径不可达
      */
-    private static final int ROUTE_ERROR_CODE_CAN_NOT_REACH = 10001;
+    private static final int ROUTE_ERROR_CODE_CAN_NOT_REACH = 10002;
 
     /**
      * 路径规划
@@ -64,13 +66,16 @@ public class MapServerRouteController {
                                                      @Parameter(description = "待规划的起点纬度坐标，例如：30.791177") @RequestParam(value = "startLatitude") double startLatitude,
                                                      @Parameter(description = "待规划的终点经度坐标，例如：103.895101") @RequestParam(value = "endLongitude") double endLongitude,
                                                      @Parameter(description = "待规划的终点纬度坐标，例如：30.764163") @RequestParam(value = "endLatitude") double endLatitude,
-                                                     @Parameter(description = "出行方式。0：驾车（default）、1：骑行、2：步行") @RequestParam(value = "endLatitude", required = false, defaultValue = "0") int routeType) {
+                                                     @Parameter(description = "出行方式。0：驾车（default）、1：骑行、2：步行") @RequestParam(value = "routeType", required = false, defaultValue = "0") int routeType) {
         GraphHopper hopper = MapServerDataCenter.getHopper();
 
         //输入你的经度纬度，选择交通方式
         GHRequest req = new GHRequest(startLongitude, startLatitude, endLongitude, endLatitude).
                 setProfile(getProfile(routeType)).setLocale(Locale.CHINA);
-
+        if (hopper == null) {
+            Map<String, Object> ok = ResponseMapUtil.nok(ROUTE_ERROR_CODE_NOT_READY, "环境还未就绪！");
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
+        }
         GHResponse rsp = hopper.route(req);
 
         //如果路线不可达抛异常
@@ -86,9 +91,9 @@ public class MapServerRouteController {
         ResponsePath path = rsp.getBest();
 
         HashMap<Object, Object> data = new HashMap<>();
-        data.put("timeCostInMs",(path.getTime()) / 1000);
-        data.put("timeDistanceInM",path.getDistance());
-        data.put("instructions",path.getInstructions());
+        data.put("timeCostInMs", (path.getTime()) / 1000);
+        data.put("timeDistanceInM", path.getDistance());
+        data.put("instructions", path.getInstructions());
         Map<String, Object> ok = ResponseMapUtil.ok(data);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
     }

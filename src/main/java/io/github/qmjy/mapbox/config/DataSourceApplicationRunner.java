@@ -58,6 +58,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_OSM_PBF));
         if (files != null) {
             for (File dbFile : files) {
+                logger.info("Load osm.pbf file: {}", dbFile.getName());
                 asyncService.loadOsmPbf(dbFile);
             }
         }

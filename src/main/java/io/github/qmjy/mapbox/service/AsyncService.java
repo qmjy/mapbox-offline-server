@@ -27,6 +27,7 @@ import io.github.qmjy.mapbox.model.*;
 import io.github.qmjy.mapbox.util.IOUtils;
 import io.github.qmjy.mapbox.util.JdbcUtils;
 import io.github.qmjy.mapbox.util.VectorTileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.locationtech.jts.geom.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,15 +80,25 @@ public class AsyncService {
 
         hopper.setOSMFile(osmPbfFile.getAbsolutePath());
         // 读取完OSM数据之后会构建路线图，此处配置图的存储路径
-        hopper.setGraphHopperLocation(osmPbfFile.getParent() + "/routing-graph-cache");
+        hopper.setGraphHopperLocation(getCacheLocation(osmPbfFile));
 
         // 支持car、bike、foot三种交通方式的导航
-        hopper.setProfiles(new Profile("car").setVehicle("car").setWeighting("fastest").setTurnCosts(false));
+        hopper.setProfiles(new Profile("car").setVehicle("car").setWeighting("custom").setTurnCosts(false));
 
         //设置汽车
         hopper.getCHPreparationHandler().setCHProfiles(new CHProfile("car"));
         hopper.importOrLoad();
         MapServerDataCenter.initHopper(hopper);
+    }
+
+    @NotNull
+    private static String getCacheLocation(File osmPbfFile) {
+        String location = osmPbfFile.getParent() + "/routing-graph-cache";
+        File file = new File(location);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        return location;
     }
 
     /**

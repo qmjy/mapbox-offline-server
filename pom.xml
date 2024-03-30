@@ -137,6 +137,13 @@
             <version>9.0-pre1</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.openstreetmap.osmosis/osmosis-osm-binary -->
+        <dependency>
+            <groupId>org.openstreetmap.osmosis</groupId>
+            <artifactId>osmosis-osm-binary</artifactId>
+            <version>0.48.3</version>
+        </dependency>
+
         <dependency>
             <groupId>com.wdtinc</groupId>
             <artifactId>mapbox-vector-tile</artifactId>

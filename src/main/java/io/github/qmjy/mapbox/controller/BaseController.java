@@ -19,6 +19,8 @@ package io.github.qmjy.mapbox.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.Locale;
+
 /**
  * Controller 公共常用方法
  *
@@ -34,5 +36,13 @@ public class BaseController {
     public String getBasePath(HttpServletRequest request) {
         String path = request.getContextPath();
         return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path;
+    }
+
+    protected Locale getLang(int lang) {
+        return switch (lang) {
+            case 1 -> Locale.US;
+            case 2 -> Locale.CHINA;
+            default -> Locale.getDefault();
+        };
     }
 }

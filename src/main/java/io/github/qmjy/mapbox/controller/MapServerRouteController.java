@@ -20,6 +20,9 @@ import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
 import com.graphhopper.ResponsePath;
+import com.graphhopper.util.Instruction;
+import com.graphhopper.util.InstructionList;
+import com.graphhopper.util.Translation;
 import io.github.qmjy.mapbox.MapServerDataCenter;
 import io.github.qmjy.mapbox.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,9 +31,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.sql.Array;
+import java.util.*;
 
 
 /**
@@ -41,7 +43,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/route")
 @Tag(name = "路径规划", description = "驾车、骑行、步行路径规划")
-public class MapServerRouteController {
+public class MapServerRouteController extends BaseController {
 
     /**
      * 环境还未就绪
@@ -64,6 +66,7 @@ public class MapServerRouteController {
      * @param endLongitude   结束经度
      * @param endLatitude    结束纬度
      * @param routeType      路径规划方式。0：驾车、1：骑行、2：步行
+     * @param lang           支持本地语言(0: default)、英语（1）、简体中文（2）。
      * @return 路径规划结果
      */
     @GetMapping("/{osmpbf}")
@@ -73,7 +76,8 @@ public class MapServerRouteController {
                                                      @Parameter(description = "待规划的起点纬度坐标，例如：30.675252") @RequestParam(value = "startLatitude") double startLatitude,
                                                      @Parameter(description = "待规划的终点经度坐标，例如：104.068374") @RequestParam(value = "endLongitude") double endLongitude,
                                                      @Parameter(description = "待规划的终点纬度坐标，例如：30.66082") @RequestParam(value = "endLatitude") double endLatitude,
-                                                     @Parameter(description = "出行方式。0：驾车（default）、1：骑行、2：步行") @RequestParam(value = "routeType", required = false, defaultValue = "0") int routeType) {
+                                                     @Parameter(description = "出行方式。0：驾车（default）、1：骑行、2：步行") @RequestParam(value = "routeType", required = false, defaultValue = "0") int routeType,
+                                                     @Parameter(description = "支持本地语言(0: default)、英语（1）、简体中文（2）") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang) {
         GraphHopper hopper = MapServerDataCenter.getHopperMap().get(osmpbf);
         if (hopper == null) {
             Map<String, Object> ok = ResponseMapUtil.nok(ROUTE_ERROR_CODE_NOT_READY, "数据源未就绪或不存在：" + osmpbf);
@@ -81,7 +85,7 @@ public class MapServerRouteController {
         }
 
         GHRequest req = new GHRequest(startLatitude, startLongitude, endLatitude, endLongitude).
-                setProfile(getProfile(routeType)).setLocale(Locale.CHINA);
+                setProfile(getProfile(routeType)).setLocale(getLang(lang));
         GHResponse rsp = hopper.route(req);
 
         try {
@@ -97,7 +101,14 @@ public class MapServerRouteController {
         HashMap<Object, Object> data = new HashMap<>();
         data.put("timeCostInMs", (path.getTime()) / 1000);
         data.put("distanceInM", path.getDistance());
-        data.put("instructions", path.getInstructions());
+
+        Translation tr = hopper.getTranslationMap().getWithFallBack(getLang(lang));
+        InstructionList instructions = path.getInstructions();
+        for (Instruction instruction : instructions) {
+            instruction.getExtraInfoJSON().put("description", instruction.getTurnDescription(tr));
+        }
+        data.put("instructions", instructions);
+
         Map<String, Object> ok = ResponseMapUtil.ok(data);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
     }

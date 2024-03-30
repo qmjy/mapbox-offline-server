@@ -67,7 +67,9 @@ public class MapServerOsmBController {
     @ResponseBody
     @Operation(summary = "获取省市区划级数据", description = "查询行政区划级联树数据。")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivision.class)))
-    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@Parameter(description = "行政区划的根节点") @RequestParam(value = "nodeId", required = false, defaultValue = "0") int nodeId, @Parameter(description = "支持本地语言(0: default)和英语(1)。") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang, @Parameter(description = "是否递归包含子节点。不递归：0(default)和递归(1)。") @RequestParam(value = "recursion", required = false, defaultValue = "0") int recursion) {
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@Parameter(description = "行政区划的根节点") @RequestParam(value = "nodeId", required = false, defaultValue = "0") int nodeId,
+                                                                          @Parameter(description = "支持本地语言(0: default)和英语(1)。") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang,
+                                                                          @Parameter(description = "是否递归包含子节点。不递归：0(default)和递归(1)。") @RequestParam(value = "recursion", required = false, defaultValue = "0") int recursion) {
         Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";

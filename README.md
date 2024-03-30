@@ -4,30 +4,31 @@ Map offline server with java(JDK 21).
 本项目旨在提供离线地图服务，为私有化地图部署提供解决方案。  
 启动项目后可以通过 http://localhost:10101/ 查看开放接口，目前主要支持mbtiles、tpk两种地图格式数据。
 
-![Mapbox Offline Demo](./assets/chengdu.png)
+![Mapbox Offline Demo](assets/chengdu.png)
+
+---
 
 ## 地图服务器数据能力矩阵
 
-|           | mbtiles                | tpk                | geojson | shapefile | geopackage | osm.pbf            | OSMB(geojson)      |
-|-----------|------------------------|--------------------|---------|-----------|------------|--------------------|--------------------|
-| 底图切片      | :white_check_mark:     | :white_check_mark: |         |           |            |                    |                    |
-| 地理逆编码     |                        |                    |         |           |            |                    | :white_check_mark: |
-| 地理编码      |                        |                    |         |           |            |                    |                    |
-| 路径规划      |                        |                    |         |           |            | :white_check_mark: |                    |
-| POI搜索     | :white_check_mark:(矢量) |                    |         |           |            |                    |                    |
-| 静态地图      | :running:              |                    |         |           |            |                    |                    |
+|           |        mbtiles         |        tpk         | geojson | shapefile | geopackage |      osm.pbf       |   OSMB(geojson)    |
+|:---------:|:----------------------:|:------------------:|:-------:|:---------:|:----------:|:------------------:|:------------------:|
+|   底图切片    |   :white_check_mark:   | :white_check_mark: |         |           |            |                    |                    |
+|   地理逆编码   |                        |                    |         |           |            |                    | :white_check_mark: |
+|   地理编码    |                        |                    |         |           |            |                    |                    |
+|   路径规划    |                        |                    |         |           |            | :white_check_mark: |                    |
+|   POI搜索   | :white_check_mark:(矢量) |                    |         |           |            |                    |                    |
+|   静态地图    |       :running:        |                    |         |           |            |                    |                    |
 | 行政区划（含边界） |                        |                    |         |           |            |                    | :white_check_mark: |
 
 
 ## 特性列表
 
-1. 支持瓦片离线服务，主要用于Mapbox离线场景；
+1. 支持瓦片离线服务，主要用于Map服务器离线场景
 
 - 支持mbtiles瓦片数据发布；
-- 支持mapbox离线静态资源发布；
-- 支持底图数据的元数据查看；
+- 支持底图mvt（pbf）数据的元数据查看；
 
-2. 支持全球行政区划级联数据查询；
+2. 支持全球行政区划级联数据查询
 
 - 支持全球省市区县级联数据查询；
 - 支持全球行政区划边界范围查询；
@@ -35,11 +36,15 @@ Map offline server with java(JDK 21).
 - 支持判断经纬度坐标是否在某一个行政区划范围内；
 - 国际化支持；
 
-3. 工具支持
+3. 支持POI搜索
 
+- 支持mbtiles瓦片数据提取poi数据并查询；
+
+4. 工具支持
+- 支持mapbox离线静态资源发布；
 - 支持mbtiles文件合并；
-- 支持mvt(pbf)文件解析并以可读的形式展现；
-- 支持POI离线服务器（自动从mbtiles数据解析）；
+
+---
 
 ## 资源结构
 
@@ -48,7 +53,7 @@ Map offline server with java(JDK 21).
 - mapbox离线服务至少需要包含四种资源文件：mapbox-gl、fonts、sprites、tilesets；
 - 行政区划服务相关需需要包含一种资源文件：geojson；
 - 在运行本服务之前需要按照如下结构配置数据目录，然后通过“--dataPath=xxx”的方式启动服务；
-- mapbox最新版本不支持离线，可以使用Maplibre代替；
+- mapbox最新版本不支持离线，可以使用[Maplibre](https://maplibre.org/)代替；
 
 ```bash
 data
@@ -71,8 +76,8 @@ data
 ├─osm.pbf
 │      Chengdu.osm.pbf
 ├─tilesets
-│      Beijing.mbtiles
-│      Beijing.mbtiles.idx
+│      Chengdu.mbtiles
+│      Chengdu.mbtiles.idx
 └─OSMB
        China.geojson
 ```

@@ -87,13 +87,14 @@ public class AsyncService {
 
         //设置汽车
         hopper.getCHPreparationHandler().setCHProfiles(new CHProfile("car"));
+        hopper.setAllowWrites(false);
         hopper.importOrLoad();
         MapServerDataCenter.initHopper(hopper);
     }
 
     @NotNull
     private static String getCacheLocation(File osmPbfFile) {
-        String location = osmPbfFile.getParent() + "/routing-graph-cache";
+        String location = osmPbfFile.getParent() + File.separator + "routing-graph-cache";
         File file = new File(location);
         if (!file.exists()) {
             file.mkdirs();

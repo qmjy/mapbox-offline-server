@@ -49,6 +49,10 @@ public class MapServerRouteController {
      * 路径不可达
      */
     private static final int ROUTE_ERROR_CODE_CAN_NOT_REACH = 10002;
+    /**
+     * 路径规划错误
+     */
+    private static final int ROUTE_ERROR_CODE_ROUTE_ERROR = 10009;
 
     /**
      * 路径规划
@@ -60,9 +64,10 @@ public class MapServerRouteController {
      * @param routeType      路径规划方式。0：驾车、1：骑行、2：步行
      * @return 路径规划结果
      */
-    @GetMapping("")
+    @GetMapping("/{osmPbfFile}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> route(@Parameter(description = "待规划的起点经度坐标，例如：103.897418") @RequestParam(value = "startLongitude") double startLongitude,
+    public ResponseEntity<Map<String, Object>> route(@Parameter(description = "用于导航的osm.pbf文件名，例如：Beijing.osm.pbf") @PathVariable("osmPbfFile") String osmPbfFile,
+                                                     @Parameter(description = "待规划的起点经度坐标，例如：103.897418") @RequestParam(value = "startLongitude") double startLongitude,
                                                      @Parameter(description = "待规划的起点纬度坐标，例如：30.791177") @RequestParam(value = "startLatitude") double startLatitude,
                                                      @Parameter(description = "待规划的终点经度坐标，例如：103.895101") @RequestParam(value = "endLongitude") double endLongitude,
                                                      @Parameter(description = "待规划的终点纬度坐标，例如：30.764163") @RequestParam(value = "endLatitude") double endLatitude,
@@ -83,7 +88,7 @@ public class MapServerRouteController {
             // handle errors
             if (rsp.hasErrors()) throw new RuntimeException(rsp.getErrors().toString());
         } catch (Exception e) {
-            Map<String, Object> ok = ResponseMapUtil.nok(ROUTE_ERROR_CODE_CAN_NOT_REACH, "路径不可达！");
+            Map<String, Object> ok = ResponseMapUtil.nok(ROUTE_ERROR_CODE_ROUTE_ERROR, rsp.getErrors().getFirst().getMessage());
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
         }
 

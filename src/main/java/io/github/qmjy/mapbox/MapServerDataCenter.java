@@ -77,14 +77,14 @@ public class MapServerDataCenter {
     @Getter
     private static final Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
 
+    @Getter
+    private static final Map<String, GraphHopper> hopperMap = new HashMap<>();
+
     /**
      * 行政区划层级树
      */
     @Getter
     private static AdministrativeDivisionTmp simpleAdminDivision;
-
-    @Getter
-    private static GraphHopper hopper;
 
     /**
      * 初始化数据源
@@ -123,8 +123,8 @@ public class MapServerDataCenter {
         return shpDataStores.get(shapefile);
     }
 
-    public static void initHopper(GraphHopper hopper) {
-        MapServerDataCenter.hopper = hopper;
+    public static void initHopper(String fileName, GraphHopper hopper) {
+        hopperMap.put(fileName, hopper);
     }
 
 

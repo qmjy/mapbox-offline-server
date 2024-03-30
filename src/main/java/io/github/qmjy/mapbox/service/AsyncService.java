@@ -83,18 +83,17 @@ public class AsyncService {
         hopper.setGraphHopperLocation(getCacheLocation(osmPbfFile));
 
         // 支持car、bike、foot三种交通方式的导航
-        hopper.setProfiles(new Profile("car").setVehicle("car").setWeighting("custom").setTurnCosts(false));
+        hopper.setProfiles(new Profile("car").setVehicle("car").setTurnCosts(false));
 
         //设置汽车
         hopper.getCHPreparationHandler().setCHProfiles(new CHProfile("car"));
-        hopper.setAllowWrites(false);
         hopper.importOrLoad();
-        MapServerDataCenter.initHopper(hopper);
+        MapServerDataCenter.initHopper(osmPbfFile.getName(), hopper);
     }
 
     @NotNull
     private static String getCacheLocation(File osmPbfFile) {
-        String location = osmPbfFile.getParent() + File.separator + "routing-graph-cache";
+        String location = osmPbfFile.getParent() + File.separator + "routing-graph-cache-" + osmPbfFile.getName();
         File file = new File(location);
         if (!file.exists()) {
             file.mkdirs();

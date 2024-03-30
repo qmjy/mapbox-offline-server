@@ -43,7 +43,9 @@ import java.util.Map;
 @Tag(name = "路径规划", description = "驾车、骑行、步行路径规划")
 public class MapServerRouteController {
 
-
+    /**
+     * 环境还未就绪
+     */
     private static final int ROUTE_ERROR_CODE_NOT_READY = 10001;
     /**
      * 路径不可达
@@ -64,26 +66,24 @@ public class MapServerRouteController {
      * @param routeType      路径规划方式。0：驾车、1：骑行、2：步行
      * @return 路径规划结果
      */
-    @GetMapping("/{osmPbfFile}")
+    @GetMapping("/{osmpbf}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> route(@Parameter(description = "用于导航的osm.pbf文件名，例如：Beijing.osm.pbf") @PathVariable("osmPbfFile") String osmPbfFile,
-                                                     @Parameter(description = "待规划的起点经度坐标，例如：103.897418") @RequestParam(value = "startLongitude") double startLongitude,
-                                                     @Parameter(description = "待规划的起点纬度坐标，例如：30.791177") @RequestParam(value = "startLatitude") double startLatitude,
-                                                     @Parameter(description = "待规划的终点经度坐标，例如：103.895101") @RequestParam(value = "endLongitude") double endLongitude,
-                                                     @Parameter(description = "待规划的终点纬度坐标，例如：30.764163") @RequestParam(value = "endLatitude") double endLatitude,
+    public ResponseEntity<Map<String, Object>> route(@Parameter(description = "用于导航的osm.pbf文件名，例如：china-latest.osm.pbf") @PathVariable("osmpbf") String osmpbf,
+                                                     @Parameter(description = "待规划的起点经度坐标，例如：104.00504") @RequestParam(value = "startLongitude") double startLongitude,
+                                                     @Parameter(description = "待规划的起点纬度坐标，例如：30.675252") @RequestParam(value = "startLatitude") double startLatitude,
+                                                     @Parameter(description = "待规划的终点经度坐标，例如：104.068374") @RequestParam(value = "endLongitude") double endLongitude,
+                                                     @Parameter(description = "待规划的终点纬度坐标，例如：30.66082") @RequestParam(value = "endLatitude") double endLatitude,
                                                      @Parameter(description = "出行方式。0：驾车（default）、1：骑行、2：步行") @RequestParam(value = "routeType", required = false, defaultValue = "0") int routeType) {
-        GraphHopper hopper = MapServerDataCenter.getHopper();
-
-        //输入你的经度纬度，选择交通方式
-        GHRequest req = new GHRequest(startLongitude, startLatitude, endLongitude, endLatitude).
-                setProfile(getProfile(routeType)).setLocale(Locale.CHINA);
+        GraphHopper hopper = MapServerDataCenter.getHopperMap().get(osmpbf);
         if (hopper == null) {
-            Map<String, Object> ok = ResponseMapUtil.nok(ROUTE_ERROR_CODE_NOT_READY, "环境还未就绪！");
+            Map<String, Object> ok = ResponseMapUtil.nok(ROUTE_ERROR_CODE_NOT_READY, "数据源未就绪或不存在：" + osmpbf);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
         }
+
+        GHRequest req = new GHRequest(startLatitude, startLongitude, endLatitude, endLongitude).
+                setProfile(getProfile(routeType)).setLocale(Locale.CHINA);
         GHResponse rsp = hopper.route(req);
 
-        //如果路线不可达抛异常
         try {
             // handle errors
             if (rsp.hasErrors()) throw new RuntimeException(rsp.getErrors().toString());
@@ -94,10 +94,9 @@ public class MapServerRouteController {
 
         // use the best path, see the GHResponse class for more possibilities.
         ResponsePath path = rsp.getBest();
-
         HashMap<Object, Object> data = new HashMap<>();
         data.put("timeCostInMs", (path.getTime()) / 1000);
-        data.put("timeDistanceInM", path.getDistance());
+        data.put("distanceInM", path.getDistance());
         data.put("instructions", path.getInstructions());
         Map<String, Object> ok = ResponseMapUtil.ok(data);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);

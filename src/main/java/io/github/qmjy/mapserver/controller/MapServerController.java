@@ -19,6 +19,7 @@ package io.github.qmjy.mapserver.controller;
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.config.AppConfig;
 import io.github.qmjy.mapserver.model.MetaData;
+import io.github.qmjy.mapserver.model.TilesFileModel;
 import io.github.qmjy.mapserver.model.TilesViewModel;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -40,14 +41,19 @@ import java.util.Map;
 
 /**
  * 系统主页
+ * 提供页面访问预览等服务业务场景接口
  */
 @Controller
 public class MapServerController extends BaseController {
     private final Logger logger = LoggerFactory.getLogger(MapServerController.class);
-    @Autowired
-    private MapServerDataCenter mapServerDataCenter;
-    @Autowired
-    private AppConfig appConfig;
+    private final MapServerDataCenter mapServerDataCenter;
+    private final AppConfig appConfig;
+
+    public MapServerController(AppConfig appConfig, MapServerDataCenter mapServerDataCenter) {
+        this.appConfig = appConfig;
+        this.mapServerDataCenter = mapServerDataCenter;
+    }
+
 
     /**
      * 系统首页
@@ -202,7 +208,12 @@ public class MapServerController extends BaseController {
             return dataList;
         }
         for (File file : files) {
-            dataList.add(new TilesViewModel(file));
+            if (file.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+                TilesFileModel tilesFileModel = MapServerDataCenter.getTilesMap().get(file.getName());
+                dataList.add(new TilesViewModel(file, tilesFileModel.getMetaDataMap()));
+            } else {
+                dataList.add(new TilesViewModel(file));
+            }
         }
         return dataList;
     }

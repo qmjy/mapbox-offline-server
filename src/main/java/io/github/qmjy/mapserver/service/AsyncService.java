@@ -82,11 +82,9 @@ public class AsyncService {
         // 读取完OSM数据之后会构建路线图，此处配置图的存储路径
         hopper.setGraphHopperLocation(getCacheLocation(osmPbfFile));
 
-        // 支持car、bike、foot三种交通方式的导航
-        hopper.setProfiles(new Profile("car").setVehicle("car").setTurnCosts(false));
-
-        //设置汽车
-        hopper.getCHPreparationHandler().setCHProfiles(new CHProfile("car"));
+        hopper.setProfiles(new Profile("car").setVehicle("car").setTurnCosts(false),
+                new Profile("bike").setVehicle("bike").setTurnCosts(false),
+                new Profile("foot").setVehicle("foot").setTurnCosts(false));
         hopper.importOrLoad();
         MapServerDataCenter.initHopper(osmPbfFile.getName(), hopper);
     }

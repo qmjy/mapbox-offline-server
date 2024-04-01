@@ -20,6 +20,7 @@ import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
 import com.graphhopper.ResponsePath;
+import com.graphhopper.config.CHProfile;
 import com.graphhopper.util.Instruction;
 import com.graphhopper.util.InstructionList;
 import com.graphhopper.util.Translation;
@@ -84,8 +85,11 @@ public class MapServerRouteRestController extends BaseController {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
         }
 
-        GHRequest req = new GHRequest(startLatitude, startLongitude, endLatitude, endLongitude).
-                setProfile(getProfile(routeType)).setLocale(getLang(lang));
+        String profile = getProfile(routeType);
+        hopper.getCHPreparationHandler().setCHProfiles(new CHProfile(profile));
+
+        GHRequest req = new GHRequest(startLatitude, startLongitude, endLatitude, endLongitude).setProfile(profile)
+                .setLocale(getLang(lang));
         GHResponse rsp = hopper.route(req);
 
         try {

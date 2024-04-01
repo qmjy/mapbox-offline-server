@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author liushaofeng
  */
-@RestController
 @RequestMapping("/api/assets")
 public class MapServerAssetsController {
 

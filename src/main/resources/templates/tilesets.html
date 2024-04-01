@@ -31,17 +31,18 @@
         <th>文件格式</th>
         <th>文件大小</th>
         <th>元数据</th>
+        <th>瓦片地址</th>
     </tr>
     <tr th:each="file : ${tileFiles}">
         <td><a th:href="@{'/tilesets/'+${file.getName()}}" th:text="${file.getName()}"></a></td>
         <td th:text="${file.getType()}"></td>
         <td th:text="${file.getFileSize()}" style="text-align:right"></td>
         <td></td>
+        <td th:if="${file.getType()=='.mbtiles'}" th:text="'/tilesets/' + ${file.getName()} + '/{z}/{x}/{y}.' + ${file.getMetaDataMap()==null?'':file.getMetaDataMap().get('format')}"></td>
     </tr>
 </table>
 
 <!--/* tileFiles为空时显示 */-->
 <div th:unless="${tileFiles}">未检测到瓦片数据库文件</div>
-</div>
 </body>
 </html>

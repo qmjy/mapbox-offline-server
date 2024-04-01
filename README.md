@@ -6,9 +6,7 @@ Map offline server with java(JDK 21).
 
 ![Mapbox Offline Demo](assets/chengdu.png)
 
----
-
-## 地图服务器数据能力矩阵
+## 特性列表
 
 |           |        mbtiles         |        tpk         | shapefile |      osm.pbf       |   OSMB(geojson)    |
 |:---------:|:----------------------:|:------------------:|:---------:|:------------------:|:------------------:|
@@ -20,15 +18,10 @@ Map offline server with java(JDK 21).
 |   静态地图    |       :running:        |                    |           |                    |                    |
 | 行政区划（含边界） |                        |                    |           |                    | :white_check_mark: |
 
-
-## 特性列表
-
 1. 支持瓦片离线服务，主要用于Map服务器离线场景，也支持mvt（pbf）瓦片数据的元数据查看；
 2. 支持全球行政区划级联数据查询，也支持对应行政区划边界数据查询，查询时支持国际化，支持地理逆编码；
 3. 支持mbtiles格式的矢量数据POI搜索；
 4. 支持mbtiles文件合并，支持静态资源服务器等工具能力；
-
----
 
 ## 资源结构
 

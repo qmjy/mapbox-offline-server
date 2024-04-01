@@ -168,7 +168,8 @@ public class MapServerOsmBController {
     @ResponseBody
     @Operation(summary = "获取省市区划节点详情数据", description = "查询行政区划节点详情数据。")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivisionOrigin.class)))
-    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId, @RequestParam(value = "type", required = false, defaultValue = "0") int type) {
+    public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId,
+                                                                              @Parameter(description = "返回的边界数据格式。0：WKT；1:geojson") @RequestParam(value = "type", required = false, defaultValue = "0") int type) {
         if (MapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
@@ -187,7 +188,8 @@ public class MapServerOsmBController {
                 Object tags = simpleFeature.getAttribute("all_tags");
                 int adminLevel = (int) simpleFeature.getAttribute("admin_level");
 
-                AdministrativeDivisionOrigin data = new AdministrativeDivisionOrigin(osmId, parents, adminLevel, name, nameEn, getGeometryStr(geometry, type), String.valueOf(tags));
+                AdministrativeDivisionOrigin data = new AdministrativeDivisionOrigin(osmId, parents, adminLevel, name,
+                        nameEn, getGeometryStrs(geometry, type), String.valueOf(tags));
                 Map<String, Object> ok = ResponseMapUtil.ok(data);
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
             }
@@ -195,20 +197,21 @@ public class MapServerOsmBController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
     }
 
-    private String getGeometryStr(Object geometryObj, int type) {
-        if (type != 0) {
-            if (geometryObj instanceof Geometry geometry) {
-                GeometryJSON geoJsonWriter = new GeometryJSON();
-                StringWriter writer = new StringWriter();
-                try {
-                    geoJsonWriter.write(geometry, writer);
-                    return writer.toString();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+    private String[] getGeometryStrs(Object geometryObj, int type) {
+        Point centroid = null;
+        if (geometryObj instanceof Geometry geometry) {
+            centroid = geometry.getCentroid();
+
+            GeometryJSON geoJsonWriter = new GeometryJSON();
+            StringWriter writer = new StringWriter();
+            try {
+                geoJsonWriter.write(geometry, writer);
+                return new String[]{writer.toString(), centroid.getCoordinate().getX() + "," + centroid.getCoordinate().getY()};
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
-        return geometryObj.toString();
+        return new String[]{geometryObj.toString(), centroid.getCoordinate().getX() + "," + centroid.getCoordinate().getY()};
     }
 
     /**
@@ -242,7 +245,7 @@ public class MapServerOsmBController {
     }
 
     private static HashMap<String, Boolean> getStringBooleanHashMap(String locations, Object geometry) {
-        Geometry geo = null;
+        Geometry geo;
         if (geometry instanceof MultiPolygon polygon) {
             geo = polygon;
         } else if (geometry instanceof Polygon polygon) {

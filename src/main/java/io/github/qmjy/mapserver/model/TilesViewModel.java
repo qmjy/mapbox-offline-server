@@ -19,12 +19,15 @@ package io.github.qmjy.mapserver.model;
 import lombok.Getter;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 public class TilesViewModel {
     private final String name;
     private final String type;
     private final String fileSize;
+    private Map<String, String> metaDataMap = new HashMap<>();
 
     /**
      * 构造方法
@@ -37,6 +40,12 @@ public class TilesViewModel {
         this.type = file.isDirectory() ? "" : fileName.substring(fileName.lastIndexOf("."));
         this.fileSize = file.isDirectory() ? "" : formatFileSize(file.length());
     }
+
+    public TilesViewModel(File file, Map<String, String> metaDataMap) {
+        this(file);
+        this.metaDataMap = metaDataMap;
+    }
+
 
     /**
      * 文件大小智能转换

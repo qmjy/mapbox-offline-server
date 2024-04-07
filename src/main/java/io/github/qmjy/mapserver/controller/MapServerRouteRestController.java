@@ -23,6 +23,7 @@ import com.graphhopper.ResponsePath;
 import com.graphhopper.config.CHProfile;
 import com.graphhopper.util.Instruction;
 import com.graphhopper.util.InstructionList;
+import com.graphhopper.util.Parameters;
 import com.graphhopper.util.Translation;
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.util.ResponseMapUtil;
@@ -32,7 +33,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -88,7 +91,8 @@ public class MapServerRouteRestController extends BaseController {
         String profile = getProfile(routeType);
         hopper.getCHPreparationHandler().setCHProfiles(new CHProfile(profile));
 
-        GHRequest req = new GHRequest(startLatitude, startLongitude, endLatitude, endLongitude).setProfile(profile)
+        GHRequest req = new GHRequest(startLatitude, startLongitude, endLatitude, endLongitude)
+                .setProfile(profile)
                 .setLocale(getLang(lang));
         GHResponse rsp = hopper.route(req);
 
@@ -101,19 +105,22 @@ public class MapServerRouteRestController extends BaseController {
         }
 
         // use the best path, see the GHResponse class for more possibilities.
-        ResponsePath path = rsp.getBest();
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("timeCostInMs", (path.getTime()) / 1000);
-        data.put("distanceInM", path.getDistance());
+        List<ResponsePath> responsePaths = rsp.getAll();
+        List<HashMap<Object, Object>> paths = new ArrayList<>();
+        for (ResponsePath path : responsePaths) {
+            HashMap<Object, Object> data = new HashMap<>();
+            data.put("timeCostInMs", (path.getTime()) / 1000);
+            data.put("distanceInM", path.getDistance());
 
-        Translation tr = hopper.getTranslationMap().getWithFallBack(getLang(lang));
-        InstructionList instructions = path.getInstructions();
-        for (Instruction instruction : instructions) {
-            instruction.getExtraInfoJSON().put("description", instruction.getTurnDescription(tr));
+            Translation tr = hopper.getTranslationMap().getWithFallBack(getLang(lang));
+            InstructionList instructions = path.getInstructions();
+            for (Instruction instruction : instructions) {
+                instruction.getExtraInfoJSON().put("description", instruction.getTurnDescription(tr));
+            }
+            data.put("instructions", instructions);
+            paths.add(data);
         }
-        data.put("instructions", instructions);
-
-        Map<String, Object> ok = ResponseMapUtil.ok(data);
+        Map<String, Object> ok = ResponseMapUtil.ok(paths);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
     }
 

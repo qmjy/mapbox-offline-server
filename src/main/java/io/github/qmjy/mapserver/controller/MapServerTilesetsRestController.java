@@ -90,7 +90,11 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpeg", produces = MediaType.IMAGE_JPEG_VALUE)
     @ResponseBody
     @Operation(summary = "获取JPG格式瓦片数据", description = "获取JPG格式瓦片数据。")
-    public ResponseEntity<ByteArrayResource> loadJpegTile(@PathVariable("tileset") String tileset, @PathVariable("z") int z, @PathVariable("x") int x, @PathVariable("y") int y) {
+    public ResponseEntity<ByteArrayResource> loadJpegTile(
+            @Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：Chengdu.mbtiles") @PathVariable("tileset") String tileset,
+            @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
+            @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
+            @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
         return this.loadJpgTile(tileset, z, x, y);
     }
 
@@ -106,7 +110,11 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.jpg", produces = MediaType.IMAGE_JPEG_VALUE)
     @ResponseBody
     @Operation(summary = "获取JPG格式瓦片数据", description = "获取JPG格式瓦片数据。")
-    public ResponseEntity<ByteArrayResource> loadJpgTile(@PathVariable("tileset") String tileset, @PathVariable("z") int z, @PathVariable("x") int x, @PathVariable("y") int y) {
+    public ResponseEntity<ByteArrayResource> loadJpgTile(
+            @Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：Chengdu.mbtiles") @PathVariable("tileset") String tileset,
+            @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
+            @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
+            @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
             String lowerCase = mapServerDataCenter.getTpkMetaData(tileset).getFormat().toLowerCase(Locale.getDefault());
             if (!lowerCase.endsWith("jpg") && !lowerCase.endsWith("jpeg")) {
@@ -135,7 +143,11 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.webp", produces = AppConfig.IMAGE_WEBP_VALUE)
     @ResponseBody
     @Operation(summary = "获取WEBP格式瓦片数据", description = "获取WEBP格式瓦片数据。")
-    public ResponseEntity<ByteArrayResource> loadWebpTile(@PathVariable("tileset") String tileset, @PathVariable("z") int z, @PathVariable("x") int x, @PathVariable("y") int y) {
+    public ResponseEntity<ByteArrayResource> loadWebpTile(
+            @Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：Chengdu.mbtiles") @PathVariable("tileset") String tileset,
+            @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
+            @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
+            @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             Optional<byte[]> OptionalResource = getByteArrayResourceResponseEntity(tileset, z, x, y);
             if (OptionalResource.isPresent()) {
@@ -159,7 +171,11 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.png", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
     @Operation(summary = "获取PNG格式瓦片数据", description = "获取PNG格式瓦片数据。")
-    public ResponseEntity<ByteArrayResource> loadPngTile(@PathVariable("tileset") String tileset, @PathVariable("z") int z, @PathVariable("x") int x, @PathVariable("y") int y) {
+    public ResponseEntity<ByteArrayResource> loadPngTile(
+            @Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：Chengdu.mbtiles") @PathVariable("tileset") String tileset,
+            @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
+            @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
+            @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
             if (!mapServerDataCenter.getTpkMetaData(tileset).getFormat().toLowerCase(Locale.getDefault()).endsWith("png")) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -188,7 +204,11 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/{z}/{x}/{y}.pbf", produces = "application/x-protobuf")
     @ResponseBody
     @Operation(summary = "获取PBF格式瓦片数据", description = "获取PBF格式瓦片数据。")
-    public ResponseEntity<ByteArrayResource> loadPbfTile(@PathVariable("tileset") String tileset, @PathVariable("z") int z, @PathVariable("x") int x, @PathVariable("y") int y) {
+    public ResponseEntity<ByteArrayResource> loadPbfTile(
+            @Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：Chengdu.mbtiles") @PathVariable("tileset") String tileset,
+            @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
+            @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
+            @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             Optional<byte[]> optionalRes = getBytesFromSqlite(tileset, z, x, y);
             if (optionalRes.isPresent()) {
@@ -244,10 +264,10 @@ public class MapServerTilesetsRestController {
     @ResponseBody
     @Operation(summary = "获取mapbox vector pbf原始数据", description = "解析mapbox vector pbf原始数据，以可读的json格式进行展示。瓦片文件名称和坐标地址须正确。目前只支持本服务器上mapbox vector规范下的PBF瓦片数据解析。")
     public ResponseEntity<Map<String, Object>> decodePbf(HttpServletRequest req,
-                                                         @PathVariable("tileset") String tileset,
-                                                         @PathVariable("z") int z,
-                                                         @PathVariable("x") int x,
-                                                         @PathVariable("y") int y) {
+                                                         @Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：Chengdu.mbtiles") @PathVariable("tileset") String tileset,
+                                                         @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
+                                                         @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
+                                                         @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
         OsmPbfTileOfReadable tileOfReadable = new OsmPbfTileOfReadable(req, z, x, y);
 
         Optional<byte[]> optionalBytes = getPbfBytes(tileset, z, x, y);
@@ -293,7 +313,8 @@ public class MapServerTilesetsRestController {
     @GetMapping(value = "/{tileset}/metadata", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @Operation(summary = "获取底图数据的元数据", description = "获取底图数据的元数据。")
-    public ResponseEntity<Map<String, Object>> metadata(@Parameter(description = "待查询的底图文件或文件夹名字，例如：admin.mbtiles。") @PathVariable("tileset") String tileset) {
+    public ResponseEntity<Map<String, Object>> metadata(
+            @Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：admin.mbtiles。") @PathVariable("tileset") String tileset) {
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
             if (jdbcTemplateOpt.isPresent()) {
@@ -405,5 +426,4 @@ public class MapServerTilesetsRestController {
         }
         return Optional.empty();
     }
-
 }

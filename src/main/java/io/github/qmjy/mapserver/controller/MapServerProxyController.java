@@ -16,8 +16,8 @@
 
 package io.github.qmjy.mapserver.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -32,19 +32,24 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("/api/proxy")
 @Tag(name = "代理服务管理", description = "三方在线地图服务接口代理能力")
 public class MapServerProxyController {
-    @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
+    private final RestTemplateBuilder restTemplateBuilder;
+
+    public MapServerProxyController(RestTemplateBuilder restTemplateBuilder) {
+        this.restTemplateBuilder = restTemplateBuilder;
+    }
 
     /**
      * 高德地图交通瓦片数据加载代理
-     *
+     * TODO KEY need to implement
      * @return 路况态势瓦片图层
      */
     @GetMapping(value = "/traffictile")
     @ResponseBody
-    public ResponseEntity<ByteArrayResource> proxyTrafficTile(@RequestParam(value = "x", required = true) int x,
-                                                              @RequestParam(value = "y", required = true) int y,
-                                                              @RequestParam(value = "z", required = true) int z) {
+    public ResponseEntity<ByteArrayResource> proxyTrafficTile(
+            @Parameter(description = "代理服务器授权Key") @RequestParam(value = "key") String key,
+            @Parameter(description = "待查询的底图瓦片坐标x") @RequestParam(value = "x") int x,
+            @Parameter(description = "待查询的底图瓦片坐标y") @RequestParam(value = "y") int y,
+            @Parameter(description = "待查询的底图瓦片层级zoom_level") @RequestParam(value = "z") int z) {
         if (x < 0 || y < 0 || z < 0) {
             return new ResponseEntity<>(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
         }

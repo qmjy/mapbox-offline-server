@@ -18,7 +18,6 @@ package io.github.qmjy.mapserver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -41,8 +40,11 @@ public class Application implements CommandLineRunner {
     /**
      * 获取环境变量参数
      */
-    @Autowired
-    Environment environment;
+    final Environment environment;
+
+    public Application(Environment environment) {
+        this.environment = environment;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

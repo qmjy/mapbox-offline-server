@@ -23,6 +23,28 @@ Map offline server with java(JDK 21).
 3. 支持mbtiles格式的矢量数据POI搜索；
 4. 支持mbtiles文件合并，支持静态资源服务器等工具能力；
 
+## 安装启动程序
+
+假设您已经安装完成git、JDK21、Maven程序并设置好了环境变量。
+
+```bash
+git clone git@github.com:qmjy/mapbox-offline-server.git
+```
+
+进入到代码目录执行命令编码源码：
+
+```bash
+cd mapbox-offline-server
+mvn clean package
+```
+
+进入编译结果目录并启动程序
+
+```bash
+cd target
+java -jar mapbox-offline-server-xxx.jar --dataPath="your data path"
+```
+
 ## 资源结构
 
 > 本项目自带了WGS84(WKID=4326)、CGCS2000(WKID=4490)坐标系的Mapbox资源文件。

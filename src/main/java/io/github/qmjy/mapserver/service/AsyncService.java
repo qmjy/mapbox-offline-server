@@ -17,7 +17,6 @@
 package io.github.qmjy.mapserver.service;
 
 import com.graphhopper.GraphHopper;
-import com.graphhopper.config.CHProfile;
 import com.graphhopper.config.Profile;
 import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsLayer;
 import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
@@ -46,7 +45,7 @@ import java.util.*;
 
 @Service
 public class AsyncService {
-    private final Logger logger = LoggerFactory.getLogger(AsyncService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncService.class);
     private final AppConfig appConfig;
 
     private final MapServerDataCenter mapServerDataCenter;
@@ -82,9 +81,7 @@ public class AsyncService {
         // 读取完OSM数据之后会构建路线图，此处配置图的存储路径
         hopper.setGraphHopperLocation(getCacheLocation(osmPbfFile));
 
-        hopper.setProfiles(new Profile("car").setVehicle("car").setTurnCosts(false),
-                new Profile("bike").setVehicle("bike").setTurnCosts(false),
-                new Profile("foot").setVehicle("foot").setTurnCosts(false));
+        hopper.setProfiles(new Profile("car").setVehicle("car").setTurnCosts(false), new Profile("bike").setVehicle("bike").setTurnCosts(false), new Profile("foot").setVehicle("foot").setTurnCosts(false));
         hopper.importOrLoad();
         MapServerDataCenter.initHopper(osmPbfFile.getName(), hopper);
     }
@@ -94,7 +91,9 @@ public class AsyncService {
         String location = osmPbfFile.getParent() + File.separator + "routing-graph-cache-" + osmPbfFile.getName();
         File file = new File(location);
         if (!file.exists()) {
-            file.mkdirs();
+            if (!file.mkdirs()) {
+                LOGGER.error("make dirs failed: " + file.getAbsolutePath());
+            }
         }
         return location;
     }
@@ -226,7 +225,7 @@ public class AsyncService {
                 mergeTaskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
                 needMerges.remove(largestFilePath);
             } catch (IOException e) {
-                logger.info("Copy the largest file failed: {}", largestFilePath);
+                LOGGER.info("Copy the largest file failed: {}", largestFilePath);
                 mergeTaskProgress.put(taskId, -1);
                 return;
             }
@@ -239,7 +238,7 @@ public class AsyncService {
                 completeCount += next.getValue().getCount();
                 mergeTaskProgress.put(taskId, (int) (completeCount * 100 / totalCount));
                 iterator.remove();
-                logger.info("Merged file: {}", next.getValue().getFilePath());
+                LOGGER.info("Merged file: {}", next.getValue().getFilePath());
             }
 
             updateMetadata(wrapper, jdbcTemplate);
@@ -248,7 +247,7 @@ public class AsyncService {
             if (targetTmpFile.renameTo(new File(targetFilePath))) {
                 mergeTaskProgress.put(taskId, 100);
             } else {
-                logger.error("Rename file failed: {}", targetFilePath);
+                LOGGER.error("Rename file failed: {}", targetFilePath);
             }
         } else {
             mergeTaskProgress.put(taskId, -1);
@@ -279,7 +278,7 @@ public class AsyncService {
             } else {
                 //比较mbtiles文件格式是否一致
                 if (!mbtileMergeWrapper.getFormat().equals(format)) {
-                    logger.error("These Mbtiles files have different formats!");
+                    LOGGER.error("These Mbtiles files have different formats!");
                     return Optional.empty();
                 }
             }
@@ -352,6 +351,4 @@ public class AsyncService {
             return Optional.empty();
         }
     }
-
-
 }

@@ -98,7 +98,7 @@ public class MapServerPOIRestController {
         //TODO 目前就只先保存点类型的数据
         switch (geometryType) {
             case 0:
-                Optional<Geometry> geometryOpt = GeometryUtils.toGeometry(wellKnownText);
+                Optional<Geometry> geometryOpt = GeometryUtils.toGeometryFromWkt(wellKnownText);
                 if (geometryOpt.isPresent()) {
                     Point point = (Point) geometryOpt.get();
                     double[] doubles = GeometryUtils.pixel2deg(tileColumn, tileRow, zoomLevel, (int) point.getX(), (int) point.getY(), 4096);

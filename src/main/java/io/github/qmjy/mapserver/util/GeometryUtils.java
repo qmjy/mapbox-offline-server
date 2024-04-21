@@ -16,11 +16,16 @@
 
 package io.github.qmjy.mapserver.util;
 
+import org.geotools.geojson.geom.GeometryJSON;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Optional;
 
 /**
@@ -37,13 +42,56 @@ public class GeometryUtils {
      * @param wellKnownText WKT文本
      * @return geometry数据类型
      */
-    public static Optional<Geometry> toGeometry(String wellKnownText) {
+    public static Optional<Geometry> toGeometryFromWkt(String wellKnownText) {
         WKTReader reader = new WKTReader(new GeometryFactory());
         try {
             return Optional.of(reader.read(wellKnownText));
         } catch (ParseException e) {
             return Optional.empty();
         }
+    }
+
+    /**
+     * geojson转geometry数据类型
+     *
+     * @param geojson geojson文本
+     * @return geometry数据类型
+     */
+    public static Optional<Geometry> toGeometryFromGeojson(String geojson) {
+        GeometryJSON geometryJSON = new GeometryJSON(7);
+        try {
+            return Optional.of(geometryJSON.read(new StringReader(geojson)));
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * geometry转geojson数据类型
+     *
+     * @param geometry Geometry实例对象
+     * @return geojson
+     */
+    public static Optional<String> geometry2Geojson(Geometry geometry) {
+        GeometryJSON gjson = new GeometryJSON(7);
+        StringWriter writer = new StringWriter();
+        try {
+            gjson.write(geometry, writer);
+            return Optional.of(writer.toString());
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * geometry转WKT数据类型
+     *
+     * @param geometry Geometry实例对象
+     * @return wkt
+     */
+    public static Optional<String> geometry2Wkt(Geometry geometry) {
+        WKTWriter writer = new WKTWriter();
+        return Optional.of(writer.write(geometry));
     }
 
     /**

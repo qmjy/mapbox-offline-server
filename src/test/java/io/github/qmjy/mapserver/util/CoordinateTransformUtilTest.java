@@ -17,8 +17,13 @@
 package io.github.qmjy.mapserver.util;
 
 
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.data.geojson.GeoJSONReader;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
+
+import java.io.FileInputStream;
 
 
 public class CoordinateTransformUtilTest {

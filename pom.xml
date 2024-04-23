@@ -137,6 +137,13 @@
             <version>9.0-pre1</version>
         </dependency>
 
+        <!-- Osmosis for parsing OpenStreetMap XML/PBF files -->
+        <dependency>
+            <groupId>org.openstreetmap.osmosis</groupId>
+            <artifactId>osmosis-pbf</artifactId>
+            <version>0.48.3</version>
+        </dependency>
+
         <!--        <dependency>-->
         <!--            <groupId>com.onthegomap.planetiler</groupId>-->
         <!--            <artifactId>planetiler-core</artifactId>-->
@@ -148,6 +155,28 @@
             <groupId>org.openstreetmap.osmosis</groupId>
             <artifactId>osmosis-osm-binary</artifactId>
             <version>0.48.3</version>
+        </dependency>
+
+        <!-- Support for transliteration of string from several languages / alphabets to Latin -->
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>62.1</version>
+        </dependency>
+
+        <!--  Jena depedencies -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>apache-jena-libs</artifactId>
+            <type>pom</type>
+            <version>3.2.0</version>
+        </dependency>
+
+        <!-- Support for disk-resident indices -->
+        <dependency>
+            <groupId>org.mapdb</groupId>
+            <artifactId>mapdb</artifactId>
+            <version>3.0.5</version>
         </dependency>
 
         <dependency>

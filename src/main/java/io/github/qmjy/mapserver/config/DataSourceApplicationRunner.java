@@ -59,7 +59,8 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         if (files != null) {
             for (File dbFile : files) {
                 logger.info("Load osm.pbf file: {}", dbFile.getName());
-                asyncService.loadOsmPbf(dbFile);
+                asyncService.loadOsmPbfRoute(dbFile);
+                asyncService.loadOsmPbfPoi(dbFile);
             }
         }
     }

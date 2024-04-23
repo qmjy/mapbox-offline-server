@@ -20,6 +20,8 @@ import com.graphhopper.GraphHopper;
 import com.graphhopper.config.Profile;
 import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsLayer;
 import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
+import eu.smartdatalake.athenarc.osmwrangle.tools.OsmPbfParser;
+import eu.smartdatalake.athenarc.osmwrangle.utils.Configuration;
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.config.AppConfig;
 import io.github.qmjy.mapserver.model.*;
@@ -69,12 +71,12 @@ public class AsyncService {
     }
 
     /**
-     * 加载osm.pbf数据
+     * 加载osm.pbf路网数据
      *
      * @param osmPbfFile osm.pbf数据
      */
     @Async("asyncServiceExecutor")
-    public void loadOsmPbf(File osmPbfFile) {
+    public void loadOsmPbfRoute(File osmPbfFile) {
         GraphHopper hopper = new GraphHopper();
 
         hopper.setOSMFile(osmPbfFile.getAbsolutePath());
@@ -84,6 +86,28 @@ public class AsyncService {
         hopper.setProfiles(new Profile("car").setVehicle("car").setTurnCosts(false), new Profile("bike").setVehicle("bike").setTurnCosts(false), new Profile("foot").setVehicle("foot").setTurnCosts(false));
         hopper.importOrLoad();
         MapServerDataCenter.initHopper(osmPbfFile.getName(), hopper);
+    }
+
+    /**
+     * 提取osm.pbf的poi数据。<br/>
+     * thanks for the project：<a href="https://github.com/SLIPO-EU/OSMWrangle">OSMWrangle</a>
+     *
+     * @param osmPbfFile 待提取数据的osm.pbf数据
+     */
+    @Async("asyncServiceExecutor")
+    public void loadOsmPbfPoi(File osmPbfFile) {
+        Configuration currentConfig = new Configuration(args[0]);
+
+        //Default conversion mode: (in-memory) STREAM
+        currentConfig.mode = "STREAM";
+
+        System.setProperty("org.geotools.referencing.forceXY", "true");
+
+        int sourceSRID = 0;
+        int targetSRID = 0;
+        OsmPbfParser conv = new OsmPbfParser(currentConfig, osmPbfFile, outFile, sourceSRID, targetSRID);
+        conv.apply();
+        conv.close();
     }
 
     @NotNull

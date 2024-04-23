@@ -14,22 +14,23 @@
  *   limitations under the License.
  */
 
-package io.github.qmjy.mapserver;
+package io.github.qmjy.mapserver.util;
 
-import io.github.qmjy.mapserver.util.GeometryUtils;
-import lombok.SneakyThrows;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureImpl;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.identity.FeatureIdImpl;
 import org.geotools.geojson.feature.FeatureJSON;
 import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.boot.json.BasicJsonParser;
 
 import java.io.FileInputStream;
@@ -53,7 +54,7 @@ public class ConvertUtilTest {
 
 
     @Test
-    public static void convert() throws IOException {
+    public void convert() throws IOException {
         List<SimpleFeature> originFeatures = getChildrenFromOsmb(-913109);
 
         String json = Files.readString(Path.of(ORIGIN_FILE));
@@ -65,22 +66,30 @@ public class ConvertUtilTest {
         FeatureJSON featureJson = new FeatureJSON();
         StringWriter stringWriter = new StringWriter();
 
-        for (SimpleFeature feature : features) {
-            featureJson.writeFeature(feature, stringWriter);
-        }
+        featureJson.writeFeatureCollection(getFeatures(features), stringWriter);
+
+//        for (SimpleFeature feature : features) {
+//            featureJson.writeFeature(feature, stringWriter);
+//        }
         Files.writeString(Path.of(TARGET_OSMB_FILE), stringWriter.toString());
     }
 
+    private FeatureCollection<SimpleFeatureType, SimpleFeature> getFeatures(List<SimpleFeature> features) {
+        DefaultFeatureCollection featureCollection = new DefaultFeatureCollection("internal", null);
+        featureCollection.addAll(features);
+        return featureCollection;
+    }
 
-    private static List<SimpleFeature> getSimpleFeatures(List<Object> objects) {
+
+    private List<SimpleFeature> getSimpleFeatures(List<Object> objects) {
         int i = 10000;
 
         SimpleFeatureTypeBuilder ftb = new SimpleFeatureTypeBuilder();
-        ftb.setName("ft");
+        ftb.setName("feature");
         ftb.add("admin_level", Integer.class);
         ftb.add("osm_id", Integer.class);
         ftb.add("parents", String.class);
-        ftb.add("geometry", String.class);
+        ftb.add("geometry", Geometry.class);
         ftb.add("local_name", String.class);
         ftb.add("name_en", String.class);
         ftb.add("name", String.class);
@@ -90,24 +99,27 @@ public class ConvertUtilTest {
         List<SimpleFeature> list = new ArrayList<>();
         for (Object object : objects) {
             if (object instanceof LinkedHashMap<?, ?> map) {
-                String wkt = getWktString((Map) map.get("areainfo"));
-                //TODO: 兴国县admin_level=7 、osm_id=-3180943、parents=-3180943,-3180745,-913109,-270056、geometry=？、local_name=、name_en=、name=
-                list.add(new SimpleFeatureImpl(new Object[]{7, i++, "-3180943,-3180745,-913109,-270056", wkt, map.get("areaname"), "", map.get("areaname"), "boundary"}, ft, new FeatureIdImpl(String.valueOf(i++)), false));
+                Optional<Geometry> geometryOptional = getGeometry((Map) map.get("areainfo"));
+                if (geometryOptional.isPresent()) {
+                    //TODO: 兴国县admin_level=7 、osm_id=-3180943、parents=-3180943,-3180745,-913109,-270056、geometryOptional=？、local_name=、name_en=、name=
+                    list.add(new SimpleFeatureImpl(new Object[]{7, i++, "-3180943,-3180745,-913109,-270056", geometryOptional.get(), map.get("areaname"), "", map.get("areaname"), "boundary"}, ft, new FeatureIdImpl(String.valueOf(i++)), false));
+                }
             }
         }
         return list;
     }
 
-    private static String getWktString(Map<String, Object> areaInfo) {
-        GeometryFactory geometryFactory = new GeometryFactory();
-        List<List<List<List<String>>>> list1 = (List<List<List<List<String>>>>) areaInfo.get("coordinates");
-        List<List<String>> objects = list1.get(0).get(0);
-        Polygon polygon = geometryFactory.createPolygon(getCoordinates(objects));
-        Optional<String> s = GeometryUtils.geometry2Wkt(polygon);
-        return s.orElse("");
+    private Optional<Geometry> getGeometry(Map<String, Object> areaInfo) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String geoJson = mapper.writeValueAsString(areaInfo);
+            return GeometryUtils.toGeometryFromGeojson(geoJson);
+        } catch (JsonProcessingException e) {
+            return Optional.empty();
+        }
     }
 
-    private static Coordinate[] getCoordinates(List<List<String>> objects) {
+    private Coordinate[] getCoordinates(List<List<String>> objects) {
         Coordinate[] coordinates = new Coordinate[objects.size()];
         for (int i = 0; i < objects.size(); i++) {
             coordinates[i] = new Coordinate(Double.parseDouble(String.valueOf(objects.get(i).get(0))),
@@ -117,7 +129,7 @@ public class ConvertUtilTest {
     }
 
 
-    private static List<SimpleFeature> getChildrenFromOsmb(Integer root) throws IOException {
+    private List<SimpleFeature> getChildrenFromOsmb(Integer root) throws IOException {
         List<SimpleFeature> dataList = new ArrayList<>();
 
         SimpleFeatureIterator features;

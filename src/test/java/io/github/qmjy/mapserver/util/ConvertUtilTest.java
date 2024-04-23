@@ -29,7 +29,6 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.identity.FeatureIdImpl;
 import org.geotools.geojson.feature.FeatureJSON;
 import org.junit.Test;
-import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.boot.json.BasicJsonParser;
 
@@ -55,7 +54,7 @@ public class ConvertUtilTest {
 
     @Test
     public void convert() throws IOException {
-        List<SimpleFeature> originFeatures = getChildrenFromOsmb(-913109);
+        List<SimpleFeature> originFeatures = getChildrenAndParents(-913109);
 
         String json = Files.readString(Path.of(ORIGIN_FILE));
         List<Object> objects = new BasicJsonParser().parseList(json);
@@ -119,17 +118,8 @@ public class ConvertUtilTest {
         }
     }
 
-    private Coordinate[] getCoordinates(List<List<String>> objects) {
-        Coordinate[] coordinates = new Coordinate[objects.size()];
-        for (int i = 0; i < objects.size(); i++) {
-            coordinates[i] = new Coordinate(Double.parseDouble(String.valueOf(objects.get(i).get(0))),
-                    Double.parseDouble(String.valueOf(objects.get(i).get(1))));
-        }
-        return coordinates;
-    }
 
-
-    private List<SimpleFeature> getChildrenFromOsmb(Integer root) throws IOException {
+    private List<SimpleFeature> getChildrenAndParents(Integer root) throws IOException {
         List<SimpleFeature> dataList = new ArrayList<>();
 
         SimpleFeatureIterator features;
@@ -138,11 +128,37 @@ public class ConvertUtilTest {
         }
         while (features.hasNext()) {
             SimpleFeature feature = features.next();
-
             if (feature.getAttribute("parents") != null && feature.getAttribute("parents").toString().contains(String.valueOf(root))) {
                 dataList.add(feature);
+                continue;
+            }
+
+            if (feature.getAttribute("osm_id").toString().equals(String.valueOf(root))) {
+                dataList.add(feature);
+                dataList.addAll(getParents(feature.getAttribute("parents").toString()));
             }
         }
         return dataList;
+    }
+
+    private List<SimpleFeature> getParents(String parents) {
+        String[] parentIds = parents.split(",");
+        List<String> list = Arrays.asList(parentIds);
+
+        List<SimpleFeature> objects = new ArrayList<>();
+
+        try {
+            GeoJSONReader reader = new GeoJSONReader(new FileInputStream(ROOT_OSMB_FILE));
+            SimpleFeatureIterator features = reader.getFeatures().features();
+            while (features.hasNext()) {
+                SimpleFeature feature = features.next();
+                if (list.contains(feature.getAttribute("osm_id").toString())) {
+                    objects.add(feature);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return objects;
     }
 }

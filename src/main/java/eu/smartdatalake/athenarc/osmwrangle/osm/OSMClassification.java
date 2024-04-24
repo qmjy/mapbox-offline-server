@@ -18,8 +18,6 @@
  */
 package eu.smartdatalake.athenarc.osmwrangle.osm;
 
-import eu.smartdatalake.athenarc.osmwrangle.utils.ExceptionHandler;
-import io.github.qmjy.mapserver.service.AsyncService;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

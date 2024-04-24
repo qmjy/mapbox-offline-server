@@ -250,6 +250,11 @@ public final class Configuration {
 
     }
 
+    public Configuration(Properties properties) {
+        myAssistant = new Assistant();
+        initializeParameters(properties);
+    }
+
     /**
      * Loads the configuration from a properties file.
      */

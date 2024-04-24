@@ -96,18 +96,42 @@ public class AsyncService {
      */
     @Async("asyncServiceExecutor")
     public void loadOsmPbfPoi(File osmPbfFile) {
-        Configuration currentConfig = new Configuration(args[0]);
-
-        //Default conversion mode: (in-memory) STREAM
-        currentConfig.mode = "STREAM";
+        Properties properties = getProperties(osmPbfFile);
+        Configuration currentConfig = new Configuration(properties);
 
         System.setProperty("org.geotools.referencing.forceXY", "true");
 
+        String outFile = currentConfig.outputDir + IOUtils.getBaseName(currentConfig.inputFiles) + ".nt";
+
         int sourceSRID = 0;
         int targetSRID = 0;
-        OsmPbfParser conv = new OsmPbfParser(currentConfig, osmPbfFile, outFile, sourceSRID, targetSRID);
+        OsmPbfParser conv = new OsmPbfParser(currentConfig, osmPbfFile.getAbsolutePath(), outFile, sourceSRID, targetSRID);
         conv.apply();
         conv.close();
+    }
+
+    @NotNull
+    private static Properties getProperties(File osmPbfFile) {
+        Properties properties = new Properties();
+
+        //Possible input formats: OSM_XML, OSM_PBF
+        properties.setProperty("inputFormat", "OSM_PBF");
+
+        //Paths to directories and files used by the application
+        String tmpFolder = IOUtils.getTmpFolder();
+        IOUtils.mkdirs(tmpFolder + "/tmp");
+        IOUtils.mkdirs(tmpFolder + "/output");
+
+        properties.setProperty("tmpDir", tmpFolder + "/tmp");
+        properties.setProperty("inputFiles", osmPbfFile.getAbsolutePath());
+        properties.setProperty("outputDir", tmpFolder + "/output");
+
+        //[CSV only] Path to attribute mappings from OSM tags to CSV columns
+        properties.setProperty("mapping_file", "/wrangle/Attribute_mapping.conf");
+
+        //Default conversion mode: (in-memory) STREAM
+        properties.setProperty("mode", "STREAM");
+        return properties;
     }
 
     @NotNull
@@ -129,7 +153,6 @@ public class AsyncService {
     public void asyncMbtilesToPOI(File tilesetFile) {
         Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tilesetFile.getName());
         if ("pbf".equals(tileMetaData.get("format")) || "mvt".equals(tileMetaData.get("format"))) {
-
             String idxFilePath = tilesetFile.getAbsolutePath() + ".idx";
             if (!new File(idxFilePath).exists()) {
                 JdbcTemplate idxJdbcTemp = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), idxFilePath);

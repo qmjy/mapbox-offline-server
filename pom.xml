@@ -164,6 +164,13 @@
             <version>62.1</version>
         </dependency>
 
+        <!-- osm.pbf提取POI需要依赖 -->
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.3.9</version>
+        </dependency>
+
         <!--  Jena depedencies -->
         <dependency>
             <groupId>org.apache.jena</groupId>

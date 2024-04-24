@@ -76,7 +76,7 @@ public class ValueChecker {
 
         try {
             //The resource XML file where correspondence between unwanted characters and their replacements is specified by the user.
-            InputStream in = getClass().getResourceAsStream("/replacements.xml");            //Open resource XML file as a stream
+            InputStream in = getClass().getResourceAsStream("/wrangle/replacements.xml");            //Open resource XML file as a stream
 
             //Obtain the entire tree of patterns from the given XML input
             Patterns f = JAXB.unmarshal(in, Patterns.class);

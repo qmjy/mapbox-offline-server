@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<patterns>
+    <pattern>
+	    <key>WHITE_SPACE</key>
+        <search>\\s+</search>
+        <replace></replace>
+		<comment>Removing whitespace from strings</comment>
+    </pattern>
+    <pattern>
+	    <key>DOUBLE_QUOTE</key>
+        <search>\"</search>
+        <replace>'</replace>
+		<comment>Replace any double quote with a single quote</comment>
+    </pattern>
+	<pattern>
+	    <key>CSV_DEFAULT_DELIMITER</key>
+        <search>|</search>
+        <replace>;</replace>
+		<comment>Replace the default delimiter character in any literal with another character, e.g., semicolon</comment>
+    </pattern>
+	<pattern>
+	    <key>TAB_NEWLINE</key>
+        <search>[\\\t|\\\n|\\\r]</search>
+        <replace> </replace>
+		<comment>Replacing newlines and tabs with SPACE</comment>
+    </pattern>
+	<pattern>
+	    <key>URL_BACKSLASH</key>
+        <search>\\</search>
+        <replace>/</replace>
+		<comment>Replacing backslashes in URLs</comment>
+    </pattern>
+	<pattern>
+	    <key>VALIDATE_URL</key>
+        <search>[^a-zA-ZA-Za-zΑ-Ωα-ωίϊΐόάέύϋΰήώ0-9-._~:/?#@!$ &#038;'()*+,;=]</search>
+        <replace></replace>
+		<comment>Invalid characters must be eliminated from URLs; Ampersand character must be encoded as &#038; in XML</comment>
+    </pattern>
+</patterns>

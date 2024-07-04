@@ -103,15 +103,15 @@ public class MapServerController extends BaseController {
     }
 
     /**
-     * 提供指定瓦片数据库的地图页面预览页面
+     * 提供指定瓦片数据库的地图Mapbox预览页面
      *
      * @param tileset 待预览的地图瓦片数据库库名称，默认为mbtiles扩展名
      * @param request HttpServletRequest
      * @param model   前端页面数据模型
      * @return 地图预览页面
      */
-    @GetMapping("/tilesets/{tileset}")
-    public String preview(@PathVariable("tileset") String tileset, HttpServletRequest request, Model model) {
+    @GetMapping("/mapbox/{tileset}")
+    public String mapbox(@PathVariable("tileset") String tileset, HttpServletRequest request, Model model) {
         model.addAttribute("basePath", super.getBasePath(request));
 
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
@@ -119,13 +119,13 @@ public class MapServerController extends BaseController {
             Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);
             model.addAttribute("metaData", tileMetaData);
 
-            return "pbf".equals(tileMetaData.get("format")) ? "mapbox-mbtiles-vector" : "mapbox-mbtiles-raster";
+            return "pbf".equals(tileMetaData.get("format")) ? "mapbox-vector" : "mapbox-raster";
         } else if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
             model.addAttribute("tilesetName", tileset);
             MetaData tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
             model.addAttribute("metaData", tpkMetaData);
 
-            return "mapbox-mbtiles-raster";
+            return "mapbox-raster";
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");
@@ -137,6 +137,44 @@ public class MapServerController extends BaseController {
                 throw new RuntimeException(e);
             }
             return "mapbox-pbf";
+        }
+    }
+
+
+    /**
+     * 提供指定瓦片数据库的地图Openlayers预览页面
+     *
+     * @param tileset 待预览的地图瓦片数据库库名称，默认为mbtiles扩展名
+     * @param request HttpServletRequest
+     * @param model   前端页面数据模型
+     * @return 地图预览页面
+     */
+    @GetMapping("/openlayers/{tileset}")
+    public String openlayers(@PathVariable("tileset") String tileset, HttpServletRequest request, Model model) {
+        model.addAttribute("basePath", super.getBasePath(request));
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+            model.addAttribute("tilesetName", tileset);
+            Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);
+            model.addAttribute("metaData", tileMetaData);
+
+            return "pbf".equals(tileMetaData.get("format")) ? "openlayers-vector" : "openlayers-raster";
+        } else if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
+            model.addAttribute("tilesetName", tileset);
+            MetaData tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
+            model.addAttribute("metaData", tpkMetaData);
+
+            return "openlayers-raster";
+        } else {
+            StringBuilder sb = new StringBuilder(appConfig.getDataPath());
+            sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");
+            try {
+                String metaData = FileCopyUtils.copyToString(new FileReader(sb.toString()));
+                model.addAttribute("tilesetName", tileset);
+                model.addAttribute("metaData", metaData);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return "openlayers-pbf";
         }
     }
 

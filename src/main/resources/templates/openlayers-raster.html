@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title><th:block th:text="${tilesetName}" />Openlayers预览</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="/static/assets/openlayers/v9.2.4/ol.css" rel="stylesheet">
+    <script src="/static/assets/openlayers/v9.2.4/ol.js"></script>
+    <style>
+        #map {
+            height: 1080px;
+            width: 1920px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="map"></div>
+<script th:inline="javascript">
+    const metaData = /*[[${metaData}]]*/{};
+    var basePath = [[${basePath}]];
+    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{-y}." + metaData.format
+
+    // 创建地图实例
+    var map = new ol.Map({
+        // 设置地图图层
+        layers: [
+            // 创建一个新的瓦片图层
+            new ol.layer.Tile({
+                // 设置瓦片源
+                source: new ol.source.XYZ({
+                    // 设置瓦片URL
+                    url: tiles
+                })
+            })
+        ],
+        // 设置显示地图的视图
+        view: new ol.View({
+            // 设置初始中心点坐标
+            center: ol.proj.fromLonLat([117.330139,31.734559]),
+            // 设置初始缩放级别
+            zoom: 2,
+            // 设置参考坐标系
+            projection: 'EPSG:3857'
+        }),
+        // 设置地图容器
+        target: 'map'
+    });
+
+    // var styleFunction = function(feature) {
+    //     return new ol.style.Style({
+    //         stroke: new ol.style.Stroke({
+    //             color: feature.get('stroke'),//通过要素拿到具体的值
+    //             width: 2,
+    //             opacity: 1
+    //         }),
+    //         fill: new ol.style.Fill({
+    //             color: "blue",
+    //             opacity: feature.get('fill-opacity')
+    //         }),
+    //         text: new ol.style.Text({
+    //             text: feature.get('name'),
+    //             font: '12px bold serif',
+    //             fill: new ol.style.Fill({
+    //                 color: '#000'
+    //             }),
+    //             stroke: new ol.style.Stroke({
+    //                 color: '#fff',
+    //                 width: 2
+    //             })
+    //         })
+    //     })
+    // };
+    //
+    // let lineLayer = new ol.layer.Vector({
+    //     title: 'add Layer',
+    //     source: new ol.source.Vector({
+    //         projection: 'EPSG:4326',
+    //         url: "/static/China.json", //GeoJSON的文件路径，用户可以根据需求而改变
+    //         format: new ol.format.GeoJSON()
+    //     }),
+    //     style: styleFunction
+    // })
+    // map.addLayer(lineLayer);
+</script>
+</body>
+
+</html>

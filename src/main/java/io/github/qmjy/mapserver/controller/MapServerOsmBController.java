@@ -30,10 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.geometry.jts.GeometryBuilder;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -169,7 +166,8 @@ public class MapServerOsmBController {
     @Operation(summary = "获取省市区划节点详情数据", description = "查询行政区划节点详情数据。")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AdministrativeDivisionOrigin.class)))
     public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId,
-                                                                              @Parameter(description = "返回的边界数据格式。0：WKT；1:geojson") @RequestParam(value = "type", required = false, defaultValue = "0") int type) {
+                                                                              @Parameter(description = "返回的边界数据格式。0：WKT；1:geojson") @RequestParam(value = "type", required = false, defaultValue = "0") int type
+    ) {
         if (MapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
@@ -206,7 +204,9 @@ public class MapServerOsmBController {
             StringWriter writer = new StringWriter();
             try {
                 geoJsonWriter.write(geometry, writer);
-                return new String[]{writer.toString(), centroid.getCoordinate().getX() + "," + centroid.getCoordinate().getY()};
+                Envelope envelopeInternal = geometry.getEnvelopeInternal();
+                return new String[]{writer.toString(), centroid.getCoordinate().getX() + "," + centroid.getCoordinate().getY(),
+                        envelopeInternal.getMinX() + "," + envelopeInternal.getMinY() + "," + envelopeInternal.getMaxX() + "," + envelopeInternal.getMaxY()};
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

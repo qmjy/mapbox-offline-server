@@ -46,6 +46,8 @@ public class AdministrativeDivisionOrigin {
     private final String geometry;
     @Schema(description = "行政区划中心点", example = "POINT(102.989623 30.768977)")
     private final String center;
+    @Schema(description = "行政区划外接矩阵", example = "POINT(102.989623 30.768977)")
+    private final String bounds;
     @Schema(description = "行政区划标签描述", example = "一些有用的数据")
     private final Map<String, Object> tags = new HashMap<>();
 
@@ -57,6 +59,7 @@ public class AdministrativeDivisionOrigin {
         this.nameEn = nameEn;
         this.geometry = geometry[0];
         this.center = geometry[1];
+        this.bounds = geometry[2];
         JsonParser jsonParser = JsonParserFactory.getJsonParser();
         tags.putAll(jsonParser.parseMap(tagsData));
     }

@@ -35,8 +35,11 @@ import java.io.IOException;
 @RequestMapping("/api/styles")
 @Tag(name = "Mapbox样式服务管理", description = "Mapbox离线服务接口能力")
 public class MapServerStyleController {
-    @Autowired
-    private AppConfig appConfig;
+    private final AppConfig appConfig;
+
+    public MapServerStyleController(AppConfig appConfig) {
+        this.appConfig = appConfig;
+    }
 
 
     /**

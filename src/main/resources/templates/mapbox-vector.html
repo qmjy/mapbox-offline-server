@@ -24,11 +24,11 @@
 <body>
 <div id="map"></div>
 <script th:inline="javascript">
-    const metaData = /*[[${metaData}]]*/{};
-    var basePath = [[${basePath}]];
-    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
+    const metaData = [[${metaData}]];
+    const basePath = [[${basePath}]];
+    const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format;
 
-    var map = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
         container: 'map',
         attributionControl: false,
         style: {
@@ -38,7 +38,7 @@
             "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
             "sources": {
                 "osm-tiles": {
-                    "scheme":"tms",
+                    "scheme": "tms",
                     "type": "vector",
                     "tiles": [tiles],
                     "bounds": metaData.bounds.split(",").map(Number),
@@ -48,221 +48,14 @@
                         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 }
             },
-            "layers": [
-                {
-                    "id": "background",
-                    "type": "background",
-                    "layout": {
-                        "visibility": "visible"
-                    },
-                    "paint": {
-                        "background-color": "#00263D"
-                    }
-                },
-                {
-                    "id": "landuse",
-                    "type": "fill",
-                    "source": "osm-tiles",
-                    "source-layer": "landuse",
-                    "paint": {
-                        "fill-color": "#444444"
-                    }
-                },
-                {
-                    "id": "landcover",
-                    "type": "fill",
-                    "source": "osm-tiles",
-                    "source-layer": "landcover",
-                    "paint": {
-                        "fill-color": "#43ad7f",
-                        "fill-opacity": 0.3
-                    }
-                },
-                {
-                    "id": "water",
-                    "type": "fill",
-                    "source": "osm-tiles",
-                    "source-layer": "water",
-                    "paint": {
-                        "fill-color": "#015179"
-                    }
-                },
-                {
-                    "id": "building",
-                    "type": "fill",
-                    "source": "osm-tiles",
-                    "source-layer": "building",
-                    "paint": {
-                        "fill-color": "#05A2F0"
-                    }
-                },
-                {
-                    "id": "building-extrusion",
-                    "type": "fill-extrusion",
-                    "source": "osm-tiles",
-                    "source-layer": "building",
-                    "minzoom": 15,
-                    "paint": {
-                        "fill-extrusion-color": [
-                            "interpolate",
-                            [
-                                "linear"
-                            ],
-                            [
-                                "zoom"
-                            ],
-                            8,
-                            "#05A2F0",
-                            22,
-                            "#077fbb"
-                        ],
-                        "fill-extrusion-height": [
-                            "interpolate",
-                            [
-                                "linear"
-                            ],
-                            [
-                                "zoom"
-                            ],
-                            15,
-                            0,
-                            16,
-                            [
-                                "get",
-                                "render_height"
-                            ]
-                        ],
-                        "fill-extrusion-base": [
-                            "case",
-                            [
-                                ">=",
-                                [
-                                    "get",
-                                    "zoom"
-                                ],
-                                16
-                            ],
-                            [
-                                "get",
-                                "render_min_height"
-                            ],
-                            0
-                        ]
-                    }
-                },
-                {
-                    "id": "transportation_name",
-                    "type": "line",
-                    "source": "osm-tiles",
-                    "source-layer": "transportation_name"
-                },
-                {
-                    "id": "transportation",
-                    "type": "line",
-                    "source": "osm-tiles",
-                    "source-layer": "transportation",
-                    "paint": {
-                        "line-color": "#06789D",
-                        "line-opacity": 1,
-                        "line-width": 1
-                    }
-                },
-                {
-                    "id": "place",
-                    "type": "symbol",
-                    "source": "osm-tiles",
-                    "source-layer": "place",
-                    "layout": {
-                        "text-field": [
-                            "get",
-                            "name"
-                        ],
-                        "text-size": 12,
-                        "text-allow-overlap": false,
-                        "text-offset": [
-                            0,
-                            0
-                        ],
-                        "text-anchor": "center",
-                        "text-justify": "center",
-                        "text-font": [
-                            "Arial Unicode MS Regular"
-                        ]
-                    },
-                    "paint": {
-                        "text-halo-color": "#444444",
-                        "text-halo-width": 1,
-                        "text-color": "#FFFFFF"
-                    }
-                },
-                {
-                    "id": "poi",
-                    "type": "symbol",
-                    "source": "osm-tiles",
-                    "source-layer": "poi",
-                    "layout": {
-                        "text-field": [
-                            "get",
-                            "name"
-                        ],
-                        "text-size": 12,
-                        "text-offset": [0,1],
-                        "text-allow-overlap": false,
-                        "text-anchor": "center",
-                        "text-justify": "center",
-                        "text-font": [
-                            "Arial Unicode MS Regular"
-                        ],
-                        'icon-image': [
-                            "match",
-                            ['get','subclass'],
-                            "school","school-11",
-                            "hospital", "hospital-11",
-                            "parking", "park-11",
-                            "toilets", "toilet-11",
-                            "library", "library-11",
-                            "fuel", "fuel 11",
-                            "college", "college-11",
-                            "swimming_pool", "swimming-11",
-                            "cafe", "cafe-11",
-                            "tea", "cafe-11",
-                            "museum", "museum-11",
-                            "hotel", "lodging-11",
-                            "university", "suitcase-11",
-                            "arts_centre", "art-gallery-11",
-                            "gallery", "art-gallery-11",
-                            "artwork", "art-gallery-11",
-                            "marketplace", "grocery-11",
-                            "fire_station", "fire-station-11",
-                            "cinema", "cinema-11",
-                            "police", "police-11",
-                            "bank", "bank-11",
-                            "bus_station", "bus-11",
-                            "post_office", "post-11",
-                            "restaurant", "restaurant-11",
-                            "theatre", "theatre-11",
-                            "attraction", "attraction-11",
-                            "place_of_worship", "place-of-worship-11",
-                            ""
-                        ],
-                        "icon-size": 1.2,
-                        "icon-offset": [0, -10],
-                        "icon-allow-overlap": true,
-                    },
-                    "paint": {
-                        "text-halo-color": "#444444",
-                        "text-halo-width": 1,
-                        "text-color": "#FFFFFF"
-                    }
-                }
-            ]
-                },
-                center: [110,30],
-                zoom: 3,
-                hash: true
-            })
+            "layers": []
+        },
+        center: [110, 30],
+        zoom: 3,
+        hash: true
+    });
 
-    map.on('load', () => {
+    function addAdminBoundary(){
         map.addSource('China', {
             type: 'geojson',
             data: '/static/ChinaProvince.geojson'
@@ -273,9 +66,9 @@
             'type': 'line',
             'source': 'China',
             "paint": {
-              "line-color": "#70CBFF",
-              "line-opacity": 0.5,
-              "line-width": 3,
+                "line-color": "#70CBFF",
+                "line-opacity": 0.5,
+                "line-width": 3,
             },
         });
 
@@ -294,21 +87,57 @@
             },
             paint: {
                 "text-halo-color": "#444444",
-		        "text-halo-width": 1,
+                "text-halo-width": 1,
                 "text-color": '#FFFFFF'
             }
         });
+    }
 
-        if(metaData.center){
-            setTimeout(function(){
+    function addLayers(){
+        //https://versatiles.org/overview.html
+        if (metaData.name === "Shortbread") {
+            const request = new XMLHttpRequest();
+            request.open("get", "/static/styles/VersaTiles.json");
+            request.send(null);
+            request.onload = function () {
+                if (request.status === 200) {
+                    const layers = JSON.parse(request.responseText);
+                    layers.forEach(function (layer) {
+                        map.addLayer(layer);
+                    })
+                }
+            }
+        } else if (metaData.name === "OpenMapTiles") {
+            const request = new XMLHttpRequest();
+            request.open("get", "/static/styles/blue.json");
+            request.send(null);
+            request.onload = function () {
+                if (request.status === 200) {
+                    const layers = JSON.parse(request.responseText);
+                    layers.forEach(function (layer) {
+                        map.addLayer(layer);
+                    })
+                }
+            }
+        } else {
+           console.log("未识别的mbtiles文件！")
+        }
+    }
+
+    map.on('load', () => {
+        addAdminBoundary()
+        addLayers()
+
+        if (metaData.center) {
+            setTimeout(function () {
                 var center = metaData.center.split(",")
                 map.flyTo({
                     center: [center[0], center[1]],
                     zoom: center[2],
                     essential: true
                 });
-            }, 2000 )
-        }else{
+            }, 2000)
+        } else {
             console.log("no center set!")
         }
     });

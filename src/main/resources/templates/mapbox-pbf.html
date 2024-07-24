@@ -132,7 +132,7 @@
 
         if(metaData.center){
             setTimeout(function(){
-                var center = metaData.center.split(",")
+                const center = metaData.center.split(",");
                 map.flyTo({
                     center: [center[0], center[1]],
                     zoom: center[2],

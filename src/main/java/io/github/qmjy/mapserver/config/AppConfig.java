@@ -58,6 +58,25 @@ public class AppConfig {
     @Value("${data-path}")
     private String dataPath = "";
 
+    /**
+     * 从mvt的pbf提取poi数据
+     */
+    @Value("${enable-poi-extract-mvt}")
+    private boolean enablePoiExtractMvt = false;
+
+
+    /**
+     * 从osm.pbf提取poi数据
+     */
+    @Value("${enable-poi-extract-osm-pbf}")
+    private boolean enablePoiExtractOsmPbf = false;
+
+    /**
+     * 启用路径规划
+     */
+    @Value("${enable-planning}")
+    private boolean enablePlanning = false;
+
     private AppConfig() {
     }
 }

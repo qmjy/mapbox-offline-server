@@ -59,8 +59,12 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         if (files != null) {
             for (File dbFile : files) {
                 logger.info("Load osm.pbf file: {}", dbFile.getName());
-                asyncService.loadOsmPbfRoute(dbFile);
-                asyncService.loadOsmPbfPoi(dbFile);
+                if (appConfig.isEnablePlanning()) {
+                    asyncService.loadOsmPbfRoute(dbFile);
+                }
+                if (appConfig.isEnablePoiExtractOsmPbf()) {
+                    asyncService.loadOsmPbfPoi(dbFile);
+                }
             }
         }
     }
@@ -98,7 +102,9 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
             for (File dbFile : files) {
                 logger.info("Load tile file: {}", dbFile.getName());
                 MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
-                asyncService.asyncMbtilesToPOI(dbFile);
+                if (appConfig.isEnablePoiExtractMvt()) {
+                    asyncService.asyncMbtilesToPOI(dbFile);
+                }
             }
         }
     }

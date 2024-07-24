@@ -86,7 +86,7 @@ data
 
 ### 资源下载
 
-数据获取可通过issue反馈需求并留下联系方式，已经支持的数据服务地址，请参考WIKI介绍。
+数据获取可通过issue反馈需求并留下联系方式，已经支持的数据服务地址，请参考[WIKI](https://github.com/qmjy/mapbox-offline-server/wiki)介绍。
 
 ### 字体下载
 

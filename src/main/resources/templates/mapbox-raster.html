@@ -2,7 +2,7 @@
 <html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title><th:block th:text="${tilesetName}" />Mapbox预览</title>
+    <title><th:block th:text="${tilesetName}" /> Mapbox预览</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="/static/assets/mapbox-gl-js/v1.13.3/mapbox-gl.min.css" rel="stylesheet">
     <script src="/static/assets/mapbox-gl-js/v1.13.3/mapbox-gl.min.js"></script>
@@ -24,18 +24,18 @@
 <body>
 <div id="map"></div>
 <script th:inline="javascript">
-    const metaData = /*[[${metaData}]]*/{};
-    var basePath = [[${basePath}]];
-    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
+    const metaData = [[${metaData}]];
+    const basePath = [[${basePath}]];
+    const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format;
 
-    var map = new mapboxgl.Map({
+    const map = new mapboxgl.Map({
         container: 'map',
         style: {
             'version': 8,
             'glyphs': basePath + "/api/fonts/{fontstack}/{range}.pbf",
             'sources': {
                 'raster-tiles': {
-                    'scheme':"tms",
+                    'scheme': "tms",
                     'type': 'raster',
                     'tiles': [tiles],
                     'tileSize': 256
@@ -51,10 +51,10 @@
                 }
             ]
         },
-        center: [114.139102,22.396835],
-        zoom: parseInt(metaData.minzoom?metaData.minzoom:"4"),
+        center: [114.139102, 22.396835],
+        zoom: parseInt(metaData.minzoom ? metaData.minzoom : "4"),
         hash: true
-    })
+    });
 
     map.on('load', () => {
         map.addSource('China', {

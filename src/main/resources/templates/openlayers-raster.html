@@ -2,14 +2,20 @@
 <html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title><th:block th:text="${tilesetName}" />Openlayers预览</title>
+    <title><th:block th:text="${tilesetName}" /> Openlayers预览</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="/static/assets/openlayers/v9.2.4/ol.css" rel="stylesheet">
     <script src="/static/assets/openlayers/v9.2.4/ol.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
         #map {
-            height: 1080px;
-            width: 1920px;
+            position: absolute;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
@@ -17,9 +23,9 @@
 <body>
 <div id="map"></div>
 <script th:inline="javascript">
-    const metaData = /*[[${metaData}]]*/{};
-    var basePath = [[${basePath}]];
-    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{-y}." + metaData.format
+    const metaData = [[${metaData}]];
+    const basePath = [[${basePath}]];
+    const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{-y}." + metaData.format;
 
     // 创建地图实例
     var map = new ol.Map({
@@ -37,7 +43,7 @@
         // 设置显示地图的视图
         view: new ol.View({
             // 设置初始中心点坐标
-            center: ol.proj.fromLonLat([117.330139,31.734559]),
+            center: ol.proj.fromLonLat([117.330139, 31.734559]),
             // 设置初始缩放级别
             zoom: 2,
             // 设置参考坐标系

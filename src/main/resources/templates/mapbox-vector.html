@@ -2,7 +2,7 @@
 <html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title><th:block th:text="${tilesetName}" />Mapbox预览</title>
+    <title><th:block th:text="${tilesetName}" /> Mapbox预览</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="/static/assets/mapbox-gl-js/v1.13.3/mapbox-gl.min.css" rel="stylesheet">
     <script src="/static/assets/mapbox-gl-js/v1.13.3/mapbox-gl.min.js"></script>
@@ -55,7 +55,7 @@
         hash: true
     });
 
-    function addAdminBoundary(){
+    function addAdminBoundary() {
         map.addSource('China', {
             type: 'geojson',
             data: '/static/ChinaProvince.geojson'
@@ -93,7 +93,7 @@
         });
     }
 
-    function addLayers(){
+    function addLayers() {
         //https://versatiles.org/overview.html
         if (metaData.name === "Shortbread") {
             const request = new XMLHttpRequest();
@@ -107,7 +107,7 @@
                     })
                 }
             }
-        } else if (metaData.name === "OpenMapTiles") {
+        } else {
             const request = new XMLHttpRequest();
             request.open("get", "/static/styles/blue.json");
             request.send(null);
@@ -119,8 +119,6 @@
                     })
                 }
             }
-        } else {
-           console.log("未识别的mbtiles文件！")
         }
     }
 

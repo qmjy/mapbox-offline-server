@@ -27,46 +27,164 @@
     const basePath = [[${basePath}]];
     const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{-y}." + metaData.format;
 
-    //默认Style
-    var styles = new ol.style.Style({
-        // stroke: new ol.style.Stroke({
-        //     color: 'rgba(30,144,255)',
-        //     width: 3
-        // }),
-        fill: new ol.style.Fill({
-            color: '#00263D'
-        })
-    })
-
     const vtLayer = new ol.layer.VectorTile({
         source: new ol.source.VectorTile({
             format: new ol.format.MVT({featureClass: ol.Feature}),
             url: tiles,
             tileGrid: ol.tilegrid.createXYZ({maxZoom: 13})
         }),
-        style: function (feature) {
+        style: function (feature, resolution) {
             if (feature.values_.layer === "place") {
-
+                return new ol.style.Style({
+                    text: new ol.style.Text({
+                        text: feature.values_.name,
+                        font: '12px Calibri,sans-serif',
+                        fill: new ol.style.Fill({
+                            color: '#FFF'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#444444',
+                            width: 3
+                        }),
+                        placement: 'point',
+                        maxAngle: Math.PI / 4,
+                        overflow: true,
+                        offsetX: 10,
+                        offsetY: 10
+                    })
+                })
             } else if (feature.values_.layer === "water") {
                 return new ol.style.Style({
                     fill: new ol.style.Fill({color: "#015179"}),
                 })
             } else if (feature.values_.layer === "water_name") {
-
-            } else if (feature.values_.layer === "landcover") {
+                return new ol.style.Style({
+                    text: new ol.style.Text({
+                        text: feature.values_.name,
+                        font: '12px Calibri,sans-serif',
+                        fill: new ol.style.Fill({
+                            color: '#FFF'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#444444',
+                            width: 3
+                        })
+                    })
+                })
+            } else if (feature.values_.layer === "waterway") {
+            } else if (feature.values_.layer === "aeroway") {
+            } else if (feature.values_.layer === "landuse") {
+                return new ol.style.Style({
+                    fill: new ol.style.Fill({color: "#444444"}),
+                    stroke: new ol.style.Stroke({
+                        width: 1,
+                        color: "#06789D"
+                    })
+                })
+            } else if (feature.values_.layer === "transportation") {
+                return new ol.style.Style({
+                    fill: new ol.style.Fill({color: "#06789D"}),
+                    stroke: new ol.style.Stroke({
+                        width: 1,
+                        color: [71, 137, 227, 1]
+                    })
+                })
+            } else if (feature.values_.layer === "transportation_name") {
+                return new ol.style.Style({
+                    text: new ol.style.Text({
+                        text: feature.values_.name,
+                        font: '12px Calibri,sans-serif',
+                        fill: new ol.style.Fill({
+                            color: '#FFF'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#444444',
+                            width: 3
+                        })
+                    })
+                })
+            } else if (feature.values_.layer === "aerodrome_label") {
+                return new ol.style.Style({
+                    text: new ol.style.Text({
+                        text: feature.values_.name,
+                        font: '12px Calibri,sans-serif',
+                        fill: new ol.style.Fill({
+                            color: '#FFF'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#444444',
+                            width: 3
+                        })
+                    })
+                })
+            } else if (feature.values_.layer === "poi") {
+                return new ol.style.Style({
+                    text: new ol.style.Text({
+                        text: feature.values_.name,
+                        font: '12px Calibri,sans-serif',
+                        fill: new ol.style.Fill({
+                            color: '#FFF'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#444444',
+                            width: 3
+                        })
+                    })
+                })
+            } else if (feature.values_.layer === "park") {
                 return new ol.style.Style({
                     fill: new ol.style.Fill({color: "#43ad7f"}),
+                    stroke: new ol.style.Stroke({
+                        width: 1,
+                        color: [71, 137, 227, 1]
+                    }),
+                    text: new ol.style.Text({
+                        text: feature.values_.name,
+                        fill: new ol.style.Fill({
+                            color: "#FFF"
+                        }),
+                        font: "14px Calibri,sans-serif",
+                        stroke: new ol.style.Stroke({
+                            color: "#444444",
+                            width: 1.5
+                        })
+                    })
+                })
+            } else if (feature.values_.layer === "building") {
+                return new ol.style.Style({
+                    fill: new ol.style.Fill({color: "#05A2F0"}),
+                    stroke: new ol.style.Stroke({
+                        width: 1,
+                        color: "#06789D"
+                    })
+                })
+            } else if (feature.values_.layer === "mountain_peak") {
+                return new ol.style.Style({
+                    text: new ol.style.Text({
+                        text: feature.values_.name,
+                        font: '12px Calibri,sans-serif',
+                        fill: new ol.style.Fill({
+                            color: '#FFF'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#444444',
+                            width: 3
+                        })
+                    })
+                })
+            } else if (feature.values_.layer === "landcover") {
+                return new ol.style.Style({
+                    fill: new ol.style.Fill({color: "#43887f"}),
                 })
             } else if (feature.values_.layer === "boundary") {
                 return new ol.style.Style({
-                    fill: new ol.style.Fill({color: "#4e98f4"}),
                     stroke: new ol.style.Stroke({
                         width: 1,
                         color: "#06789D"
                     })
                 })
             } else {
-                console.log(feature)
+                console.log(feature.values_.layer)
             }
         }
     });
@@ -74,53 +192,12 @@
     const map = new ol.Map({
         target: 'map',
         view: new ol.View({
-            center: [0, 0],
-            zoom: 2
+            center: ol.proj.fromLonLat([104.100139, 30.654559]),
+            zoom: 12,
+            projection: 'EPSG:3857'
         }),
-        layers: [vtLayer]
+        layers: [ vtLayer]
     });
-
-    const vSource = new ol.source.Vector();
-    const featuresForZ = [];
-    let viewZ = vtLayer.getSource().getTileGrid().getZForResolution(map.getView().getResolution());
-
-    function vsRefresh() {
-        vSource.clear();
-        if (featuresForZ[viewZ]) {
-            vSource.addFeatures(featuresForZ[viewZ]);
-        }
-    }
-
-    vtLayer.getSource().on('tileloadend', function (evt) {
-        var z = evt.tile.getTileCoord()[0];
-        var features = evt.tile.getFeatures();
-        features.forEach(function (feature) {
-            // each vector tile has its own set of feature ids, but duplicates are not allowed in normal vector sources
-            feature.setId(undefined);
-        });
-        if (!Array.isArray(featuresForZ[z])) {
-            featuresForZ[z] = [];
-        }
-        featuresForZ[z] = featuresForZ[z].concat(features);
-        if (z === viewZ) {
-            vsRefresh();
-        }
-    });
-
-    map.getView().on('change:resolution', function () {
-        // use VT features from the tile z level corresponding to view resolution
-        var newZ = vtLayer.getSource().getTileGrid().getZForResolution(map.getView().getResolution());
-        if (newZ !== viewZ) {
-            viewZ = newZ;
-            vsRefresh();
-        }
-    });
-
-    const vLayer = new ol.layer.Vector({
-        source: vSource,
-        style: styles
-    });
-    map.addLayer(vLayer);
 </script>
 </body>
 

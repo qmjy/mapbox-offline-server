@@ -34,7 +34,7 @@
         style: {
             "version": 8,
             "name": "Mapbox",
-            "sprite": basePath + "/static/sprites/streets/sprite",
+            "sprite": basePath + (metaData.name === "Shortbread" ? "/static/sprites/versatiles/sprites" : "/static/sprites/streets/sprite"),
             "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
             "sources": {
                 "osm-tiles": {

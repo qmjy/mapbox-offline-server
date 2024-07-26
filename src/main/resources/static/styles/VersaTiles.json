@@ -14081,7 +14081,7 @@
     "layout": {
       "text-field": "{ref}",
       "text-font": [
-        "noto_sans_bold"
+        "Arial Unicode MS Regular"
       ],
       "symbol-placement": "line",
       "text-anchor": "center",

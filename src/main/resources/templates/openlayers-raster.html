@@ -27,29 +27,19 @@
     const basePath = [[${basePath}]];
     const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{-y}." + metaData.format;
 
-    // 创建地图实例
-    var map = new ol.Map({
-        // 设置地图图层
+    const map = new ol.Map({
         layers: [
-            // 创建一个新的瓦片图层
             new ol.layer.Tile({
-                // 设置瓦片源
                 source: new ol.source.XYZ({
-                    // 设置瓦片URL
                     url: tiles
                 })
             })
         ],
-        // 设置显示地图的视图
         view: new ol.View({
-            // 设置初始中心点坐标
-            center: ol.proj.fromLonLat([117.330139, 31.734559]),
-            // 设置初始缩放级别
+            center: ol.proj.fromLonLat([104.330139, 30.734559]),
             zoom: 2,
-            // 设置参考坐标系
             projection: 'EPSG:3857'
         }),
-        // 设置地图容器
         target: 'map'
     });
 

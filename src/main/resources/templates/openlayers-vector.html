@@ -28,6 +28,7 @@
     const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{-y}." + metaData.format;
 
     const vtLayer = new ol.layer.VectorTile({
+        background: '#00263D',
         source: new ol.source.VectorTile({
             format: new ol.format.MVT({featureClass: ol.Feature}),
             url: tiles,
@@ -57,6 +58,13 @@
                 return new ol.style.Style({
                     fill: new ol.style.Fill({color: "#015179"}),
                 })
+            } else if (feature.values_.layer === "waterway") {
+                return new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        width: 5,
+                        color: "#015179"
+                    })
+                })
             } else if (feature.values_.layer === "water_name") {
                 return new ol.style.Style({
                     text: new ol.style.Text({
@@ -71,7 +79,6 @@
                         })
                     })
                 })
-            } else if (feature.values_.layer === "waterway") {
             } else if (feature.values_.layer === "aeroway") {
             } else if (feature.values_.layer === "landuse") {
                 return new ol.style.Style({
@@ -85,8 +92,8 @@
                 return new ol.style.Style({
                     fill: new ol.style.Fill({color: "#06789D"}),
                     stroke: new ol.style.Stroke({
-                        width: 1,
-                        color: [71, 137, 227, 1]
+                        width: getTransportationWidth(feature.values_.class),
+                        color: "#06789D"
                     })
                 })
             } else if (feature.values_.layer === "transportation_name") {
@@ -189,6 +196,25 @@
         }
     });
 
+    function getTransportationWidth(className) {
+        //参考：https://docs.maptiler.com/schema/omt-planet/
+        //道路: motorway(高速公路) primary(主干道) secondary(次干道) tertiary(三级道路) minor() rail（铁路） service(通往设施的道路)
+        switch (className) {
+            case "motorway":
+                return 5;
+            case "trunk":
+                return 4;
+            case "primary":
+                return 3;
+            case "secondary":
+                return 2;
+            case "tertiary":
+                return 1;
+            default:
+                return 1;
+        }
+    }
+
     const map = new ol.Map({
         target: 'map',
         view: new ol.View({
@@ -196,7 +222,7 @@
             zoom: 12,
             projection: 'EPSG:3857'
         }),
-        layers: [ vtLayer]
+        layers: [vtLayer]
     });
 </script>
 </body>

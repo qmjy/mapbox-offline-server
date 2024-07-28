@@ -1,5 +1,7 @@
 # map-offline-server
 
+![map offline server logo](./logo_320x320.png)
+
 Map offline server with java(JDK 21).  
 本项目旨在提供离线地图服务，为私有化地图部署提供解决方案。  
 项目主要主持mbtiles格式的地图数据，启动项目后可以通过 http://localhost:10101/ 查看系统页面。

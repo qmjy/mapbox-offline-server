@@ -73,6 +73,9 @@ data
 │         sprite@2x.png
 ├─styles
 │      world.json
+├─poi
+│      xxx.osm.csv
+│      xxx.poi
 ├─osm.pbf
 │      Chengdu.osm.pbf
 ├─tilesets
@@ -87,11 +90,3 @@ data
 ### 资源下载
 
 数据获取可通过issue反馈需求并留下联系方式，已经支持的数据服务地址，请参考[WIKI](https://github.com/qmjy/mapbox-offline-server/wiki)介绍。
-
-### 字体下载
-
-SimSun Regular（宋体）：https://pan.baidu.com/s/1lv69EP5QlaUnlKZlH4-qlA  
-Microsoft YaHei Regular（雅黑）：https://pan.baidu.com/s/1-tJr-PpKSFRxlfhWwtc0Kw  
-Microsoft YaHei Bold：https://pan.baidu.com/s/1Ls1hgLIbcu5impJ086x5DQ  
-Arial Regular：https://pan.baidu.com/s/102-e8pYKB2CO9bvP3LvWug  
-Other Fonts: https://github.com/developmentseed/osm-seed-visor/tree/master/fonts

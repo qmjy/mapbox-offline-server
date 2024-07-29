@@ -28,6 +28,8 @@ import io.github.qmjy.mapserver.model.*;
 import io.github.qmjy.mapserver.util.IOUtils;
 import io.github.qmjy.mapserver.util.JdbcUtils;
 import io.github.qmjy.mapserver.util.VectorTileUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.LineIterator;
 import org.jetbrains.annotations.NotNull;
 import org.locationtech.jts.geom.*;
 import org.slf4j.Logger;
@@ -397,5 +399,104 @@ public class AsyncService {
         } else {
             return Optional.empty();
         }
+    }
+
+    public void indexPoi(File csvFile) {
+        String absolutePath = csvFile.getAbsolutePath();
+        String poiFile = absolutePath.substring(0, absolutePath.lastIndexOf(".")) + ".poi";
+        if (new File(poiFile).exists()) {
+            LOGGER.info("The file of poi already exists: {}", poiFile);
+            return;
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), poiFile);
+
+        List<String[]> data = new ArrayList<>();
+        int pageSize = 50000;
+        try (LineIterator lineIterator = FileUtils.lineIterator(csvFile)) {
+            int i = 0;
+            while (lineIterator.hasNext()) {
+                String[] split = lineIterator.nextLine().split("\\|");
+                if (i == 0) {
+                    createTable(jdbcTemplate, split);
+                } else {
+                    data.add(split);
+                }
+                i++;
+                if (i % pageSize == 0) {
+                    insertTable(jdbcTemplate, data);
+                    data.clear();
+                }
+            }
+            insertTable(jdbcTemplate, data);
+            JdbcUtils.getInstance().releaseJdbcTemplate(jdbcTemplate);
+            LOGGER.info("Index poi of count: {}", i);
+        } catch (IOException e) {
+            LOGGER.error("Index poi file failed: {}", csvFile.getAbsolutePath());
+        }
+    }
+
+    private void insertTable(JdbcTemplate jdbcTemplate, List<String[]> data) {
+        jdbcTemplate.batchUpdate("INSERT INTO poi (id, name, category, subcategory, lon, lat, srid, wkt, opening_hours, alternative_name, postcode, phone, street, email, last_update, name_en, image, wikipedia, city, country, operator, description, housenumber, international_name, fax, website, other_tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?)", data, data.size(), (PreparedStatement ps, String[] row) -> {
+            ps.setString(1, row[0]);
+            ps.setString(2, row[1]);
+            ps.setString(3, row[2]);
+            ps.setString(4, row[3]);
+            ps.setString(5, row[4]);
+            ps.setFloat(6, Float.parseFloat(row[5]));
+            ps.setFloat(7, Float.parseFloat(row[6]));
+            ps.setString(8, row[7]);
+            ps.setString(9, row[8]);
+            ps.setString(10, row[9]);
+            ps.setString(11, row[10]);
+            ps.setString(12, row[11]);
+            ps.setString(13, row[12]);
+            ps.setString(14, row[13]);
+            ps.setString(15, row[14]);
+            ps.setString(16, row[15]);
+            ps.setString(17, row[16]);
+            ps.setString(18, row[17]);
+            ps.setString(19, row[18]);
+            ps.setString(20, row[19]);
+            ps.setString(21, row[20]);
+            ps.setString(22, row[21]);
+            ps.setString(23, row[22]);
+            ps.setString(24, row[23]);
+            ps.setString(25, row[24]);
+            ps.setString(26, row[25]);
+            ps.setString(27, row[26]);
+        });
+    }
+
+
+    private void createTable(JdbcTemplate jdbcTemplate, String[] split) {
+        StringBuilder sb = new StringBuilder("CREATE TABLE poi(");
+        sb.append(split[0].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[1].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[2].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[3].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[4].toLowerCase(Locale.getDefault())).append(" INTEGER NOT NULL,");
+        sb.append(split[5].toLowerCase(Locale.getDefault())).append(" INTEGER NOT NULL,");
+        sb.append(split[6].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[7].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[8].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[9].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[10].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[11].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[12].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[13].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[14].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[15].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[16].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[17].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[18].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[19].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[20].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[21].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[22].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[23].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[24].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[25].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[26].toLowerCase(Locale.getDefault())).append(" TEXT)");
+        jdbcTemplate.execute(sb.toString());
     }
 }

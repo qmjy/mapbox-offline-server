@@ -49,6 +49,18 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
                 wrapFontsFile(dataFolder);
                 wrapOSMBFile(dataFolder);
                 wrapOsmPbfFile(dataFolder);
+                indexPoi(dataFolder);
+            }
+        }
+    }
+
+    private void indexPoi(File dataFolder) {
+        File tilesetsFolder = new File(dataFolder, "poi");
+        File[] files = tilesetsFolder.listFiles(file -> file.getName().endsWith(".osm.csv") && !file.isDirectory());
+        if (files != null) {
+            for (File csvFile : files) {
+                logger.info("Index poi file: {}", csvFile.getName());
+                asyncService.indexPoi(csvFile);
             }
         }
     }

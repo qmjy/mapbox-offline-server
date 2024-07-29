@@ -58,23 +58,23 @@ public class MapServerPOIRestController {
     /**
      * POI搜索
      *
-     * @param tileset  待查询的瓦片数据文件名
+     * @param poiFile  待查询的瓦片数据文件名或POI文件名，例如chengdu.mbtiles或者chengdu.poi
      * @param keywords POI关键字。目前只支持单个关键词
      * @return 查询到到的POI搜索结果
      */
-    @GetMapping(value = "/{tileset}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{poiIndexFile}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @Operation(summary = "获取POI数据", description = "查询POI数据。")
-    public ResponseEntity<Map<String, Object>> loadJpegTile(@Parameter(description = "查询POI数据的矢量瓦片数据源，例如：Chengdu.mbtiles") @PathVariable("tileset") String tileset,
+    public ResponseEntity<Map<String, Object>> loadJpegTile(@Parameter(description = "查询POI数据的矢量瓦片数据源或POI文件名，例如：Chengdu.mbtiles | Chengdu.poi") @PathVariable("poiIndexFile") String poiFile,
                                                             @Parameter(description = "待查询POI关键字，目前只支持一个关键词") @RequestParam String keywords) {
         if (keywords.trim().isEmpty() || keywords.split(" ").length > 1) {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound("参数不合法，请检查参数！"));
         }
 
-        String poiFilePath = appConfig.getDataPath() + File.separator + "tilesets" + File.separator + tileset + ".idx";
-        File pbfFile = new File(poiFilePath);
-        if (pbfFile.exists()) {
-            JdbcTemplate idxJdbcTemp = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), poiFilePath);
+        String filePath = poiFile.endsWith(".poi") ? appConfig.getDataPath() + File.separator + "poi" + File.separator + poiFile : appConfig.getDataPath() + File.separator + "tilesets" + File.separator + poiFile + ".idx";
+        File poiIndexFile = new File(filePath);
+        if (poiIndexFile.exists()) {
+            JdbcTemplate idxJdbcTemp = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), filePath);
             String sql = "SELECT * FROM poi WHERE name LIKE ? LIMIT 10";
             List<Map<String, Object>> maps = idxJdbcTemp.queryForList(sql, "%" + keywords + "%");
             List<PoiPoint> dataList = new ArrayList<>();

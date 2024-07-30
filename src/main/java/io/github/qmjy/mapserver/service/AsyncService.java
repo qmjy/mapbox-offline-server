@@ -476,7 +476,7 @@ public class AsyncService {
         sb.append(split[3].toLowerCase(Locale.getDefault())).append(" TEXT,");
         sb.append(split[4].toLowerCase(Locale.getDefault())).append(" INTEGER NOT NULL,");
         sb.append(split[5].toLowerCase(Locale.getDefault())).append(" INTEGER NOT NULL,");
-        sb.append(split[6].toLowerCase(Locale.getDefault())).append(" TEXT,");
+        sb.append(split[6].toLowerCase(Locale.getDefault())).append(" INTEGER NOT NULL,");
         sb.append(split[7].toLowerCase(Locale.getDefault())).append(" TEXT,");
         sb.append(split[8].toLowerCase(Locale.getDefault())).append(" TEXT,");
         sb.append(split[9].toLowerCase(Locale.getDefault())).append(" TEXT,");

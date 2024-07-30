@@ -79,7 +79,7 @@ public class MapServerPOIRestController {
             List<Map<String, Object>> maps = idxJdbcTemp.queryForList(sql, "%" + keywords + "%");
             List<PoiPoint> dataList = new ArrayList<>();
             maps.forEach(stringObjectMap -> {
-                dataList.add(formatPoiPoint(stringObjectMap));
+                dataList.add(formatPoiPoint(stringObjectMap, poiFile.endsWith(".poi")));
             });
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(dataList));
         } else {
@@ -87,25 +87,29 @@ public class MapServerPOIRestController {
         }
     }
 
-    private PoiPoint formatPoiPoint(Map<String, Object> stringObjectMap) {
+    private PoiPoint formatPoiPoint(Map<String, Object> stringObjectMap, boolean isPoi) {
         String name = (String) stringObjectMap.get("name");
-        String wellKnownText = (String) stringObjectMap.get("geometry");
-        int geometryType = (int) stringObjectMap.get("geometry_type");
-        int tileRow = (int) stringObjectMap.get("tile_row");
-        int tileColumn = (int) stringObjectMap.get("tile_column");
-        int zoomLevel = (int) stringObjectMap.get("zoom_level");
+        if (isPoi) {
+            return new PoiPoint(name, stringObjectMap.get("lon") + "," + stringObjectMap.get("lat"));
+        } else {
+            String wellKnownText = (String) stringObjectMap.get("geometry");
+            int geometryType = (int) stringObjectMap.get("geometry_type");
+            int tileRow = (int) stringObjectMap.get("tile_row");
+            int tileColumn = (int) stringObjectMap.get("tile_column");
+            int zoomLevel = (int) stringObjectMap.get("zoom_level");
 
-        //TODO 目前就只先保存点类型的数据
-        switch (geometryType) {
-            case 0:
-                Optional<Geometry> geometryOpt = GeometryUtils.toGeometryFromWkt(wellKnownText);
-                if (geometryOpt.isPresent()) {
-                    Point point = (Point) geometryOpt.get();
-                    double[] doubles = GeometryUtils.pixel2deg(tileColumn, tileRow, zoomLevel, (int) point.getX(), (int) point.getY(), 4096);
-                    return new PoiPoint(name, doubles[0] + "," + doubles[1]);
-                }
-            default:
-                return new PoiPoint(name, null);
+            //TODO 目前就只先保存点类型的数据
+            switch (geometryType) {
+                case 0:
+                    Optional<Geometry> geometryOpt = GeometryUtils.toGeometryFromWkt(wellKnownText);
+                    if (geometryOpt.isPresent()) {
+                        Point point = (Point) geometryOpt.get();
+                        double[] doubles = GeometryUtils.pixel2deg(tileColumn, tileRow, zoomLevel, (int) point.getX(), (int) point.getY(), 4096);
+                        return new PoiPoint(name, doubles[0] + "," + doubles[1]);
+                    }
+                default:
+                    return new PoiPoint(name, null);
+            }
         }
     }
 }

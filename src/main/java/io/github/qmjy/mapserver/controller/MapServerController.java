@@ -112,8 +112,11 @@ public class MapServerController extends BaseController {
      */
     @GetMapping("/mapbox/{tileset}")
     public String mapbox(@PathVariable("tileset") String tileset, HttpServletRequest request, Model model) {
-        model.addAttribute("basePath", super.getBasePath(request));
+        if (tileset.contains("..") || tileset.contains("/") || tileset.contains("\\")) {
+            return "error";
+        }
 
+        model.addAttribute("basePath", super.getBasePath(request));
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             model.addAttribute("tilesetName", tileset);
             Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);

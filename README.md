@@ -12,7 +12,6 @@ Map offline server with java(JDK 21).
 |:---------:|:----------------------:|:------------------:|:------------------:|:------------------:|
 |   底图切片    |   :white_check_mark:   | :white_check_mark: |                    |                    |
 |   地理逆编码   |                        |                    |                    | :white_check_mark: |
-|   地理编码    |                        |                    |                    |                    |
 |   路径规划    |                        |                    | :white_check_mark: |                    |
 |   POI搜索   | :white_check_mark:(矢量) |                    |                    |                    |
 |   静态地图    |       :running:        |                    |                    |                    |
@@ -75,7 +74,7 @@ data
 │      world.json
 ├─poi
 │      xxx.osm.csv
-│      xxx.poi
+│      xxx.osm.poi
 ├─osm.pbf
 │      Chengdu.osm.pbf
 ├─tilesets

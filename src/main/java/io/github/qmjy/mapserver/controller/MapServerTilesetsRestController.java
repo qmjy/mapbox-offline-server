@@ -26,6 +26,7 @@ import io.github.qmjy.mapserver.model.osm.pbf.OsmPbfTileOfReadable;
 import io.github.qmjy.mapserver.service.AsyncService;
 import io.github.qmjy.mapserver.util.IOUtils;
 import io.github.qmjy.mapserver.util.ResponseMapUtil;
+import io.github.qmjy.mapserver.util.SystemUtils;
 import io.github.qmjy.mapserver.util.VectorTileUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -209,6 +210,10 @@ public class MapServerTilesetsRestController {
             @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
             @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
             @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             Optional<byte[]> optionalRes = getBytesFromSqlite(tileset, z, x, y);
             if (optionalRes.isPresent()) {

@@ -21,6 +21,7 @@ import io.github.qmjy.mapserver.model.PoiPoint;
 import io.github.qmjy.mapserver.util.GeometryUtils;
 import io.github.qmjy.mapserver.util.JdbcUtils;
 import io.github.qmjy.mapserver.util.ResponseMapUtil;
+import io.github.qmjy.mapserver.util.SystemUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -67,7 +68,7 @@ public class MapServerPOIRestController {
     @Operation(summary = "获取POI数据", description = "查询POI数据。")
     public ResponseEntity<Map<String, Object>> loadJpegTile(@Parameter(description = "查询POI数据的矢量瓦片数据源或POI文件名，例如：Chengdu.mbtiles | Chengdu.poi") @PathVariable("poiIndexFile") String poiFile,
                                                             @Parameter(description = "待查询POI关键字，目前只支持一个关键词") @RequestParam String keywords) {
-        if (keywords.trim().isEmpty() || keywords.split(" ").length > 1) {
+        if (keywords.trim().isEmpty() || keywords.split(" ").length > 1 || SystemUtils.checkTilesetName(poiFile)) {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound("参数不合法，请检查参数！"));
         }
 

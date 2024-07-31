@@ -21,6 +21,7 @@ import io.github.qmjy.mapserver.config.AppConfig;
 import io.github.qmjy.mapserver.model.MetaData;
 import io.github.qmjy.mapserver.model.TilesFileModel;
 import io.github.qmjy.mapserver.model.TilesViewModel;
+import io.github.qmjy.mapserver.util.SystemUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,7 +113,7 @@ public class MapServerController extends BaseController {
      */
     @GetMapping("/mapbox/{tileset}")
     public String mapbox(@PathVariable("tileset") String tileset, HttpServletRequest request, Model model) {
-        if (tileset.contains("..") || tileset.contains("/") || tileset.contains("\\")) {
+        if (SystemUtils.checkTilesetName(tileset)) {
             return "error";
         }
 
@@ -154,6 +155,10 @@ public class MapServerController extends BaseController {
      */
     @GetMapping("/openlayers/{tileset}")
     public String openlayers(@PathVariable("tileset") String tileset, HttpServletRequest request, Model model) {
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return "error";
+        }
+
         model.addAttribute("basePath", super.getBasePath(request));
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             model.addAttribute("tilesetName", tileset);

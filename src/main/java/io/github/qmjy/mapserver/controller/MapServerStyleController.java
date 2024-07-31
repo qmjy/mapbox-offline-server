@@ -17,6 +17,7 @@
 package io.github.qmjy.mapserver.controller;
 
 import io.github.qmjy.mapserver.config.AppConfig;
+import io.github.qmjy.mapserver.util.SystemUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -50,6 +51,9 @@ public class MapServerStyleController {
     @ResponseBody
     @GetMapping(value = "/{styleName}", produces = "application/json")
     public ResponseEntity<String> loadStyle(@PathVariable("styleName") String styleName) {
+        if (SystemUtils.checkTilesetName(styleName)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("styles").append(File.separator).append(styleName);

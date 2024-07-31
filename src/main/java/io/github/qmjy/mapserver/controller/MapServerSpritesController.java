@@ -17,6 +17,7 @@
 package io.github.qmjy.mapserver.controller;
 
 import io.github.qmjy.mapserver.config.AppConfig;
+import io.github.qmjy.mapserver.util.SystemUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,10 @@ public class MapServerSpritesController {
     @ResponseBody
     @GetMapping(value = "/{spriteName}/{fileName}.json", produces = "application/json")
     public ResponseEntity<String> loadStyle(@PathVariable("spriteName") String spriteName, @PathVariable("fileName") String fileName) {
+        if (SystemUtils.checkTilesetName(fileName)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("sprites").append(File.separator).append(spriteName).append(File.separator).append(fileName).append(AppConfig.FILE_EXTENSION_NAME_JSON);
@@ -74,6 +79,10 @@ public class MapServerSpritesController {
     @ResponseBody
     @GetMapping(value = "/{spriteName}/{fileName}.png")
     public ResponseEntity<ByteArrayResource> loadSpritePng(@PathVariable("spriteName") String spriteName, @PathVariable("fileName") String fileName) {
+        if (SystemUtils.checkTilesetName(fileName)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("sprites").append(File.separator).append(spriteName).append(File.separator).append(fileName).append(AppConfig.FILE_EXTENSION_NAME_PNG);

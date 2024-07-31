@@ -8,19 +8,19 @@ Map offline server with java(JDK 21).
 
 ## 特性列表
 
-|           |        mbtiles         |        tpk         | shapefile |      osm.pbf       |   OSMB(geojson)    |
-|:---------:|:----------------------:|:------------------:|:---------:|:------------------:|:------------------:|
-|   底图切片    |   :white_check_mark:   | :white_check_mark: |           |                    |                    |
-|   地理逆编码   |                        |                    |           |                    | :white_check_mark: |
-|   地理编码    |                        |                    |           |                    |                    |
-|   路径规划    |                        |                    |           | :white_check_mark: |                    |
-|   POI搜索   | :white_check_mark:(矢量) |                    |           |                    |                    |
-|   静态地图    |       :running:        |                    |           |                    |                    |
-| 行政区划（含边界） |                        |                    |           |                    | :white_check_mark: |
+|           |        mbtiles         |        tpk         |       osm.pbf       |   OSMB(geojson)    |
+|:---------:|:----------------------:|:------------------:|:------------------:|:------------------:|
+|   底图切片    |   :white_check_mark:   | :white_check_mark: |                    |                    |
+|   地理逆编码   |                        |                    |                    | :white_check_mark: |
+|   地理编码    |                        |                    |                    |                    |
+|   路径规划    |                        |                    | :white_check_mark: |                    |
+|   POI搜索   | :white_check_mark:(矢量) |                    |                    |                    |
+|   静态地图    |       :running:        |                    |                    |                    |
+| 行政区划（含边界） |                        |                    |                    | :white_check_mark: |
 
 1. 支持瓦片离线服务，主要用于Map服务器离线场景，也支持mvt（pbf）瓦片数据的元数据查看；
 2. 支持全球行政区划级联数据查询，也支持对应行政区划边界数据查询，查询时支持国际化，支持地理逆编码；
-3. 支持mbtiles格式的矢量数据POI搜索；
+3. 支持离线POI搜索能力（数据获取请访问[pio](https://github.com/qmjy/poi)）；
 4. 支持静态资源HTTP服务器能力；
 5. 支持工具能力：shapefile转geojson，支持mbtiles合并；
 

@@ -96,6 +96,9 @@ public class MapServerTilesetsRestController {
             @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
             @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
             @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         return this.loadJpgTile(tileset, z, x, y);
     }
 
@@ -116,6 +119,10 @@ public class MapServerTilesetsRestController {
             @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
             @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
             @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
             String lowerCase = mapServerDataCenter.getTpkMetaData(tileset).getFormat().toLowerCase(Locale.getDefault());
             if (!lowerCase.endsWith("jpg") && !lowerCase.endsWith("jpeg")) {
@@ -149,6 +156,10 @@ public class MapServerTilesetsRestController {
             @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
             @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
             @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             Optional<byte[]> OptionalResource = getByteArrayResourceResponseEntity(tileset, z, x, y);
             if (OptionalResource.isPresent()) {
@@ -177,6 +188,10 @@ public class MapServerTilesetsRestController {
             @Parameter(description = "待查询的底图瓦片层级zoom_level") @PathVariable("z") int z,
             @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
             @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
             if (!mapServerDataCenter.getTpkMetaData(tileset).getFormat().toLowerCase(Locale.getDefault()).endsWith("png")) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -274,6 +289,9 @@ public class MapServerTilesetsRestController {
                                                          @Parameter(description = "待查询的底图瓦片坐标x") @PathVariable("x") int x,
                                                          @Parameter(description = "待查询的底图瓦片坐标y") @PathVariable("y") int y) {
         OsmPbfTileOfReadable tileOfReadable = new OsmPbfTileOfReadable(req, z, x, y);
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
         Optional<byte[]> optionalBytes = getPbfBytes(tileset, z, x, y);
         if (optionalBytes.isPresent()) {
@@ -320,6 +338,10 @@ public class MapServerTilesetsRestController {
     @Operation(summary = "获取底图数据的元数据", description = "获取底图数据的元数据。")
     public ResponseEntity<Map<String, Object>> metadata(
             @Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：admin.mbtiles。") @PathVariable("tileset") String tileset) {
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
             if (jdbcTemplateOpt.isPresent()) {

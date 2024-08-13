@@ -49,7 +49,6 @@ java -jar mapbox-offline-server-xxx.jar --dataPath="your data path"
 
 > 本项目自带了WGS84(WKID=4326)、CGCS2000(WKID=4490)坐标系的Mapbox资源文件。
 
-- mapbox离线服务至少需要包含四种资源文件：mapbox-gl、fonts、sprites、tilesets；
 - 行政区划服务相关需需要包含一种资源文件：geojson；
 - 在运行本服务之前需要按照如下结构配置数据目录，然后通过“--dataPath=xxx”的方式启动服务；
 - mapbox最新版本不支持离线，可以使用[Maplibre](https://maplibre.org/)代替；
@@ -85,6 +84,11 @@ data
 ```
 
 ## 资源
+
+### 地图瓦片数据（mbtiles）
+
+四川省地图：https://www.alipan.com/t/MKj20V4Xh3Zk61qljouv   
+其他地图支持定制，需要可提交issue。
 
 ### 地图主题风格
 

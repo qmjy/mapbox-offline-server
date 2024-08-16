@@ -67,16 +67,18 @@ public class MapServerPOIRestController {
     @ResponseBody
     @Operation(summary = "获取POI数据", description = "查询POI数据。")
     public ResponseEntity<Map<String, Object>> loadJpegTile(@Parameter(description = "查询POI数据的矢量瓦片数据源或POI文件名，例如：Chengdu.mbtiles | Chengdu.poi") @PathVariable("poiIndexFile") String poiFile,
-                                                            @Parameter(description = "待查询POI关键字，目前只支持一个关键词") @RequestParam String keywords) {
+                                                            @Parameter(description = "待查询POI关键字，目前只支持一个关键词") @RequestParam String keywords,
+                                                            @Parameter(description = "返回的POI结果条数,取值范围为1-100") @RequestParam(required = false) int pageSize) {
         if (keywords.trim().isEmpty() || keywords.split(" ").length > 1 || SystemUtils.checkTilesetName(poiFile)) {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound("参数不合法，请检查参数！"));
         }
 
-        String filePath = poiFile.endsWith(".poi") ? appConfig.getDataPath() + File.separator + "poi" + File.separator + poiFile : appConfig.getDataPath() + File.separator + "tilesets" + File.separator + poiFile + ".idx";
+        String filePath = poiFile.endsWith(".poi") ? appConfig.getDataPath() + File.separator + "poi" + File.separator
+                + poiFile : appConfig.getDataPath() + File.separator + "tilesets" + File.separator + poiFile + ".idx";
         File poiIndexFile = new File(filePath);
         if (poiIndexFile.exists()) {
             JdbcTemplate idxJdbcTemp = JdbcUtils.getInstance().getJdbcTemplate(appConfig.getDriverClassName(), filePath);
-            String sql = "SELECT * FROM poi WHERE name LIKE ? LIMIT 10";
+            String sql = "SELECT * FROM poi WHERE name LIKE ? LIMIT " + (pageSize <= 0 || pageSize > 100 ? 10 : pageSize);
             List<Map<String, Object>> maps = idxJdbcTemp.queryForList(sql, "%" + keywords + "%");
             List<PoiPoint> dataList = new ArrayList<>();
             maps.forEach(stringObjectMap -> {

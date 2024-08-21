@@ -87,7 +87,7 @@ data
 
 ### 地图瓦片数据（mbtiles）
 
-四川省地图：https://www.alipan.com/t/MKj20V4Xh3Zk61qljouv   
+四川省地图：https://cloud.189.cn/web/share?code=VrmEFbiQRn6n（访问码：qzv1）
 其他地图支持定制，需要可提交issue。
 
 ### 地图主题风格

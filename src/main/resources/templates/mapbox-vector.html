@@ -20,20 +20,30 @@
         }
 
         .tooltip {
-            position: absolute;
-            z-index: 10;
-            background: white;
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid black;
+            position: relative;
+            display: inline-block;
+        }
+
+        #tooltip {
             visibility: hidden;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+
+            /* 定位 */
+            position: absolute;
+            z-index: 1;
         }
     </style>
 </head>
 
 <body>
 <div id="map"></div>
-<div id='tooltip' class='tooltip'></div>
+<div class="tooltip">
+    <span id='tooltip'>提示文本</span>
+</div>
 <script th:inline="javascript">
     const metaData = [[${metaData}]];
     const basePath = [[${basePath}]];
@@ -162,14 +172,18 @@
         }
     });
 
-    // 创建一个tooltip元素
-    var tooltip = document.getElementById('tooltip');
+    const tooltip = document.getElementById('tooltip');
+    let timeout;
 
-    // 鼠标悬停事件
+    // 鼠标进入事件
     map.on('mouseenter', 'building', function (e) {
-        // 设置tooltip内容
         tooltip.innerHTML = JSON.stringify(e.features[0].properties);
-        tooltip.style.visibility = 'visible';
+        if(timeout){
+            clearTimeout(timeout);
+        }
+        timeout = setTimeout(function(){
+            tooltip.style.visibility = 'visible';
+        },500)
     });
 
     // 鼠标离开事件

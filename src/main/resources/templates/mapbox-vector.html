@@ -195,7 +195,14 @@
     map.on('mousemove', function (e) {
         tooltip.style.left = e.point.x + 'px';
         tooltip.style.top = e.point.y + 'px';
-    });
+
+        const features = map.queryRenderedFeatures(e.point, {layers: ['building']});
+        if(features.length>0){
+            map.setPaintProperty('building-extrusion','fill-extrusion-color','#0054fa')
+        }else{
+            map.setPaintProperty('building-extrusion',"fill-extrusion-color" ,'#02699c')
+        }
+    })
 
     map.addControl(new maplibregl.NavigationControl())
     map.addControl(new maplibregl.FullscreenControl())

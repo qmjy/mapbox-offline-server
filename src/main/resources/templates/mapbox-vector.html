@@ -18,32 +18,11 @@
             bottom: 0;
             width: 100%;
         }
-
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-
-        #tooltip {
-            visibility: hidden;
-            background-color: black;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px 0;
-
-            /* 定位 */
-            position: absolute;
-            z-index: 1;
-        }
     </style>
 </head>
 
 <body>
 <div id="map"></div>
-<div class="tooltip">
-    <span id='tooltip'>提示文本</span>
-</div>
 <script th:inline="javascript">
     const metaData = [[${metaData}]];
     const basePath = [[${basePath}]];
@@ -172,30 +151,13 @@
         }
     });
 
-    const tooltip = document.getElementById('tooltip');
-    let timeout;
-
     // 鼠标进入事件
     map.on('mouseenter', 'building', function (e) {
-        tooltip.innerHTML = JSON.stringify(e.features[0].properties);
-        if(timeout){
-            clearTimeout(timeout);
-        }
-        timeout = setTimeout(function(){
-            tooltip.style.visibility = 'visible';
-        },500)
-    });
-
-    // 鼠标离开事件
-    map.on('mouseleave', 'building', function () {
-        tooltip.style.visibility = 'hidden';
+        console.log(JSON.stringify(e.features[0].properties))
     });
 
     // 鼠标移动事件，更新tooltip位置
     map.on('mousemove', function (e) {
-        tooltip.style.left = e.point.x + 'px';
-        tooltip.style.top = e.point.y + 'px';
-
         const features = map.queryRenderedFeatures(e.point, {layers: ['building']});
         if(features.length>0){
             map.setPaintProperty('building-extrusion','fill-extrusion-color','#0054fa')

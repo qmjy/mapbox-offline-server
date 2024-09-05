@@ -153,13 +153,14 @@
 
     // 鼠标进入事件
     map.on('mouseenter', 'building', function (e) {
+        console.log(e.features[0])
         console.log(JSON.stringify(e.features[0].properties))
     });
 
     // 鼠标移动事件，更新tooltip位置
     map.on('mousemove', function (e) {
-        const features = map.queryRenderedFeatures(e.point, {layers: ['building']});
-        if(features.length>0){
+        const features = map.queryRenderedFeatures(e.point, {layers: ['building-extrusion']});
+        if(features.length > 0){
             map.setPaintProperty('building-extrusion','fill-extrusion-color','#0054fa')
         }else{
             map.setPaintProperty('building-extrusion',"fill-extrusion-color" ,'#02699c')

@@ -21,7 +21,6 @@ package eu.smartdatalake.athenarc.osmwrangle.tools;
 import crosby.binary.osmosis.OsmosisReader;
 import eu.smartdatalake.athenarc.osmwrangle.osm.*;
 import eu.smartdatalake.athenarc.osmwrangle.utils.*;
-import io.github.qmjy.mapserver.service.AsyncService;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.api.referencing.crs.CRSAuthorityFactory;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;

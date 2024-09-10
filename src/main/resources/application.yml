@@ -42,6 +42,15 @@ logging:
     #    org.springframework.web: trace
     org.springframework.web: info
 
+osmwrangle:
+  #Possible input formats: OSM_XML, OSM_PBF
+  inputFormat: OSM_PBF
+  #Default conversion mode: (in-memory) STREAM
+  mode: STREAM
+  mapping_file: /wrangle/Attribute_mapping.conf
+  tmpDir: /tmp
+  outputDir: /output
+
 # 数据存放目录
 data-path:
 # 从mvt的pbf提取poi数据

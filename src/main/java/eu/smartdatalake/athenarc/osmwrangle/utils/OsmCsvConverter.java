@@ -74,22 +74,22 @@ public class OsmCsvConverter implements Converter {
     ObjectMapper mapperObj;
 
     //Attribute Map
-    private HashMap<String, String> tagMap = new HashMap<>();
-    private ArrayList<String> cols = new ArrayList<String>();
+    private final HashMap<String, String> tagMap = new HashMap<>();
+    private final ArrayList<String> cols = new ArrayList<String>();
 
     public void ReadAttrMappingFile(Configuration config) {
 
         //Read Mapping Config File for extra thematic columns
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream(config.mapping_file));
+            properties.load(OsmCsvConverter.class.getResourceAsStream(config.mapping_file));
 
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
                 cols.add(entry.getKey().toString());
                 String[] value_parts = entry.getValue().toString().replace("\"", "").trim().split(",");
 
-                for (int i = 0; i < value_parts.length; i++) {
-                    tagMap.put(value_parts[i].trim(), entry.getKey().toString());
+                for (String valuePart : value_parts) {
+                    tagMap.put(valuePart.trim(), entry.getKey().toString());
                 }
             }
 

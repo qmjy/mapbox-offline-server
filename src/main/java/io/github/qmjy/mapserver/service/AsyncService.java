@@ -98,8 +98,7 @@ public class AsyncService {
      */
     @Async("asyncServiceExecutor")
     public void loadOsmPbfPoi(File osmPbfFile) {
-        Properties properties = getProperties(osmPbfFile);
-        Configuration currentConfig = new Configuration(properties);
+        Configuration currentConfig = new Configuration(osmPbfFile, appConfig);
 
         System.setProperty("org.geotools.referencing.forceXY", "true");
 
@@ -110,30 +109,6 @@ public class AsyncService {
         OsmPbfParser conv = new OsmPbfParser(currentConfig, osmPbfFile.getAbsolutePath(), outFile, sourceSRID, targetSRID);
         conv.apply();
         conv.close();
-    }
-
-    @NotNull
-    private static Properties getProperties(File osmPbfFile) {
-        Properties properties = new Properties();
-
-        //Possible input formats: OSM_XML, OSM_PBF
-        properties.setProperty("inputFormat", "OSM_PBF");
-
-        //Paths to directories and files used by the application
-        String tmpFolder = IOUtils.getTmpFolder();
-        IOUtils.mkdirs(tmpFolder + "/tmp");
-        IOUtils.mkdirs(tmpFolder + "/output");
-
-        properties.setProperty("tmpDir", tmpFolder + "/tmp");
-        properties.setProperty("inputFiles", osmPbfFile.getAbsolutePath());
-        properties.setProperty("outputDir", tmpFolder + "/output");
-
-        //[CSV only] Path to attribute mappings from OSM tags to CSV columns
-        properties.setProperty("mapping_file", "/wrangle/Attribute_mapping.conf");
-
-        //Default conversion mode: (in-memory) STREAM
-        properties.setProperty("mode", "STREAM");
-        return properties;
     }
 
     @NotNull

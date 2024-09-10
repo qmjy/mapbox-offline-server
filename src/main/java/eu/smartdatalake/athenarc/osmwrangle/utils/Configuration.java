@@ -18,17 +18,12 @@
  */
 package eu.smartdatalake.athenarc.osmwrangle.utils;
 
-import io.github.qmjy.mapserver.service.AsyncService;
+import io.github.qmjy.mapserver.config.AppConfig;
+import io.github.qmjy.mapserver.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Properties;
-import java.util.logging.Level;
 
 /**
  * Parser of user-specified configuration files to be used during transformation of geospatial features into RDF triples and CSV records.
@@ -238,198 +233,55 @@ public final class Configuration {
      */
     public String featureSource;
 
-    /**
-     * Constructor of a Configuration object.
-     *
-     * @param path Path to a properties file containing all parameters to be used in the transformation.
-     */
-    public Configuration(String path) {
+
+    public Configuration(File osmFile, AppConfig appConfig) {
         myAssistant = new Assistant();
-        this.path = path;
-        buildConfiguration();
-
+        initializeParams(osmFile, appConfig);
     }
 
-    public Configuration(Properties properties) {
-        myAssistant = new Assistant();
-        initializeParameters(properties);
-    }
-
-    /**
-     * Loads the configuration from a properties file.
-     */
-    private void buildConfiguration() {
-
-        Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream(path));
-        } catch (IOException io) {
-            System.out.println(Level.WARNING + " Problems loading configuration file: " + io);
-        }
-        initializeParameters(properties);
-
-    }
 
     /**
      * Initializes all the parameters for the transformation from the configuration file.
      *
-     * @param properties All properties as specified in the configuration file.
+     * @param osmFile   osm.pbf
+     * @param appConfig All properties as specified in the configuration file.
      */
-    private void initializeParameters(Properties properties) {
+    private void initializeParams(File osmFile, AppConfig appConfig) {
+        String tmpFolder = IOUtils.getTmpFolder();
 
-        //Conversion mode: (in-memory) STREAM
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("mode"))) {
-            mode = properties.getProperty("mode").trim();
+        String outputDir = tmpFolder + appConfig.getOutputDir();
+        IOUtils.mkdirs(outputDir);
+        if (!myAssistant.isNullOrEmpty(outputDir)) {
+            this.outputDir = outputDir.trim();
+            //Append a trailing slash to this directory in order to correctly create the path to output files
+            if ((this.outputDir.charAt(this.outputDir.length() - 1) != File.separatorChar) && (this.outputDir.charAt(this.outputDir.length() - 1) != '/'))
+                this.outputDir += "/";   //Always safe to use '/' instead of File.separator in any OS
         }
 
-        //Format of input data: SHAPEFILE, DBMS, CSV, GPX, GEOJSON, XML
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("inputFormat"))) {
-            inputFormat = properties.getProperty("inputFormat").trim();
+        String tmpDir = tmpFolder + appConfig.getTmpDir();
+        IOUtils.mkdirs(tmpDir);
+        if (!myAssistant.isNullOrEmpty(tmpDir)) {
+            this.tmpDir = tmpDir.trim();
         }
 
         //File specification properties
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("inputFiles"))) {
-            inputFiles = properties.getProperty("inputFiles").trim();
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("outputDir"))) {
-            outputDir = properties.getProperty("outputDir").trim();
-            //Append a trailing slash to this directory in order to correctly create the path to output files
-            if ((outputDir.charAt(outputDir.length() - 1) != File.separatorChar) && (outputDir.charAt(outputDir.length() - 1) != '/'))
-                outputDir += "/";   //Always safe to use '/' instead of File.separator in any OS
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("tmpDir"))) {
-            tmpDir = properties.getProperty("tmpDir").trim();
+        if (!myAssistant.isNullOrEmpty(osmFile.getAbsolutePath())) {
+            inputFiles = osmFile.getAbsolutePath();
         }
 
-        //Number of entities (i.e., records) to handle in each batch; this actually controls how frequently the resulting RDF triples are written to file
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("batchSize"))) {
-            try {
-                batch_size = Integer.parseInt(properties.getProperty("batchSize").trim());
-                //Apply the default value in case of invalid settings
-                if ((batch_size < 1) || (batch_size > 1000))
-                    batch_size = 10;
-            } catch (Exception e) {
-                LOGGER.error("Incorrect value set for batch size. Please specify a positive integer value in your configuration file.");
-            }
+        //Conversion mode: (in-memory) STREAM
+        if (!myAssistant.isNullOrEmpty(appConfig.getMode())) {
+            mode = appConfig.getMode().trim();
         }
 
-        //Path to a file containing attribute mappings from input schema to RDF properties
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("mappingSpec"))) {
-            mappingSpec = properties.getProperty("mappingSpec").trim();
+        //Format of input data: SHAPEFILE, DBMS, CSV, GPX, GEOJSON, XML
+        if (!myAssistant.isNullOrEmpty(appConfig.getInputFormat())) {
+            inputFormat = appConfig.getInputFormat().trim();
         }
 
         //Path to a file containing attribute mappings from input schema to CSV columns
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("mapping_file"))) {
-            mapping_file = properties.getProperty("mapping_file").trim();
+        if (!myAssistant.isNullOrEmpty(appConfig.getMappingFile())) {
+            mapping_file = appConfig.getMappingFile().trim();
         }
-
-        //Path to a file specifying a classification hierarchy with categories assigned to features in the dataset
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("classificationSpec"))) {
-            classificationSpec = properties.getProperty("classificationSpec").trim();
-        }
-
-        //Output RDF serialization property
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("serialization"))) {
-            serialization = properties.getProperty("serialization").trim();
-        }
-
-        //Spatial ontology of RDF geometries: GeoSPARQL, Virtuoso, or WGS84 Geoposition RDF vocabulary
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("targetGeoOntology"))) {
-            targetGeoOntology = properties.getProperty("targetGeoOntology").trim();
-        }
-
-        //NAMESPACE specification properties
-        //Ontology namespace
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("nsOntology"))) {
-            ontologyNS = properties.getProperty("nsOntology").trim();
-        }
-        //Geometry namespace
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("geometryNS"))) {
-            geometryNS = properties.getProperty("geometryNS").trim();
-        }
-        //Namespace for feature URIs
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("nsFeatureURI"))) {
-            featureNS = properties.getProperty("nsFeatureURI").trim();
-        }
-        //Namespace for the category URIs assigned to each feature
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("nsClassURI"))) {
-            featureClassNS = properties.getProperty("nsClassURI").trim();
-        }
-        //Namespace for the classification scheme
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("nsClassificationURI"))) {
-            featureClassificationNS = properties.getProperty("nsClassificationURI").trim();
-        }
-        //Namespace for the data source URIs assigned to each feature
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("nsDataSourceURI"))) {
-            featureSourceNS = properties.getProperty("nsDataSourceURI").trim();
-        }
-
-        //Reconstruct correspondence of prefixes and namespaces
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("prefixes"))) {
-            prefixes = properties.getProperty("prefixes").split(",");
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("namespaces"))) {
-            namespaces = properties.getProperty("namespaces").split(",");
-        }
-
-        //Feature and attribute properties
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("filterSQLCondition"))) {
-            filterSQLCondition = properties.getProperty("filterSQLCondition").trim();
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("attrKey"))) {
-            attrKey = properties.getProperty("attrKey").trim();
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("attrGeometry"))) {
-            attrGeometry = properties.getProperty("attrGeometry").trim();
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("attrCategory"))) {
-            attrCategory = properties.getProperty("attrCategory").trim();
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("attrName"))) {
-            attrName = properties.getProperty("attrName").trim();
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("attrX"))) {
-            attrX = properties.getProperty("attrX").trim();
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("attrY"))) {
-            attrY = properties.getProperty("attrY").trim();
-        }
-
-        //Topological filter applied over input dataset (except for database tables)
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("spatialExtent"))) {
-            spatialExtent = properties.getProperty("spatialExtent").trim();
-        }
-
-        //CUSTOM: Indicates whether to retain or ignore unnamed entities during transformation
-        if ((properties.containsKey("keepUnnamedEntities")) && (!myAssistant.isNullOrEmpty(properties.getProperty("keepUnnamedEntities").trim()))) {
-            keepUnnamedEntities = Boolean.parseBoolean(properties.getProperty("keepUnnamedEntities").trim());
-        }
-
-        //Encoding of data values
-        encoding = StandardCharsets.UTF_8.name();                   //Default encoding
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("encoding"))) {
-            if (Charset.isSupported(properties.getProperty("encoding").trim()))
-                encoding = Charset.forName(properties.getProperty("encoding").trim()).name();
-            else
-                System.err.println("Specified encoding " + properties.getProperty("encoding").trim() + " is not recognized.");
-        } else
-            System.out.print("No encoding specified. Utilizing default ");
-
-        System.out.println("Encoding: " + encoding);
-
-        //Spatial reference system transformation properties
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("sourceCRS"))) {
-            sourceCRS = properties.getProperty("sourceCRS").trim();
-        }
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("targetCRS"))) {
-            targetCRS = properties.getProperty("targetCRS").trim();
-        }
-
-        //Default language specification tag for string literals
-        if (!myAssistant.isNullOrEmpty(properties.getProperty("defaultLang"))) {
-            defaultLang = properties.getProperty("defaultLang").trim();
-        }
-
     }
-
 }

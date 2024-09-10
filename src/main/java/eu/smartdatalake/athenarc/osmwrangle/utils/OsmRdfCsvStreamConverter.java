@@ -85,22 +85,21 @@ public class OsmRdfCsvStreamConverter implements Converter {
     ObjectMapper mapperObj;
 
     //Attribute Map
-    private HashMap<String, String> tagMap = new HashMap<>();
-    private ArrayList<String> cols = new ArrayList<String>();
+    private final HashMap<String, String> tagMap = new HashMap<>();
+    private final ArrayList<String> cols = new ArrayList<String>();
 
     public void ReadAttrMappingFile(Configuration config) {
 
         Properties properties = new Properties();
         try {
             //Read Mapping Config File.
-            properties.load(new FileInputStream(config.mapping_file));
-
+            properties.load(OsmRdfCsvStreamConverter.class.getResourceAsStream(config.mapping_file));
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
                 cols.add(entry.getKey().toString());
                 String[] value_parts = entry.getValue().toString().replace("\"", "").trim().split(",");
 
-                for (int i = 0; i < value_parts.length; i++) {
-                    tagMap.put(value_parts[i].trim(), entry.getKey().toString());
+                for (String valuePart : value_parts) {
+                    tagMap.put(valuePart.trim(), entry.getKey().toString());
                 }
             }
         } catch (IOException io) {
@@ -328,7 +327,7 @@ public class OsmRdfCsvStreamConverter implements Converter {
             //Clean up RDF triples, in order to collect the new ones derived from the next batch of features
             myGenerator.clearTriples();
         } catch (Exception e) {
-			LOGGER.error("An error occurred during transformation of an input record.");
+            LOGGER.error("An error occurred during transformation of an input record.");
         }
     }
 
@@ -336,7 +335,7 @@ public class OsmRdfCsvStreamConverter implements Converter {
     /**
      * Finalizes storage of resulting tuples into a file.
      *
-     * @param outputFile  Path to the output file that collects RDF triples.
+     * @param outputFile Path to the output file that collects RDF triples.
      */
     public void store(String outputFile) {
         stream.finish();               //Finished issuing triples
@@ -347,7 +346,7 @@ public class OsmRdfCsvStreamConverter implements Converter {
             if (csvWriter != null)
                 csvWriter.close();
         } catch (IOException e) {
-			LOGGER.error( "An error occurred during creation of the output CSV file.");
+            LOGGER.error("An error occurred during creation of the output CSV file.");
         }
         //******************************************************************
 

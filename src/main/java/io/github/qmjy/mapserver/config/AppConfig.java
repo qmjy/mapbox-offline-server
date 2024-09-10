@@ -58,6 +58,21 @@ public class AppConfig {
     @Value("${data-path}")
     private String dataPath = "";
 
+    @Value("${osmwrangle.inputFormat}")
+    private String inputFormat;
+
+    @Value("${osmwrangle.mode}")
+    private String mode;
+
+    @Value("${osmwrangle.mapping_file}")
+    private String mappingFile;
+
+    @Value("${osmwrangle.tmpDir}")
+    private String tmpDir;
+
+    @Value("${osmwrangle.outputDir}")
+    private String outputDir;
+
     /**
      * 从mvt的pbf提取poi数据
      */

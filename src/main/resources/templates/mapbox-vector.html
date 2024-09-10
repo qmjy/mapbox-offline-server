@@ -134,7 +134,10 @@
         }
     }
 
-    map.on('load', () => {
+    map.on('load', async () => {
+        let image = await map.loadImage('/static/images/window.png');
+        map.addImage('window', image.data);
+
         addLayers()
 
         if (metaData.center) {

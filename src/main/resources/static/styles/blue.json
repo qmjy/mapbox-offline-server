@@ -63,7 +63,9 @@
         15, 0,
         16, ["get","render_height"]
       ],
-      "fill-extrusion-base": ["get", "render_min_height"]
+      "fill-extrusion-base": ["get", "render_min_height"],
+      "fill-extrusion-pattern": "window",
+      "fill-extrusion-opacity": 1
     }
   },
   {

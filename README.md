@@ -8,14 +8,14 @@ Map offline server with java(JDK 21).
 
 ## 特性列表
 
-|           |        mbtiles         |        tpk         |       osm.pbf       |   OSMB(geojson)    |
-|:---------:|:----------------------:|:------------------:|:------------------:|:------------------:|
-|   底图切片    |   :white_check_mark:   | :white_check_mark: |                    |                    |
-|   地理逆编码   |                        |                    |                    | :white_check_mark: |
-|   路径规划    |                        |                    | :white_check_mark: |                    |
-|   POI搜索   | :white_check_mark:(矢量) |                    |                    |                    |
-|   静态地图    |       :running:        |                    |                    |                    |
-| 行政区划（含边界） |                        |                    |                    | :white_check_mark: |
+|           |      mbtiles       |        tpk         |       osm.pbf       |   OSMB(geojson)    |          osm.poi          |
+|:---------:|:------------------:|:------------------:|:------------------:|:------------------:|:-------------------------:|
+|   底图切片    | :white_check_mark: | :white_check_mark: |                    |                    |                           |
+|   地理逆编码   |                    |                    |                    | :white_check_mark: |                           |
+|   路径规划    |                    |                    | :white_check_mark: |                    |                           |
+|   POI搜索   |                   |                    |                    |                    |   :white_check_mark:      |
+|   静态地图    |     :running:      |                    |                    |                    |                           |
+| 行政区划（含边界） |                    |                    |                    | :white_check_mark: |                           |
 
 1. 支持瓦片离线服务，主要用于Map服务器离线场景，也支持mvt（pbf）瓦片数据的元数据查看；
 2. 支持全球行政区划级联数据查询，也支持对应行政区划边界数据查询，查询时支持国际化，支持地理逆编码；
@@ -72,13 +72,11 @@ data
 ├─styles
 │      world.json
 ├─poi
-│      xxx.osm.csv
 │      xxx.osm.poi
 ├─osm.pbf
 │      Chengdu.osm.pbf
 ├─tilesets
 │      Chengdu.mbtiles
-│      Chengdu.mbtiles.idx
 └─OSMB
        China.geojson
 ```

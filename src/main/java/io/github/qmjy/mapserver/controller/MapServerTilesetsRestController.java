@@ -16,12 +16,12 @@
 
 package io.github.qmjy.mapserver.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.config.AppConfig;
-import io.github.qmjy.mapserver.model.MbtilesOfMerge;
-import io.github.qmjy.mapserver.model.MbtilesOfMergeProgress;
-import io.github.qmjy.mapserver.model.MetaData;
+import io.github.qmjy.mapserver.model.*;
 import io.github.qmjy.mapserver.model.osm.pbf.OsmPbfTileOfReadable;
 import io.github.qmjy.mapserver.service.AsyncService;
 import io.github.qmjy.mapserver.util.IOUtils;
@@ -35,10 +35,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.jena.atlas.json.JSON;
+import org.apache.jena.atlas.json.io.parser.JSONParser;
 import org.geotools.tpk.TPKFile;
 import org.geotools.tpk.TPKTile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.json.GsonJsonParser;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
@@ -78,6 +81,59 @@ public class MapServerTilesetsRestController {
         this.mapServerDataCenter = mapServerDataCenter;
         this.appConfig = appConfig;
     }
+
+    /**
+     * 返回瓦片集数据的元数据，默认返回<a href="https://github.com/mapbox/tilejson-spec/tree/master/3.0.0">3.0.0</a>版本
+     *
+     * @return 瓦片集的元数据
+     */
+    @GetMapping(value = "/{tileset}/tiles.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    @Operation(summary = "获取瓦片集数据的元数据信息", description = "获取瓦片集数据的元数据信息")
+    public ResponseEntity<Map<String, Object>> getTilesJson(@Parameter(description = "待查询的瓦片数据源或文件夹名字，例如：Chengdu.mbtiles") @PathVariable("tileset") String tileset) {
+        TilesFileModel tilesFileModel = mapServerDataCenter.getTilesFileModel(tileset);
+        if (SystemUtils.checkTilesetName(tileset)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        if (tilesFileModel == null) {
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
+        }
+
+        Map<String, Object> metaDataMap = tilesFileModel.getMetaDataMap();
+        HashMap<Object, Object> data = new HashMap<>();
+        data.put("tilejson", "3.0.0");
+        data.put("tiles", new String[0]);
+        data.put("vector_layers", getJsonObj(metaDataMap.get("json")));
+        data.put("attribution", "<a href='https://openstreetmap.org'>OSM contributors</a>");
+        data.put("bounds", metaDataMap.get("bounds"));
+        data.put("center", "[" + metaDataMap.get("center") + "]");
+        data.put("data", "[]");
+        data.put("fillzoom", "14");
+        data.put("grids", "[]");
+        data.put("legend", "");
+        data.put("maxzoom", metaDataMap.get("maxzoom"));
+        data.put("minzoom", metaDataMap.get("minzoom"));
+        data.put("name", metaDataMap.get("name"));
+        data.put("scheme", "tms");
+        data.put("template", "");
+        data.put("version", metaDataMap.get("version"));
+        data.put("description", metaDataMap.get("description"));
+        data.put("format", metaDataMap.get("format"));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(data));
+    }
+
+    private List<VectorLayers> getJsonObj(Object json) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            VectorLayersJsonObj vectorLayersJsonObj = objectMapper.readValue(json.toString(), VectorLayersJsonObj.class);
+            return vectorLayersJsonObj.getVector_layers();
+        } catch (IOException e) {
+            logger.error("convert to json object failed!");
+        }
+        return new ArrayList<>();
+    }
+
 
     /**
      * 加载图片瓦片数据

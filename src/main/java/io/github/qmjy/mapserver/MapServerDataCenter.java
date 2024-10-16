@@ -326,7 +326,7 @@ public class MapServerDataCenter {
      * @param fileName 瓦片数据库文件名
      * @return 瓦片元数据
      */
-    public Map<String, String> getTileMetaData(String fileName) {
+    public Map<String, Object> getTileMetaData(String fileName) {
         if (StringUtils.hasLength(fileName)) {
             TilesFileModel model = tilesMap.get(fileName);
             return model.getMetaDataMap();

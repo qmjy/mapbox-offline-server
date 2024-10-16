@@ -41,7 +41,7 @@ import java.util.zip.GZIPInputStream;
 public class TilesFileModel {
     private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
     private final String filePath;
-    private final Map<String, String> metaDataMap = new HashMap<>();
+    private final Map<String, Object> metaDataMap = new HashMap<>();
     private JdbcTemplate jdbcTemplate;
     private long tilesCount = -1;
     //maptiler的数据是gzip压缩；bbbike的未被压缩；
@@ -69,7 +69,7 @@ public class TilesFileModel {
         try {
             List<Map<String, Object>> mapList = jdbcTemplate.queryForList("SELECT * FROM metadata");
             for (Map<String, Object> map : mapList) {
-                metaDataMap.put(String.valueOf(map.get("name")), String.valueOf(map.get("value")));
+                metaDataMap.put(String.valueOf(map.get("name")), map.get("value"));
             }
         } catch (DataAccessException e) {
             logger.error("Load map meta data failed: {}", filePath);

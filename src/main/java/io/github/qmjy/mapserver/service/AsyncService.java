@@ -128,7 +128,7 @@ public class AsyncService {
      */
     @Async("asyncServiceExecutor")
     public void asyncMbtilesToPOI(File tilesetFile) {
-        Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tilesetFile.getName());
+        Map<String, Object> tileMetaData = mapServerDataCenter.getTileMetaData(tilesetFile.getName());
         if ("pbf".equals(tileMetaData.get("format")) || "mvt".equals(tileMetaData.get("format"))) {
             String idxFilePath = tilesetFile.getAbsolutePath() + ".idx";
             if (!new File(idxFilePath).exists()) {
@@ -145,7 +145,7 @@ public class AsyncService {
 
     private void extractPoi2Idx(TilesFileModel tilesFileModel, JdbcTemplate idxJdbcTemp) {
         //只从最高层级解析POI数据
-        String maxZoom = tilesFileModel.getMetaDataMap().get("maxzoom");
+        String maxZoom = (String) tilesFileModel.getMetaDataMap().get("maxzoom");
         JdbcTemplate jdbcTemplate = tilesFileModel.getJdbcTemplate();
 
         int pageSize = 5000;

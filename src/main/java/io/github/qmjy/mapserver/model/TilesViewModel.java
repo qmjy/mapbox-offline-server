@@ -27,7 +27,7 @@ public class TilesViewModel {
     private final String name;
     private final String type;
     private final String fileSize;
-    private Map<String, String> metaDataMap = new HashMap<>();
+    private Map<String, Object> metaDataMap = new HashMap<>();
 
     /**
      * 构造方法
@@ -41,7 +41,7 @@ public class TilesViewModel {
         this.fileSize = file.isDirectory() ? "" : formatFileSize(file.length());
     }
 
-    public TilesViewModel(File file, Map<String, String> metaDataMap) {
+    public TilesViewModel(File file, Map<String, Object> metaDataMap) {
         this(file);
         this.metaDataMap = metaDataMap;
     }

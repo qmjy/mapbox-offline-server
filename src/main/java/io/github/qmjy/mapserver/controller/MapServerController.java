@@ -120,7 +120,7 @@ public class MapServerController extends BaseController {
         model.addAttribute("basePath", super.getBasePath(request));
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             model.addAttribute("tilesetName", tileset);
-            Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);
+            Map<String, Object> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);
             model.addAttribute("metaData", tileMetaData);
 
             return "pbf".equals(tileMetaData.get("format")) ? "mapbox-vector" : "mapbox-raster";
@@ -162,7 +162,7 @@ public class MapServerController extends BaseController {
         model.addAttribute("basePath", super.getBasePath(request));
         if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
             model.addAttribute("tilesetName", tileset);
-            Map<String, String> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);
+            Map<String, Object> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);
             model.addAttribute("metaData", tileMetaData);
 
             return "pbf".equals(tileMetaData.get("format")) ? "openlayers-vector" : "openlayers-raster";

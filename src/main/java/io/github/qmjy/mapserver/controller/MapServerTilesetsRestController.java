@@ -16,7 +16,6 @@
 
 package io.github.qmjy.mapserver.controller;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import io.github.qmjy.mapserver.MapServerDataCenter;
@@ -35,13 +34,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.io.parser.JSONParser;
 import org.geotools.tpk.TPKFile;
 import org.geotools.tpk.TPKTile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.json.GsonJsonParser;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;

@@ -88,8 +88,11 @@ data
 
 ### 地图瓦片数据（mbtiles）
 
-四川省地图：https://cloud.189.cn/web/share?code=VrmEFbiQRn6n（访问码：qzv1）  
-其他地图支持定制，需要可提交issue。
+- 四川省-240818: https://cloud.189.cn/web/share?code=VrmEFbiQRn6n（访问码：qzv1）  
+- 广西省-241025: https://cloud.189.cn/web/share?code=jERjmaNFNRVv（访问码：6ye6）  
+- 中国-240127: https://cloud.189.cn/web/share?code=qaqi227NnAJj（访问码：5xyc）  
+
+其他全球地图支持定制，需要可提交issue。
 
 ### 地图主题风格
 

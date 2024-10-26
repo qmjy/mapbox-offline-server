@@ -20,9 +20,9 @@ public class AsyncTask {
     private final AsyncService asyncService;
 
     /**
-     * 每30秒执行一次
+     * 每10秒执行一次
      */
-    @Scheduled(cron = "0/30 * * * * ?")
+    @Scheduled(cron = "0/10 * * * * ?")
     public void sayHello() {
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             File dataFolder = new File(appConfig.getDataPath());

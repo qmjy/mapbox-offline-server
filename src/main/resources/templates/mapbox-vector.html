@@ -62,10 +62,10 @@
         });
 
         map.addLayer({
-            'id': 'blur-line',
-            'type': 'line',
-            'source': 'China',
-            "paint": {
+            id: 'blur-line',
+            type: 'line',
+            source: 'China',
+            paint: {
                 "line-color": color,
                 "line-width": 10,
                 "line-blur": 6  //模糊效果
@@ -73,18 +73,18 @@
         });
 
         map.addLayer({
-            'id': 'white-line',
-            'type': 'line',
-            'source': 'China',
-            "paint": {
+            id: 'white-line',
+            type: 'line',
+            source: 'China',
+            paint: {
                 "line-color": "white",
                 "line-width": 2
             },
         });
 
         map.addLayer({
-            'id': 'Province',
-            'type': 'symbol',
+            id: 'Province',
+            type: 'symbol',
             source: 'China',
             layout: {
                 'text-field': ['get', 'name'],
@@ -99,7 +99,8 @@
                 "text-halo-color": "#444444",
                 "text-halo-width": 1,
                 "text-color": '#FFFFFF'
-            }
+            },
+            visibility: 'visible'
         });
     }
 
@@ -151,6 +152,14 @@
             }, 2000)
         } else {
             console.log("no center set!")
+        }
+    });
+
+    map.on('zoom', function () {
+        if (map.getZoom() > 10) {
+            map.setLayoutProperty('Province', 'visibility', 'none');
+        } else {
+            map.setLayoutProperty('Province', 'visibility', 'visible');
         }
     });
 

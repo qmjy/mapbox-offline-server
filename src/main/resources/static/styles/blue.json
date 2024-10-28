@@ -68,23 +68,8 @@
       "fill-extrusion-opacity": 1
     }
   },
-  {
-    "id": "transportation_name",
-    "type": "line",
-    "source": "osm-tiles",
-    "source-layer": "transportation_name"
-  },
-  {
-    "id": "transportation",
-    "type": "line",
-    "source": "osm-tiles",
-    "source-layer": "transportation",
-    "paint": {
-      "line-color": "#06789D",
-      "line-opacity": 1,
-      "line-width": 1
-    }
-  },
+  {"id":"transportation","type":"line","source":"osm-tiles","source-layer":"transportation","paint":{"line-color":"#06789D","line-opacity":1,"line-width":["interpolate",["exponential",1.5],["zoom"],8,["match",["get","class"],["motorway","trunk","primary"],0.2,["secondary","tertiary"],0,["motorway_link","trunk_link","primary_link","street","street_limited"],0,1],13,["match",["get","class"],["motorway","trunk","primary"],2.5,["secondary","tertiary"],1,["motorway_link","trunk_link","primary_link","street","street_limited"],0,0.5],18,["match",["get","class"],["motorway","trunk","primary"],28,["secondary","tertiary"],20,["motorway_link","trunk_link","primary_link","street","street_limited"],12,10]]}},
+  {"id":"transportation_name","type":"symbol","source":"osm-tiles","source-layer":"transportation_name","layout":{"text-letter-spacing":0.01,"text-field":["coalesce",["get","bike_lane"],["get","name"]],"text-line-height":1,"text-font":["Arial Unicode MS Regular"],"text-size":["interpolate",["linear"],["zoom"],8,["match",["get","class"],["motorway","trunk","primary","secondary","tertiary"],8,8],18,["match",["get","class"],["motorway","trunk","primary","secondary","tertiary"],12,12]]},"paint":{"text-color":"hsl(200, 40%, 98%)","text-opacity":1,"text-halo-color":"hsla(243, 0%, 100%, 0)","text-halo-width":1}},
   {
     "id": "place",
     "type": "symbol",

@@ -25,11 +25,11 @@
 <div id="map"></div>
 <script th:inline="javascript">
     const metaDataStr = /*[[${metaData}]]*/{};
-    var metaData = JSON.parse(metaDataStr)
-    var basePath = [[${basePath}]];
-    var tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format
+    const metaData = JSON.parse(metaDataStr);
+    const basePath = [[${basePath}]];
+    const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format;
 
-    var map = new maplibregl.Map({
+    const map = new maplibregl.Map({
         container: 'map',
         attributionControl: false,
         style: {
@@ -47,51 +47,51 @@
                 }
             },
             "layers": [
-            {
-                "id": "background",
-                "type": "background",
-                "layout": {
-                    "visibility": "visible"
+                {
+                    "id": "background",
+                    "type": "background",
+                    "layout": {
+                        "visibility": "visible"
+                    },
+                    "paint": {
+                        "background-color": "hsl(200, 98%, 24%)"
+                    }
                 },
-                "paint": {
-                    "background-color": "hsl(200, 98%, 24%)"
-                }
-            },
-            {
-                "id": "boundaries",
-                "type": "line",
-                "source": "osm-tiles",
-                "source-layer": "boundaries",
-                "paint": {
-                  "line-color": "#00ffff"
-                }
-            },
-            {
-                "id": "transportation",
-                "type": "line",
-                "source": "osm-tiles",
-                "source-layer": "transportation",
-                "paint": {
-                  "line-color": "#f2934a",
-                  "line-opacity": 1,
-                  "line-width": 1,
+                {
+                    "id": "boundaries",
+                    "type": "line",
+                    "source": "osm-tiles",
+                    "source-layer": "boundaries",
+                    "paint": {
+                        "line-color": "#00ffff"
+                    }
                 },
-            },
-            {
-                "id": "buildings",
-                "type": "fill",
-                "source": "osm-tiles",
-                "source-layer": "buildings",
-                "paint": {
-                  "fill-color": "#eeeeee"
+                {
+                    "id": "transportation",
+                    "type": "line",
+                    "source": "osm-tiles",
+                    "source-layer": "transportation",
+                    "paint": {
+                        "line-color": "#f2934a",
+                        "line-opacity": 1,
+                        "line-width": 1,
+                    },
+                },
+                {
+                    "id": "buildings",
+                    "type": "fill",
+                    "source": "osm-tiles",
+                    "source-layer": "buildings",
+                    "paint": {
+                        "fill-color": "#eeeeee"
+                    }
                 }
-            }
             ]
         },
-        center: [73.229304,3.203067],
+        center: [73.229304, 3.203067],
         zoom: 12,
         hash: true
-    })
+    });
 
     map.on('load', () => {
         map.addSource('China', {
@@ -100,19 +100,19 @@
         });
 
         map.addLayer({
-            'id': 'ChinaBounds',
-            'type': 'line',
-            'source': 'China',
-            "paint": {
-              "line-color": "hsl(202, 100%, 72%)",
-              "line-opacity": 0.5,
-              "line-width": 3,
+            id: 'ChinaBounds',
+            type: 'line',
+            source: 'China',
+            paint: {
+                "line-color": "hsl(202, 100%, 72%)",
+                "line-opacity": 0.5,
+                "line-width": 3,
             },
         });
 
         map.addLayer({
-            'id': 'Provice',
-            'type': 'symbol',
+            id: 'Province',
+            type: 'symbol',
             source: 'China',
             layout: {
                 'text-field': ['get', 'name'],
@@ -125,22 +125,31 @@
             },
             paint: {
                 "text-halo-color": "#444444",
-		        "text-halo-width": 1,
+                "text-halo-width": 1,
                 "text-color": '#FFFFFF'
-            }
+            },
+            visibility: 'visible'
         });
 
-        if(metaData.center){
-            setTimeout(function(){
+        if (metaData.center) {
+            setTimeout(function () {
                 const center = metaData.center.split(",");
                 map.flyTo({
                     center: [center[0], center[1]],
                     zoom: center[2],
                     essential: true
                 });
-            }, 2000 )
-        }else{
+            }, 2000)
+        } else {
             console.log("no center set!")
+        }
+    });
+
+    map.on('zoom', function () {
+        if (map.getZoom() > 10) {
+            map.setLayoutProperty('Province', 'visibility', 'none');
+        } else {
+            map.setLayoutProperty('Province', 'visibility', 'visible');
         }
     });
 

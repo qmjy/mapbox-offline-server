@@ -22,7 +22,6 @@ import io.github.qmjy.mapserver.model.FontsFileModel;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -42,10 +41,11 @@ import java.util.Optional;
 @Tag(name = "Mapbox字体服务管理", description = "Mapbox离线服务接口能力")
 public class MapServerFontsController {
     private final Logger logger = LoggerFactory.getLogger(MapServerFontsController.class);
-    @Autowired
-    private MapServerDataCenter mapServerDataCenter;
-    @Autowired
-    private AppConfig appConfig;
+    private final MapServerDataCenter mapServerDataCenter;
+
+    public MapServerFontsController(MapServerDataCenter mapServerDataCenter) {
+        this.mapServerDataCenter = mapServerDataCenter;
+    }
 
 
     /**
@@ -73,6 +73,7 @@ public class MapServerFontsController {
                 throw new RuntimeException(e);
             }
         }
+        logger.info("Can't find font of name: {}", fontName);
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }

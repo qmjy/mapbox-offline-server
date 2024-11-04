@@ -100,8 +100,9 @@ public class MapServerTilesetsRestController {
         HashMap<Object, Object> data = new HashMap<>();
         data.put("tilejson", "3.0.0");
         data.put("tiles", new String[0]);
-        data.put("vector_layers", getJsonObj(metaDataMap.get("json")));
-        data.put("attribution", "<a href='https://openstreetmap.org'>OSM contributors</a>");
+        if (metaDataMap.get("json") != null) {
+            data.put("vector_layers", getJsonObj(metaDataMap.get("json")));
+        }
         data.put("bounds", metaDataMap.get("bounds"));
         data.put("center", "[" + metaDataMap.get("center") + "]");
         data.put("data", "[]");

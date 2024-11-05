@@ -96,8 +96,9 @@ public class MapServerDataCenter {
      * @param file      待链接的数据库文件
      */
     public static void initJdbcTemplate(String className, File file) {
-        TilesFileModel dbFileModel = new TilesFileModel(file, className);
         if (!tilesMap.containsKey(file.getName())) {
+            TilesFileModel dbFileModel = new TilesFileModel(file, className);
+            logger.info("Load tile file: {}", file.getName());
             tilesMap.put(file.getName(), dbFileModel);
         }
     }

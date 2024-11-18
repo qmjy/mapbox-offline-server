@@ -121,7 +121,6 @@ public class EmbeddedClassifier {
 			}
 		}
 		catch(Exception e) {
-			e.printStackTrace();
 			System.err.println("ERROR: Reading default classification file failed!");
 			System.exit(1);                              //Issue signal to the operation system that execution terminated abnormally
 		}

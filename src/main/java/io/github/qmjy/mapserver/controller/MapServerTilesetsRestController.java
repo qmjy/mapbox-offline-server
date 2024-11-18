@@ -34,8 +34,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import org.geotools.tpk.TPKFile;
-import org.geotools.tpk.TPKTile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -58,7 +56,7 @@ import java.util.*;
 
 
 /**
- * Mbtiles、TPK支持的数据库访问API。<br>
+ * Mbtiles支持的数据库访问API。<br>
  * MBTiles 1.3 规范定义：<a href="https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md">MBTiles 1.3</a>
  *
  * @author liushaofeng
@@ -176,20 +174,13 @@ public class MapServerTilesetsRestController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
-            String lowerCase = mapServerDataCenter.getTpkMetaData(tileset).getFormat().toLowerCase(Locale.getDefault());
-            if (!lowerCase.endsWith("jpg") && !lowerCase.endsWith("jpeg")) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            return getByteArrayResourceResponseEntityInTpk(tileset, z, x, y);
-        } else {
-            Optional<byte[]> OptionalResource = getByteArrayResourceResponseEntity(tileset, z, x, y);
-            if (OptionalResource.isPresent()) {
-                byte[] bytes = OptionalResource.get();
-                return wrapResponse(bytes, MediaType.IMAGE_JPEG);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        Optional<byte[]> OptionalResource = getByteArrayResourceResponseEntity(tileset, z, x, y);
+        if (OptionalResource.isPresent()) {
+            byte[] bytes = OptionalResource.get();
+            return wrapResponse(bytes, MediaType.IMAGE_JPEG);
         }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -245,19 +236,12 @@ public class MapServerTilesetsRestController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
-            if (!mapServerDataCenter.getTpkMetaData(tileset).getFormat().toLowerCase(Locale.getDefault()).endsWith("png")) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            return getByteArrayResourceResponseEntityInTpk(tileset, z, x, y);
-        } else {
-            Optional<byte[]> OptionalResource = getByteArrayResourceResponseEntity(tileset, z, x, y);
-            if (OptionalResource.isPresent()) {
-                byte[] bytes = OptionalResource.get();
-                return wrapResponse(bytes, MediaType.IMAGE_PNG);
-            }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        Optional<byte[]> OptionalResource = getByteArrayResourceResponseEntity(tileset, z, x, y);
+        if (OptionalResource.isPresent()) {
+            byte[] bytes = OptionalResource.get();
+            return wrapResponse(bytes, MediaType.IMAGE_PNG);
         }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 
@@ -307,20 +291,6 @@ public class MapServerTilesetsRestController {
             }
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
-
-    private ResponseEntity<ByteArrayResource> getByteArrayResourceResponseEntityInTpk(String tileset, int z, int x, int y) {
-        String format = mapServerDataCenter.getTpkMetaData(tileset).getFormat();
-        TPKFile tpkData = mapServerDataCenter.getTpkData(tileset);
-        List<TPKTile> tiles = tpkData.getTiles(z, tpkData.getMaxColumn(z), 0, 0, tpkData.getMaxRow(z), format);
-        if (tiles != null) {
-            for (TPKTile tile : tiles) {
-                if (tile.row == y && tile.col == x) {
-                    return wrapResponse(tile.tileData, AppConfig.APPLICATION_X_PROTOBUF_VALUE);
-                }
-            }
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 
@@ -406,11 +376,6 @@ public class MapServerTilesetsRestController {
                     return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
                 }
             }
-        }
-
-        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
-            MetaData tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(tpkMetaData));
         }
 
         StringBuilder sb = new StringBuilder(appConfig.getDataPath());

@@ -18,14 +18,12 @@ package io.github.qmjy.mapserver.controller;
 
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.config.AppConfig;
-import io.github.qmjy.mapserver.model.MetaData;
 import io.github.qmjy.mapserver.model.TilesFileModel;
 import io.github.qmjy.mapserver.model.TilesViewModel;
 import io.github.qmjy.mapserver.util.SystemUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
@@ -92,7 +90,7 @@ public class MapServerController extends BaseController {
                         return false;
                     } else {
                         String name = pathname.getName();
-                        return name.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES) || name.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK);
+                        return name.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
                     }
                 });
                 model.addAttribute("tileFiles", wrapThymeleafModel(files));
@@ -124,12 +122,6 @@ public class MapServerController extends BaseController {
             model.addAttribute("metaData", tileMetaData);
 
             return "pbf".equals(tileMetaData.get("format")) ? "mapbox-vector" : "mapbox-raster";
-        } else if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
-            model.addAttribute("tilesetName", tileset);
-            MetaData tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
-            model.addAttribute("metaData", tpkMetaData);
-
-            return "mapbox-raster";
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");
@@ -166,12 +158,6 @@ public class MapServerController extends BaseController {
             model.addAttribute("metaData", tileMetaData);
 
             return "pbf".equals(tileMetaData.get("format")) ? "openlayers-vector" : "openlayers-raster";
-        } else if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
-            model.addAttribute("tilesetName", tileset);
-            MetaData tpkMetaData = mapServerDataCenter.getTpkMetaData(tileset);
-            model.addAttribute("metaData", tpkMetaData);
-
-            return "openlayers-raster";
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");

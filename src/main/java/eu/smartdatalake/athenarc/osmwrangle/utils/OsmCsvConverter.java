@@ -20,7 +20,6 @@ package eu.smartdatalake.athenarc.osmwrangle.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.smartdatalake.athenarc.osmwrangle.osm.OSMRecord;
-import eu.smartdatalake.athenarc.osmwrangle.tools.OsmPbfParser;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.jena.graph.Triple;
 import org.geotools.api.referencing.operation.MathTransform;
@@ -29,7 +28,10 @@ import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;

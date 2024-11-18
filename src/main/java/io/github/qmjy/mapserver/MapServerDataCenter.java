@@ -19,7 +19,6 @@ package io.github.qmjy.mapserver;
 import com.graphhopper.GraphHopper;
 import io.github.qmjy.mapserver.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapserver.model.FontsFileModel;
-import io.github.qmjy.mapserver.model.MetaData;
 import io.github.qmjy.mapserver.model.TilesFileModel;
 import lombok.Getter;
 import org.geotools.api.data.FileDataStore;
@@ -27,8 +26,6 @@ import org.geotools.api.data.FileDataStoreFinder;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.tpk.TPKFile;
-import org.geotools.tpk.TPKZoomLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -52,10 +49,6 @@ public class MapServerDataCenter {
      */
     @Getter
     private static final Map<String, TilesFileModel> tilesMap = new HashMap<>();
-
-
-    private static final Map<String, Map<Long, TPKZoomLevel>> tpkMap = new HashMap<>();
-    private static final Map<String, TPKFile> tpkFileMap = new HashMap<>();
 
 
     private static final Map<String, FileDataStore> shpDataStores = new HashMap<>();
@@ -103,17 +96,6 @@ public class MapServerDataCenter {
         }
     }
 
-    /**
-     * 初始化TPK文件
-     *
-     * @param tpk tpk地图数据文件
-     */
-    public static void initTpk(File tpk) {
-        Map<Long, TPKZoomLevel> zoomLevelMap = new HashMap<>();
-        TPKFile tpkFile = new TPKFile(tpk, zoomLevelMap);
-        tpkMap.put(tpk.getName(), zoomLevelMap);
-        tpkFileMap.put(tpk.getName(), tpkFile);
-    }
 
     public static void initShapefile(File shapefile) {
         FileDataStore dataStore = null;
@@ -135,38 +117,6 @@ public class MapServerDataCenter {
 
     public static void initMapnik(boolean ready) {
         MapServerDataCenter.mapnikReady = ready;
-    }
-
-
-    /**
-     * TPK文件的元数据
-     *
-     * @param fileName TPK文件
-     * @return tpk文件的元数据
-     */
-    public MetaData getTpkMetaData(String fileName) {
-        MetaData metaData = new MetaData();
-        if (StringUtils.hasLength(fileName)) {
-            TPKFile tpkFile = tpkFileMap.get(fileName);
-            if (tpkFile != null) {
-                metaData.setBounds(tpkFile.getBounds().toString());
-                metaData.setCrs(tpkFile.getBounds().getCoordinateReferenceSystem().getName().toString());
-                metaData.setFormat(tpkFile.getImageFormat().toLowerCase(Locale.getDefault()));
-                metaData.setMaxzoom(tpkFile.getMaxZoomLevel());
-                metaData.setMinzoom(tpkFile.getMinZoomLevel());
-            }
-        }
-        return metaData;
-    }
-
-    /**
-     * 获取TPK文件数据
-     *
-     * @param fileName 文件名
-     * @return tpk文件数据
-     */
-    public TPKFile getTpkData(String fileName) {
-        return tpkFileMap.get(fileName);
     }
 
 

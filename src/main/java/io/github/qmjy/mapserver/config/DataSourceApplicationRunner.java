@@ -84,7 +84,6 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
     private void wrapMapFile(File dataFolder) {
         File tilesetsFolder = new File(dataFolder, "tilesets");
         searchMbtiles(tilesetsFolder);
-        searchTpk(tilesetsFolder);
         searchShapefile(tilesetsFolder);
     }
 
@@ -98,15 +97,6 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         }
     }
 
-    private void searchTpk(File tilesetsFolder) {
-        File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_TPK));
-        if (files != null) {
-            for (File tpk : files) {
-                logger.info("Load tpk tile file: {}", tpk.getName());
-                MapServerDataCenter.initTpk(tpk);
-            }
-        }
-    }
 
     private void searchMbtiles(File tilesetsFolder) {
         File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES));

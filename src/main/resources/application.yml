@@ -26,11 +26,11 @@ async:
   executor:
     thread:
       # 配置核心线程数
-      core_pool_size: 10
+      core_pool_size: 2
       # 配置最大线程数
-      max_pool_size: 15
+      max_pool_size: 5
       # 配置队列大小
-      queue_capacity: 999
+      queue_capacity: 50
       # 配置线程最大空闲时间
       keep_alive_seconds: 30
       # 配置线程池中的线程的名称前缀

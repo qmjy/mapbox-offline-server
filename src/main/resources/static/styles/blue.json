@@ -242,34 +242,6 @@
     }
   },
   {
-    "id": "railway_service",
-    "type": "line",
-    "source": "osm-tiles",
-    "source-layer": "transportation",
-    "minzoom": 16,
-    "filter": [
-      "all",
-      [
-        "==",
-        "$type",
-        "LineString"
-      ],
-      [
-        "all",
-        ["==", "class", "rail"],
-        ["has", "service"]
-      ]
-    ],
-    "layout": {
-      "line-join": "round",
-      "visibility": "visible"
-    },
-    "paint": {
-      "line-color": "#06789D",
-      "line-width": 3
-    }
-  },
-  {
     "id": "railway_service_dashline",
     "type": "line",
     "source": "osm-tiles",
@@ -353,6 +325,34 @@
           [20, 6]
         ]
       }
+    }
+  },
+  {
+    "id": "railway_service",
+    "type": "line",
+    "source": "osm-tiles",
+    "source-layer": "transportation",
+    "minzoom": 16,
+    "filter": [
+      "all",
+      [
+        "==",
+        "$type",
+        "LineString"
+      ],
+      [
+        "all",
+        ["==", "class", "rail"],
+        ["has", "service"]
+      ]
+    ],
+    "layout": {
+      "line-join": "round",
+      "visibility": "visible"
+    },
+    "paint": {
+      "line-color": "#06789D",
+      "line-width": 10
     }
   },
   {
@@ -866,9 +866,6 @@
   {
     "id": "tunnel_motorway_casing",
     "type": "line",
-    "metadata": {
-      "mapbox:group": "b6371a3f2f5a9932464fa3867530a2e5"
-    },
     "source": "osm-tiles",
     "source-layer": "transportation",
     "minzoom": 6,
@@ -923,9 +920,6 @@
   {
     "id": "tunnel_motorway_inner",
     "type": "line",
-    "metadata": {
-      "mapbox:group": "b6371a3f2f5a9932464fa3867530a2e5"
-    },
     "source": "osm-tiles",
     "source-layer": "transportation",
     "minzoom": 6,
@@ -979,9 +973,6 @@
   {
     "id": "aeroway-taxiway",
     "type": "line",
-    "metadata": {
-      "mapbox:group": "1444849345966.4436"
-    },
     "source": "osm-tiles",
     "source-layer": "aeroway",
     "minzoom": 12,
@@ -1019,9 +1010,6 @@
   {
     "id": "aeroway-runway-casing",
     "type": "line",
-    "metadata": {
-      "mapbox:group": "1444849345966.4436"
-    },
     "source": "osm-tiles",
     "source-layer": "aeroway",
     "minzoom": 11,
@@ -1059,9 +1047,6 @@
   {
     "id": "aeroway-area",
     "type": "fill",
-    "metadata": {
-      "mapbox:group": "1444849345966.4436"
-    },
     "source": "osm-tiles",
     "source-layer": "aeroway",
     "minzoom": 4,
@@ -1102,9 +1087,6 @@
   {
     "id": "aeroway-runway",
     "type": "line",
-    "metadata": {
-      "mapbox:group": "1444849345966.4436"
-    },
     "source": "osm-tiles",
     "source-layer": "aeroway",
     "minzoom": 11,
@@ -1130,7 +1112,6 @@
   {
     "id": "road_area_pier",
     "type": "fill",
-    "metadata": {},
     "source": "osm-tiles",
     "source-layer": "transportation",
     "filter": [
@@ -1157,7 +1138,6 @@
   {
     "id": "road_pier",
     "type": "line",
-    "metadata": {},
     "source": "osm-tiles",
     "source-layer": "transportation",
     "filter": [

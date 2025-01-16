@@ -306,14 +306,9 @@
     "minzoom": 13,
     "filter": [
       "all",
-      [
-        "==", "$type", "LineString",
-      [
-        "all",
-        ["!has", "service"],
-        ["==", "class", "rail"]
-      ]
-    ]],
+      ["==", "$type", "LineString"],
+      ["all", ["!has", "service"], ["==", "class", "rail"]]
+    ],
     "layout":{
       "line-join": "round",
       "visibility": "visible"
@@ -339,7 +334,8 @@
       "all",
       ["==", "$type", "LineString"],
       [
-        "all", ["!has", "service"],
+        "all",
+        ["!has", "service"],
         ["==", "class", "rail"]
       ]
     ],
@@ -1678,10 +1674,6 @@
         "==",
         "class",
         "country"
-      ],
-      [
-        "!has",
-        "iso_a2"
       ]
     ],
     "layout": {
@@ -1879,10 +1871,6 @@
         "==",
         "admin_level",
         2
-      ],
-      [
-        "!has",
-        "claimed_by"
       ]
     ],
     "layout": {

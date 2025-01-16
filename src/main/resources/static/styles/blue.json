@@ -813,8 +813,8 @@
         "Arial Unicode MS Regular"
       ],
       "text-max-angle": 30,
-      "text-pitch-alignment": "viewport",
-      "text-rotation-alignment": "map",
+      "text-pitch-alignment": "auto",
+      "text-rotation-alignment": "auto",
       "text-size": 10,
       "text-transform": "uppercase",
       "visibility": "visible"

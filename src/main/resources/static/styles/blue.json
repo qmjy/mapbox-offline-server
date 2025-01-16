@@ -125,7 +125,7 @@
     "visibility": "visible"
   },
   "paint": {
-    "fill-color": "rgb(230, 233, 229)"
+    "fill-color": "#43ad7f"
   }
 },
   {
@@ -387,16 +387,7 @@
       "line-opacity": 0.9,
       "line-width": {
         "base": 1.2,
-        "stops": [
-          [
-            13,
-            1
-          ],
-          [
-            20,
-            10
-          ]
-        ]
+        "stops": [[13,1],[20,10]]
       }
     }
   },
@@ -611,18 +602,7 @@
       "line-width": {
         "base": 1.4,
         "stops": [
-          [
-            5.8,
-            0
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            20,
-            40
-          ]
+          [5.8,0], [6,3], [20,40]
         ]
       }
     }
@@ -664,32 +644,13 @@
       "line-color": {
         "base": 1,
         "stops": [
-          [
-            5.8,
-            "hsla(0, 0%, 85%, 0.53)"
-          ],
-          [
-            6,
-            "#06789D"
-          ]
+          [5.8, "hsla(0, 0%, 85%, 0.53)"],
+          [6, "#06789D"]
         ]
       },
       "line-width": {
         "base": 1.4,
-        "stops": [
-          [
-            4,
-            2
-          ],
-          [
-            6,
-            1.3
-          ],
-          [
-            20,
-            30
-          ]
-        ]
+        "stops": [[4,2], [6,1.3], [20,30]]
       }
     }
   },
@@ -722,14 +683,8 @@
       "line-width": {
         "base": 1.4,
         "stops": [
-          [
-            4,
-            2
-          ],
-          [
-            6,
-            1.3
-          ]
+          [4, 2],
+          [6, 1.3]
         ]
       }
     }
@@ -775,20 +730,7 @@
       "line-opacity": 1,
       "line-width": {
         "base": 1.4,
-        "stops": [
-          [
-            5.8,
-            0
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            20,
-            45
-          ]
-        ]
+        "stops": [[5.8, 0], [6, 5], [20, 45]]
       }
     }
   },
@@ -926,6 +868,320 @@
     }
   },
   {
+    "id": "tunnel_motorway_casing",
+    "type": "line",
+    "metadata": {
+      "mapbox:group": "b6371a3f2f5a9932464fa3867530a2e5"
+    },
+    "source": "osm-tiles",
+    "source-layer": "transportation",
+    "minzoom": 6,
+    "filter": [
+      "all",
+      [
+        "==",
+        "$type",
+        "LineString"
+      ],
+      [
+        "all",
+        [
+          "==",
+          "brunnel",
+          "tunnel"
+        ],
+        [
+          "==",
+          "class",
+          "motorway"
+        ]
+      ]
+    ],
+    "layout": {
+      "line-cap": "butt",
+      "line-join": "miter",
+      "visibility": "visible"
+    },
+    "paint": {
+      "line-color": "#06789D",
+      "line-opacity": 1,
+      "line-width": {
+        "base": 1.4,
+        "stops": [
+          [
+            5.8,
+            0
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            20,
+            40
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "tunnel_motorway_inner",
+    "type": "line",
+    "metadata": {
+      "mapbox:group": "b6371a3f2f5a9932464fa3867530a2e5"
+    },
+    "source": "osm-tiles",
+    "source-layer": "transportation",
+    "minzoom": 6,
+    "filter": [
+      "all",
+      [
+        "==",
+        "$type",
+        "LineString"
+      ],
+      [
+        "all",
+        [
+          "==",
+          "brunnel",
+          "tunnel"
+        ],
+        [
+          "==",
+          "class",
+          "motorway"
+        ]
+      ]
+    ],
+    "layout": {
+      "line-cap": "round",
+      "line-join": "round",
+      "visibility": "visible"
+    },
+    "paint": {
+      "line-color": "#06789D",
+      "line-width": {
+        "base": 1.4,
+        "stops": [
+          [
+            4,
+            2
+          ],
+          [
+            6,
+            1.3
+          ],
+          [
+            20,
+            30
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "aeroway-taxiway",
+    "type": "line",
+    "metadata": {
+      "mapbox:group": "1444849345966.4436"
+    },
+    "source": "osm-tiles",
+    "source-layer": "aeroway",
+    "minzoom": 12,
+    "filter": [
+      "all",
+      [
+        "in",
+        "class",
+        "taxiway"
+      ]
+    ],
+    "layout": {
+      "line-cap": "round",
+      "line-join": "round",
+      "visibility": "visible"
+    },
+    "paint": {
+      "line-color": "#06789D",
+      "line-opacity": 1,
+      "line-width": {
+        "base": 1.55,
+        "stops": [
+          [
+            13,
+            1.8
+          ],
+          [
+            20,
+            20
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "aeroway-runway-casing",
+    "type": "line",
+    "metadata": {
+      "mapbox:group": "1444849345966.4436"
+    },
+    "source": "osm-tiles",
+    "source-layer": "aeroway",
+    "minzoom": 11,
+    "filter": [
+      "all",
+      [
+        "in",
+        "class",
+        "runway"
+      ]
+    ],
+    "layout": {
+      "line-cap": "round",
+      "line-join": "round",
+      "visibility": "visible"
+    },
+    "paint": {
+      "line-color": "#06789D",
+      "line-opacity": 1,
+      "line-width": {
+        "base": 1.5,
+        "stops": [
+          [
+            11,
+            6
+          ],
+          [
+            17,
+            55
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "aeroway-area",
+    "type": "fill",
+    "metadata": {
+      "mapbox:group": "1444849345966.4436"
+    },
+    "source": "osm-tiles",
+    "source-layer": "aeroway",
+    "minzoom": 4,
+    "filter": [
+      "all",
+      [
+        "==",
+        "$type",
+        "Polygon"
+      ],
+      [
+        "in",
+        "class",
+        "runway",
+        "taxiway"
+      ]
+    ],
+    "layout": {
+      "visibility": "visible"
+    },
+    "paint": {
+      "fill-color": "#06789D",
+      "fill-opacity": {
+        "base": 1,
+        "stops": [
+          [
+            13,
+            0
+          ],
+          [
+            14,
+            1
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "aeroway-runway",
+    "type": "line",
+    "metadata": {
+      "mapbox:group": "1444849345966.4436"
+    },
+    "source": "osm-tiles",
+    "source-layer": "aeroway",
+    "minzoom": 11,
+    "filter": [
+      "all",
+      ["in", "class", "runway"],
+      ["==", "$type", "LineString"]
+    ],
+    "layout": {
+      "line-cap": "round",
+      "line-join": "round",
+      "visibility": "visible"
+    },
+    "paint": {
+      "line-color": "#06789D",
+      "line-opacity": 1,
+      "line-width": {
+        "base": 1.5,
+        "stops": [[11, 4], [17, 50]]
+      }
+    }
+  },
+  {
+    "id": "road_area_pier",
+    "type": "fill",
+    "metadata": {},
+    "source": "osm-tiles",
+    "source-layer": "transportation",
+    "filter": [
+      "all",
+      [
+        "==",
+        "$type",
+        "Polygon"
+      ],
+      [
+        "==",
+        "class",
+        "pier"
+      ]
+    ],
+    "layout": {
+      "visibility": "visible"
+    },
+    "paint": {
+      "fill-antialias": true,
+      "fill-color": "#06789D"
+    }
+  },
+  {
+    "id": "road_pier",
+    "type": "line",
+    "metadata": {},
+    "source": "osm-tiles",
+    "source-layer": "transportation",
+    "filter": [
+      "all",
+      ["==", "$type", "LineString"],
+      ["in", "class", "pier"]
+    ],
+    "layout": {
+      "line-cap": "round",
+      "line-join": "round"
+    },
+    "paint": {
+      "line-color": "#06789D",
+      "line-width": {
+        "base": 1.2,
+        "stops": [[15,1], [17,4]]
+      }
+    }
+  },
+  {
     "id": "building",
     "type": "fill",
     "source": "osm-tiles",
@@ -972,11 +1228,7 @@
         "neighbourhood",
         "isolated_dwelling"
       ],
-      [
-        "==",
-        "$type",
-        "Point"
-      ]
+      ["==", "$type", "Point"]
     ],
     "layout": {
       "text-anchor": "center",
@@ -985,10 +1237,7 @@
         "Arial Unicode MS Regular"
       ],
       "text-justify": "center",
-      "text-offset": [
-        0.5,
-        0
-      ],
+      "text-offset": [0.5, 0],
       "text-size": 10,
       "text-transform": "uppercase",
       "visibility": "visible"
@@ -1677,11 +1926,7 @@
     "source": "osm-tiles",
     "source-layer": "boundary",
     "minzoom": 5,
-    "filter": [
-      "==",
-      "admin_level",
-      2
-    ],
+    "filter": ["==","admin_level", 2],
     "layout": {
       "line-cap": "round",
       "line-join": "round"
@@ -1689,31 +1934,13 @@
     "paint": {
       "line-blur": {
         "base": 1,
-        "stops": [
-          [
-            0,
-            0.4
-          ],
-          [
-            22,
-            4
-          ]
-        ]
+        "stops": [[0, 0.4], [22, 4]]
       },
       "line-color": "rgb(230, 204, 207)",
       "line-opacity": 1,
       "line-width": {
         "base": 1.1,
-        "stops": [
-          [
-            3,
-            1
-          ],
-          [
-            22,
-            20
-          ]
-        ]
+        "stops": [[3, 1], [22, 20]]
       }
     }
   },
@@ -1723,10 +1950,7 @@
     "source": "osm-tiles",
     "source-layer": "poi",
     "layout": {
-      "text-field": [
-        "get",
-        "name"
-      ],
+      "text-field": ["get", "name"],
       "text-size": 12,
       "text-offset": [0, 1],
       "text-allow-overlap": false,

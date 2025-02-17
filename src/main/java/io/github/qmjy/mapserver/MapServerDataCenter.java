@@ -90,9 +90,11 @@ public class MapServerDataCenter {
      */
     public static void initJdbcTemplate(String className, File file) {
         if (!tilesMap.containsKey(file.getName())) {
+            logger.info("Try to load tile file: {}", file.getName());
             TilesFileModel dbFileModel = new TilesFileModel(file, className);
-            logger.info("Load tile file: {}", file.getName());
-            tilesMap.put(file.getName(), dbFileModel);
+            if (dbFileModel.isMbtiles()) {
+                tilesMap.put(file.getName(), dbFileModel);
+            }
         }
     }
 

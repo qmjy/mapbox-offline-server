@@ -44,6 +44,7 @@ public class TilesFileModel {
     private final Map<String, Object> metaDataMap = new HashMap<>();
     private JdbcTemplate jdbcTemplate;
     private long tilesCount = -1;
+    private boolean isMbtiles = false;
     //maptiler的数据是gzip压缩；bbbike的未被压缩；
     private boolean isCompressed = false;
 
@@ -52,7 +53,9 @@ public class TilesFileModel {
 
         initJdbc(className, file);
         loadMetaData();
-        this.isCompressed = compressed();
+        if (isMbtiles) {
+            this.isCompressed = compressed();
+        }
     }
 
     public void countSize() {
@@ -71,6 +74,7 @@ public class TilesFileModel {
             for (Map<String, Object> map : mapList) {
                 metaDataMap.put(String.valueOf(map.get("name")), map.get("value"));
             }
+            isMbtiles = true;
         } catch (DataAccessException e) {
             logger.error("Load map meta data failed: {}", filePath);
         }

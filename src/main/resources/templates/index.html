@@ -18,48 +18,17 @@
 <html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Mapbox-offline-server</title>
+    <title>Map-offline-server</title>
     <link rel="stylesheet" type="text/css" th:href="@{/static/css/style.css}">
 </head>
 <body>
-<h1>Mapbox-offline-server</h1>
+<h1>Map-offline-server</h1>
 <hr>
-
-<div>
-    RESTful接口地址：<a href="/swagger-ui/index.html">/swagger-ui/index.html</a><br>
-    瓦片服务地址：<a href="/tilesets">/tilesets</a>
-</div>
-
-<hr>
-<div class="notice">未检测到样式文件目录，则请检查服务器启动参数：“--dataPath=xxx”,且文件结构如下:
-    <pre>
-    data
-    ├─assets
-    │      mapbox-gl.css
-    │      mapbox-gl.js
-    ├─fonts
-    │  └─Arial Regular
-    │      0-255.pbf
-    │      15616-15871.pbf
-    │      15872-16127.pbf
-    ├─sprites
-    │  └─streets
-    │      sprite.json
-    │      sprite.png
-    │      sprite@2x.json
-    │      sprite@2x.png
-    ├─poi
-    │      xxx.osm.poi
-    ├─styles
-    │      world.json
-    ├─osm.pbf
-    │      Chengdu.osm.pbf
-    ├─tilesets
-    │      Beijing.mbtiles
-    └─OSMB
-           China.geojson
-</pre>
-</div>
+<ul>
+    <li><a href="/swagger-ui/index.html">开放接口</a></li>
+    <li><a href="/tilesets">瓦片服务</a></li>
+    <li><a href="/tools.html">地图工具箱</a></li>
+</ul>
 <hr>
 </body>
 </html>

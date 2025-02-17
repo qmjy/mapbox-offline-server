@@ -65,6 +65,12 @@ public class MapServerController extends BaseController {
         return "index";
     }
 
+    @GetMapping("/tools.html")
+    public String tools(Model model, HttpServletRequest request) {
+        model.addAttribute("basePath", super.getBasePath(request));
+        return "tools";
+    }
+
     /**
      * 获取支持的瓦片数据库列表
      *

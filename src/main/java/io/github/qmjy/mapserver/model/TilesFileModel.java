@@ -16,6 +16,7 @@
 
 package io.github.qmjy.mapserver.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.qmjy.mapserver.util.JdbcUtils;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -39,21 +40,28 @@ import java.util.zip.GZIPInputStream;
  */
 @Getter
 public class TilesFileModel {
+    @JsonIgnore
     private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
+    @JsonIgnore
     private final String filePath;
+    private final String name;
     private final Map<String, Object> metaDataMap = new HashMap<>();
+    @JsonIgnore
     private JdbcTemplate jdbcTemplate;
     private long tilesCount = -1;
+    @JsonIgnore
     private boolean isMbtiles = false;
     //maptiler的数据是gzip压缩；bbbike的未被压缩；
     private boolean isCompressed = false;
 
     public TilesFileModel(File file, String className) {
         this.filePath = file.getAbsolutePath();
-
+        this.name = file.getName();
+        
         initJdbc(className, file);
-        loadMetaData();
+        tryLoadMetaData();
         if (isMbtiles) {
+            countSize();
             this.isCompressed = compressed();
         }
     }
@@ -68,7 +76,7 @@ public class TilesFileModel {
         this.jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(className, file.getAbsolutePath());
     }
 
-    private void loadMetaData() {
+    private void tryLoadMetaData() {
         try {
             List<Map<String, Object>> mapList = jdbcTemplate.queryForList("SELECT * FROM metadata");
             for (Map<String, Object> map : mapList) {

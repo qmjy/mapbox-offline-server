@@ -298,9 +298,10 @@ public class MapServerDataCenter {
     public Optional<FontsFileModel> getFontFolder(String fontName) {
         if (StringUtils.hasLength(fontName)) {
             FontsFileModel fontsFileModel = fontsMap.get(fontName);
-            return Optional.of(fontsFileModel);
-        } else {
-            return Optional.empty();
+            if (fontsFileModel != null) {
+                return Optional.of(fontsFileModel);
+            }
         }
+        return Optional.empty();
     }
 }

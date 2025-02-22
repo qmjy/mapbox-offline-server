@@ -77,6 +77,19 @@ public class MapServerTilesetsRestController {
     }
 
     /**
+     * 返回瓦片集列表
+     *
+     * @return 瓦片集列表
+     */
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    @Operation(summary = "瓦片集", description = "当前已经被加载到的有效瓦片集数据")
+    public ResponseEntity<Map<String, Object>> getTilesList() {
+        Map<String, TilesFileModel> tilesMap = MapServerDataCenter.getTilesMap();
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(tilesMap));
+    }
+
+    /**
      * 返回瓦片集数据的元数据，默认返回<a href="https://github.com/mapbox/tilejson-spec/tree/master/3.0.0">3.0.0</a>版本
      *
      * @return 瓦片集的元数据

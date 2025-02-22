@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2023 QMJY.
+  ~ Copyright (c) 2025 QMJY.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
   -->
 
 <!DOCTYPE html>
-<html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-Hans-CN">
 <head>
     <meta charset="UTF-8">
     <title>地图工具箱</title>
@@ -34,16 +34,116 @@
             bottom: 0;
             width: 100%;
         }
+
+        #center-coordinates {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body>
 <div id="map"></div>
+<div id="center-coordinates">104.0957, 30.6552</div>
 <script>
-    const map = new maplibregl.Map({
-        container: 'map', // container id
-        style: 'https://demotiles.maplibre.org/style.json', // style URL
-        center: [0, 0], // starting position [lng, lat]
-        zoom: 1 // starting zoom
+    function filterMap(result) {
+        let selectedMap;
+        for (let key in result.data) {
+            let powerCasedKey = key.toLowerCase();
+            if (powerCasedKey.startsWith("china") && !powerCasedKey.includes("shortbread")) {
+                selectedMap = result.data[key]
+                console.log("Selected map: %s", key)
+                break;
+            }
+        }
+        if (!selectedMap) {
+            let firstKey = Object.keys(result.data)[0];
+            selectedMap = result.data[firstKey];
+        }
+        loadMap(selectedMap);
+    }
+
+    function renderVector(map) {
+        const request = new XMLHttpRequest();
+        request.open("get", "/static/styles/blue.json");
+        request.send(null);
+        request.onload = function () {
+            if (request.status === 200) {
+                const layers = JSON.parse(request.responseText);
+                layers.forEach(function (layer) {
+                    map.addLayer(layer);
+                })
+            }
+        }
+    }
+
+    function bindEventShowCenter(map) {
+        const centerCoordinates = document.getElementById('center-coordinates');
+
+        function updateCenterCoordinates() {
+            const center = map.getCenter();
+            centerCoordinates.textContent = `${center.lng.toFixed(4)}, ${center.lat.toFixed(4)}`;
+        }
+
+        map.on('move', updateCenterCoordinates);
+    }
+
+    function loadMap(data) {
+        let basePath = window.location.protocol + "//" + window.location.host;
+
+        let map = new maplibregl.Map({
+            container: 'map', // container id
+            style: {
+                "version": 8,
+                "name": "Map Offline Server Tools",
+                "sprite": basePath + (data.name.includes("Shortbread") ? "/static/sprites/versatiles/sprites" : "/static/sprites/streets/sprite"),
+                "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
+                "sources": {
+                    "osm-tiles": {
+                        "scheme": "tms",
+                        "type": "vector",
+                        "tiles": [basePath + "/api/tilesets/" + data.name + "/{z}/{x}/{y}." + data.metaDataMap.format],
+                        "bounds": data.metaDataMap.bounds.split(",").map(Number),
+                        "minzoom": parseInt(data.metaDataMap.minzoom),
+                        "maxzoom": parseInt(data.metaDataMap.maxzoom),
+                        "attribution":
+                            '<a href="https://github.com/qmjy/mapbox-offline-server">github</a> | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }
+                },
+                "layers": []
+            },
+            center: [104.0957, 30.6552],
+            zoom: 14,
+            hash: true
+        });
+        renderVector(map);
+        bindEventShowCenter(map);
+
+        map.addControl(new maplibregl.NavigationControl())
+        map.addControl(new maplibregl.FullscreenControl())
+        map.addControl(new maplibregl.ScaleControl())
+    }
+
+    window.addEventListener("load", function () {
+        fetch('/api/tilesets')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                filterMap(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     });
 </script>
 </body>

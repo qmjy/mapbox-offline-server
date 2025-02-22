@@ -20,6 +20,7 @@ import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.config.AppConfig;
 import io.github.qmjy.mapserver.model.FontsFileModel;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 
 /**
@@ -72,8 +74,24 @@ public class MapServerFontsController {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            InputStream inputStream = MapServerFontsController.class.getResourceAsStream("/static/fonts/" + fontName + "/" + range + AppConfig.FILE_EXTENSION_NAME_PBF);
+            if (inputStream != null) {
+                try {
+                    byte[] buffer = inputStream.readAllBytes();
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(AppConfig.APPLICATION_X_PROTOBUF_VALUE);
+                    ByteArrayResource resource = new ByteArrayResource(buffer);
+                    return ResponseEntity.ok().headers(headers).contentLength(buffer.length).body(resource);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    IOUtils.closeQuietly(inputStream);
+                }
+            } else {
+                logger.info("Can't find font of name: {}", fontName);
+            }
         }
-        logger.info("Can't find font of name: {}", fontName);
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }

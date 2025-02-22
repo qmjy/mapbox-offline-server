@@ -45,8 +45,8 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
-                wrapMapFile(dataFolder);
                 wrapFontsFile(dataFolder);
+                wrapMapFile(dataFolder);
                 wrapOSMBFile(dataFolder);
                 wrapOsmPbfFile(dataFolder);
                 indexPoi(dataFolder);

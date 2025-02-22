@@ -37,21 +37,26 @@
 
         #center-coordinates {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: white;
-            padding: 5px 10px;
-            border-radius: 3px;
+            bottom: 12px;
+            left: 110px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 3px 10px;
             font-family: Arial, sans-serif;
             font-size: 12px;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #center-coordinates:hover {
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 <div id="map"></div>
-<div id="center-coordinates">104.0957, 30.6552</div>
+<div id="center-coordinates" title="点击复制" onclick="copyCenter()">104.0957, 30.6552</div>
 <script>
+    let maplibreglMap;
+
     function filterMap(result) {
         let selectedMap;
         for (let key in result.data) {
@@ -83,12 +88,21 @@
         }
     }
 
-    function bindEventShowCenter(map) {
-        const centerCoordinates = document.getElementById('center-coordinates');
+    function copyCenter() {
+        let center = maplibreglMap.getCenter()
+        navigator.clipboard.writeText(center.lng + "," + center.lat)
+            .then(() => {
+                alert("已复制！");
+            })
+            .catch((err) => {
+                alert("复制失败！");
+            });
+    }
 
+    function bindEventShowCenter(map) {
         function updateCenterCoordinates() {
             const center = map.getCenter();
-            centerCoordinates.textContent = `${center.lng.toFixed(4)}, ${center.lat.toFixed(4)}`;
+            document.getElementById('center-coordinates').textContent = `${center.lng.toFixed(4)}, ${center.lat.toFixed(4)}`;
         }
 
         map.on('move', updateCenterCoordinates);
@@ -97,7 +111,7 @@
     function loadMap(data) {
         let basePath = window.location.protocol + "//" + window.location.host;
 
-        let map = new maplibregl.Map({
+        maplibreglMap = new maplibregl.Map({
             container: 'map', // container id
             style: {
                 "version": 8,
@@ -122,12 +136,23 @@
             zoom: 14,
             hash: true
         });
-        renderVector(map);
-        bindEventShowCenter(map);
+        renderVector(maplibreglMap);
+        bindEventShowCenter(maplibreglMap);
 
-        map.addControl(new maplibregl.NavigationControl())
-        map.addControl(new maplibregl.FullscreenControl())
-        map.addControl(new maplibregl.ScaleControl())
+        maplibreglMap.addControl(new maplibregl.NavigationControl())
+        maplibreglMap.addControl(new maplibregl.FullscreenControl())
+        maplibreglMap.addControl(new maplibregl.ScaleControl())
+        maplibreglMap.addControl(
+            new maplibregl.GeolocateControl({
+                positionOptions: {
+                    enableHighAccuracy: true
+                },
+                // When active the map will receive updates to the device's location as it changes.
+                trackUserLocation: true,
+                // Draw an arrow next to the location dot to indicate which direction the device is heading.
+                showUserHeading: true
+            })
+        );
     }
 
     window.addEventListener("load", function () {

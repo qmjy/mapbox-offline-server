@@ -282,10 +282,11 @@ public class MapServerDataCenter {
     public Map<String, Object> getTileMetaData(String fileName) {
         if (StringUtils.hasLength(fileName)) {
             TilesFileModel model = tilesMap.get(fileName);
-            return model.getMetaDataMap();
-        } else {
-            return new HashMap<>();
+            if (model != null) {
+                return model.getMetaDataMap();
+            }
         }
+        return new HashMap<>();
     }
 
 

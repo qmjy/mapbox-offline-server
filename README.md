@@ -23,6 +23,7 @@ Map offline server with java(JDK 21).
 3. 支持离线POI搜索能力（数据获取请访问[pio](https://github.com/qmjy/poi)）；
 4. 支持静态资源HTTP服务器能力；
 5. 支持工具能力：shapefile转geojson，支持mbtiles合并；
+6. 新增地图工具：获取中心点坐标，瓦片网格等；
 
 其他定制需求可通过提交[issue](https://github.com/qmjy/mapbox-offline-server/issues)，欢迎反馈。
 

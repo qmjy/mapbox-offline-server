@@ -22,6 +22,9 @@
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="/static/assets/maplibre-gl-js/v5.0.1/maplibre-gl.css" rel="stylesheet">
     <script src="/static/assets/maplibre-gl-js/v5.0.1/maplibre-gl.js"></script>
+    <script src="/static/assets/maplibre-gl-measures/v0.0.16/maplibre-gl-measures.js"></script>
+    <script src='/static/assets/maplibre-gl-inspect/v1.7.1/maplibre-gl-inspect.js'></script>
+    <link href='/static/assets/maplibre-gl-inspect/v1.7.1/maplibre-gl-inspect.css' rel='stylesheet' />
     <style>
         body {
             margin: 0;
@@ -36,7 +39,7 @@
         }
 
         .maplibregl-ctrl-bottom-left .maplibregl-ctrl{
-            margin: 0 0 10px 140px;
+            margin: 0 0 10px 200px;
         }
 
         #center-coordinates {
@@ -57,7 +60,7 @@
         .switch {
             position: absolute;
             bottom: 12px;
-            left: 220px;
+            left: 140px;
             display: inline-block;
             width: 50px;
             height: 20px;
@@ -96,11 +99,11 @@
         }
 
         input:checked + .slider {
-            background-color: #18610f;
+            background-color: #ed0644;
         }
 
         input:focus + .slider {
-            box-shadow: 0 0 4px #17710d;
+            box-shadow: 0 0 4px #9f0327;
         }
 
         input:checked + .slider:before {
@@ -211,6 +214,10 @@
         maplibreglMap.addControl(new maplibregl.NavigationControl())
         maplibreglMap.addControl(new maplibregl.FullscreenControl())
         maplibreglMap.addControl(new maplibregl.ScaleControl())
+        maplibreglMap.addControl(new MaplibreInspect({
+            showInspectMap: true,
+            showInspectButton: false
+        }));
         maplibreglMap.addControl(
             new maplibregl.GeolocateControl({
                 positionOptions: {

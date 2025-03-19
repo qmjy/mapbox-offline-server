@@ -55,6 +55,6 @@ osmwrangle:
 data-path:
 # 从mvt的pbf提取poi数据
 enable-poi-extract-mvt: false
-enable-poi-extract-osm-pbf: true
+enable-poi-extract-osm-pbf: false
 # 启用路径规划
 enable-planning: false

@@ -57,6 +57,9 @@ public class AppConfig {
     @Value("${data-path}")
     private String dataPath = "";
 
+    @Value("${enable-default-tile}")
+    private boolean enableDefaultTile;
+
     @Value("${osmwrangle.inputFormat}")
     private String inputFormat;
 
@@ -71,6 +74,7 @@ public class AppConfig {
 
     @Value("${osmwrangle.outputDir}")
     private String outputDir;
+
 
     /**
      * 从mvt的pbf提取poi数据

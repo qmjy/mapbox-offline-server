@@ -343,6 +343,20 @@ public class MapServerTilesetsRestController {
         }
     }
 
+    /**
+     * 释放万片资源
+     *
+     * @param tileset 待释放的瓦片资源
+     * @return 释放结果
+     */
+    @DeleteMapping(value = "/{tileset}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    @Operation(summary = "释放mbtiles文件", description = "释放mbtiles文件。")
+    public ResponseEntity<Object> release(@Parameter(description = "待释放的瓦片数据源或文件夹名字，例如：admin.mbtiles。") @PathVariable("tileset") String tileset) {
+        mapServerDataCenter.releaseDataSource(tileset);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body("Success");
+    }
+
 
     /**
      * 获取指定底图数据的元数据

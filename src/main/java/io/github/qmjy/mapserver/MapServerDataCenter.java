@@ -17,6 +17,7 @@
 package io.github.qmjy.mapserver;
 
 import com.graphhopper.GraphHopper;
+import com.zaxxer.hikari.HikariDataSource;
 import io.github.qmjy.mapserver.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapserver.model.FontsFileModel;
 import io.github.qmjy.mapserver.model.TilesFileModel;
@@ -32,6 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -259,6 +261,19 @@ public class MapServerDataCenter {
             return Optional.of(model.getJdbcTemplate());
         } else {
             return Optional.empty();
+        }
+    }
+
+    public void releaseDataSource(String fileName) {
+        if (StringUtils.hasLength(fileName) && tilesMap.containsKey(fileName)) {
+            TilesFileModel remove = tilesMap.remove(fileName);
+            JdbcTemplate jdbcTemplate = remove.getJdbcTemplate();
+            //执行检查点操作，将所有WAL内容写入主数据库文件
+            jdbcTemplate.execute("PRAGMA wal_checkpoint(FULL)");
+            DataSource dataSource = jdbcTemplate.getDataSource();
+            if (dataSource instanceof HikariDataSource hikariDataSource) {
+                hikariDataSource.close();
+            }
         }
     }
 

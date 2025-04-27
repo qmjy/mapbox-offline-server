@@ -14,6 +14,7 @@
  *   limitations under the License.
  */
 
+/**
+ * all code modified from project: https://github.com/SLIPO-EU/OSMWrangle
+ */
 package eu.smartdatalake.athenarc.osmwrangle;
-
-//all code modified from project: https://github.com/SLIPO-EU/OSMWrangle

@@ -38,6 +38,12 @@ public class AdministrativeDivisionTmp implements Cloneable {
     @Setter
     private List<AdministrativeDivisionTmp> children = new ArrayList<>();
 
+    /**
+     * 构造方法
+     *
+     * @param simpleFeature 特性
+     * @param parentId      父ID
+     */
     public AdministrativeDivisionTmp(SimpleFeature simpleFeature, int parentId) {
         this.id = (int) simpleFeature.getAttribute("osm_id");
         this.name = (String) simpleFeature.getAttribute("local_name");
@@ -47,6 +53,15 @@ public class AdministrativeDivisionTmp implements Cloneable {
         this.adminLevel = simpleFeature.getAttribute("admin_level") == null ? -1 : (int) simpleFeature.getAttribute("admin_level");
     }
 
+    /**
+     * 构造方法
+     *
+     * @param id         id
+     * @param parentId   父ID
+     * @param name       行政区划节点名称
+     * @param nameEn     行政区划节点英文名称
+     * @param adminLevel 行政区划级别
+     */
     public AdministrativeDivisionTmp(int id, int parentId, String name, String nameEn, int adminLevel) {
         this.id = id;
         this.parentId = parentId;

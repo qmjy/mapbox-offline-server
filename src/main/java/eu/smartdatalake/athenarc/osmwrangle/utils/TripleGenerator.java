@@ -36,7 +36,7 @@ import java.net.URLEncoder;
 import java.util.*;
 
 /**
- * Generates a collection of RDF triples from the (spatial & thematic) attributes of a given feature.
+ * Generates a collection of RDF triples from the (spatial &amp; thematic) attributes of a given feature.
  *
  * @author Kostas Patroumpas
  * @version 2.0

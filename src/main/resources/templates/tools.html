@@ -25,6 +25,14 @@
     <script src="/static/assets/maplibre-gl-measures/v0.0.16/maplibre-gl-measures.js"></script>
     <script src='/static/assets/maplibre-gl-inspect/v1.7.1/maplibre-gl-inspect.js'></script>
     <link href='/static/assets/maplibre-gl-inspect/v1.7.1/maplibre-gl-inspect.css' rel='stylesheet' />
+    <script>
+        var config = {
+            MAPTILER_TOKEN : 'YymZPIGfniu7apIvln6X',
+            MAPBOX_TOKEN : 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA',
+        }
+    </script>
+    <link href='/static/assets/mapLibre-style-switcher-control/mapLibre-style-switcher-control.css' rel='stylesheet'/>
+    <script src='/static/assets/mapLibre-style-switcher-control/mapLibre-style-switcher-control.js'></script>
     <style>
         body {
             margin: 0;
@@ -211,6 +219,34 @@
         renderVector(maplibreglMap);
         bindEventShowCenter(maplibreglMap);
 
+        var styles = (MapLibreStyleDefinition = [
+            {
+                title: "Demotiles",
+                uri: "https://demotiles.maplibre.org/style.json",
+            },
+            {
+                title: "Basic",
+                uri:
+                "https://api.maptiler.com/maps/streets/style.json?key=" + config.MAPTILER_TOKEN,
+            },
+            {
+                title: "Light",
+                uri:
+                "https://api.maptiler.com/maps/bright/style.json?key=" + config.MAPTILER_TOKEN,
+            },
+            {
+                title: "Satellite Hybrid",
+                uri:
+                "https://api.maptiler.com/maps/hybrid/style.json?key=" + config.MAPTILER_TOKEN,
+            },
+            {
+                title: "Outdoors",
+                uri:
+                "https://api.maptiler.com/maps/outdoor/style.json?key=" + config.MAPTILER_TOKEN,
+            },
+        ]);
+
+        maplibreglMap.addControl(new MapLibreStyleSwitcherControl(styles));
         maplibreglMap.addControl(new maplibregl.NavigationControl())
         maplibreglMap.addControl(new maplibregl.FullscreenControl())
         maplibreglMap.addControl(new maplibregl.ScaleControl())

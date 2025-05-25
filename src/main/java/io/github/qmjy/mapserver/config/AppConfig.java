@@ -30,6 +30,19 @@ import org.springframework.stereotype.Component;
 public class AppConfig {
 
     public static final String FILE_EXTENSION_NAME_MBTILES = ".mbtiles";
+    /**
+     * 矢量瓦片包，存储矢量数据而非栅格瓦片
+     */
+    public static final String FILE_EXTENSION_NAME_TPK = ".tpk";
+    public static final String FILE_EXTENSION_NAME_VTPK = ".vtpk";
+    /**
+     * 地图包，包含地图文档和引用的数据
+     */
+    public static final String FILE_EXTENSION_NAME_MPK = ".mpk";
+    /**
+     * 定位器包，包含地理编码数据
+     */
+    public static final String FILE_EXTENSION_NAME_LPK = ".lpk";
     public static final String FILE_EXTENSION_NAME_SHP = ".shp";
     public static final String FILE_EXTENSION_NAME_PBF = ".pbf";
     public static final String FILE_EXTENSION_NAME_OSM_PBF = ".osm.pbf";

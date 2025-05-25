@@ -474,4 +474,6 @@ public class AsyncService {
         sb.append(split[26].toLowerCase(Locale.getDefault())).append(" TEXT)");
         jdbcTemplate.execute(sb.toString());
     }
+
+
 }

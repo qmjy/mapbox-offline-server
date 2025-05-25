@@ -17,13 +17,12 @@ import java.io.File;
 public class AsyncTask {
     private final Logger logger = LoggerFactory.getLogger(AsyncTask.class);
     private final AppConfig appConfig;
-    private final AsyncService asyncService;
 
     /**
      * 每10秒执行一次
      */
     @Scheduled(cron = "0/10 * * * * ?")
-    public void sayHello() {
+    public void tasks() {
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
@@ -32,6 +31,13 @@ public class AsyncTask {
                 if (files != null) {
                     for (File dbFile : files) {
                         MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
+                    }
+                }
+
+                File[] tpks = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_TPK));
+                if (tpks != null) {
+                    for (File tpk : tpks) {
+                        MapServerDataCenter.indexTpk(tpk);
                     }
                 }
             }

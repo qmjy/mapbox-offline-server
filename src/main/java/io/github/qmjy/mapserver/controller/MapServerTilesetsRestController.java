@@ -34,6 +34,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.geotools.tpk.TPKFile;
+import org.geotools.tpk.TPKTile;
+import org.geotools.tpk.TPKZoomLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -183,7 +186,6 @@ public class MapServerTilesetsRestController {
         if (SystemUtils.checkTilesetName(tileset)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
 
         Optional<byte[]> OptionalResource = getByteArrayResourceResponseEntity(tileset, z, x, y, MediaType.IMAGE_JPEG);
         if (OptionalResource.isPresent()) {
@@ -507,8 +509,27 @@ public class MapServerTilesetsRestController {
     }
 
     private Optional<byte[]> getByteArrayResourceResponseEntity(String tileset, int z, int x, int y, MediaType defaultMediaType) {
-        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
-            return getBytesFromSqlite(tileset, z, x, y, defaultMediaType);
+        String extension = tileset.substring(tileset.lastIndexOf('.') + 1);
+        return switch (extension) {
+            case "mbtiles" -> getBytesFromSqlite(tileset, z, x, y, defaultMediaType);
+            case "tpk" -> getBytesFromTpk(tileset, z, x, y, defaultMediaType);
+            default -> Optional.empty();
+        };
+    }
+
+    private Optional<byte[]> getBytesFromTpk(String tileset, int zoom, int x, int y, MediaType defaultMediaType) {
+        TilesFileModel tilesFileModel = MapServerDataCenter.getTilesMap().get(tileset);
+        TPKZoomLevel tpkZoomLevel = tilesFileModel.getZoomLevelMap().get((long) zoom);
+        if (tpkZoomLevel == null) {
+            return Optional.empty();
+        }
+        List<TPKTile> tiles = tilesFileModel.getTpkFile().getTiles(zoom,
+                tpkZoomLevel.getMaxRow(), tpkZoomLevel.getMinRow(), tpkZoomLevel.getMinColumn(), tpkZoomLevel.getMaxColumn(),
+                defaultMediaType.getSubtype());
+        for (TPKTile tile : tiles) {
+            if (tile.col == x && tile.row == y) {
+                return tile.tileData.length == 0 ? Optional.empty() : Optional.of(tile.tileData);
+            }
         }
         return Optional.empty();
     }

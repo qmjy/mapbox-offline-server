@@ -34,10 +34,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 系统主页
@@ -69,9 +67,9 @@ public class MapServerWebController extends BaseController {
     @GetMapping("/tools.html")
     public String tools(Model model, HttpServletRequest request) {
         model.addAttribute("basePath", super.getBasePath(request));
-        File[] tilesets = getTilesets();
+        File[] tilesets = (File[]) MapServerDataCenter.getTilesMap().values().stream().map(item -> new File(item.getFilePath())).toArray(File[]::new);
         String selectTileset = "";
-        if (tilesets != null && tilesets.length > 0) {
+        if (tilesets.length > 0) {
             List<File> list = Arrays.stream(tilesets).filter(tileset -> tileset.getName().toLowerCase().contains("china")).toList();
             selectTileset = !list.isEmpty() ? list.getFirst().getName() : tilesets[0].getName();
             model.addAttribute("tilesetName", selectTileset);
@@ -87,39 +85,11 @@ public class MapServerWebController extends BaseController {
      * @param model 前端页面数据模型
      * @return 瓦片数据库列表
      */
-    @GetMapping("/tilesets")
+    @GetMapping("/tilesets.html")
     public String listTilesets(Model model) {
-        File[] files = getTilesets();
-        model.addAttribute("tileFiles", files != null && files.length > 0 ? wrapThymeleafModel(files) : new ArrayList<>());
+        File[] files = MapServerDataCenter.getTilesMap().values().stream().map(item -> new File(item.getFilePath())).toArray(File[]::new);
+        model.addAttribute("tileFiles", files.length > 0 ? wrapThymeleafModel(files) : new ArrayList<>());
         return "tilesets";
-    }
-
-    private File[] getTilesets() {
-        if (StringUtils.hasLength(appConfig.getDataPath())) {
-            File dataFolder = new File(appConfig.getDataPath());
-            if (dataFolder.isDirectory() && dataFolder.exists()) {
-                File tilesetsFolder = new File(dataFolder, "tilesets");
-                return tilesetsFolder.listFiles(pathname -> {
-                    if (pathname.isDirectory()) {
-                        File[] subFiles = pathname.listFiles();
-                        if (subFiles != null) {
-                            for (File subFile : subFiles) {
-                                if ("metadata.json".equals(subFile.getName())) {
-                                    return true;
-                                }
-                            }
-                        }
-                        return false;
-                    } else {
-                        String name = pathname.getName();
-                        return name.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES);
-                    }
-                });
-            }
-        } else {
-            logger.error("请在data目录配置瓦片数据...");
-        }
-        return new File[0];
     }
 
     /**
@@ -143,6 +113,16 @@ public class MapServerWebController extends BaseController {
             model.addAttribute("metaData", tileMetaData);
 
             return "pbf".equals(tileMetaData.get("format")) ? "mapbox-vector" : "mapbox-raster";
+        }
+        if (tileset.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
+            model.addAttribute("tilesetName", tileset);
+            Map<String, Object> tileMetaData = mapServerDataCenter.getTileMetaData(tileset);
+            model.addAttribute("metaData", tileMetaData);
+
+            //在tpk中，MIXED— 将在包的中心使用 JPEG 格式，在包的边缘使用 PNG32。
+            String format = tileMetaData.get("format").toString();
+            return "jpg".equals(format) || "jpeg".equals(format) || "png".equals(format) || "webp".equals(format)
+                    ? "mapbox-raster" : "mapbox-vector";
         } else {
             StringBuilder sb = new StringBuilder(appConfig.getDataPath());
             sb.append(File.separator).append("tilesets").append(File.separator).append(tileset).append(File.separator).append("metadata.json");
@@ -261,14 +241,10 @@ public class MapServerWebController extends BaseController {
             return dataList;
         }
         for (File file : files) {
-            if (file.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
-                TilesFileModel tilesFileModel = MapServerDataCenter.getTilesMap().get(file.getName());
-                if (tilesFileModel != null) {
-                    // 大mbtiles文件可能加载还未就绪
-                    dataList.add(new TilesViewModel(file, tilesFileModel.getMetaDataMap()));
-                }
-            } else {
-                dataList.add(new TilesViewModel(file));
+            TilesFileModel tilesFileModel = MapServerDataCenter.getTilesMap().get(file.getName());
+            if (tilesFileModel != null) {
+                // 大mbtiles文件可能加载还未就绪
+                dataList.add(new TilesViewModel(file, tilesFileModel.getMetaDataMap()));
             }
         }
         return dataList;

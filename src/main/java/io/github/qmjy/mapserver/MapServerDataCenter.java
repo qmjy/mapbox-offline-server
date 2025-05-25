@@ -18,6 +18,7 @@ package io.github.qmjy.mapserver;
 
 import com.graphhopper.GraphHopper;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.qmjy.mapserver.config.AppConfig;
 import io.github.qmjy.mapserver.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapserver.model.FontsFileModel;
 import io.github.qmjy.mapserver.model.TilesFileModel;
@@ -51,6 +52,10 @@ public class MapServerDataCenter {
      */
     @Getter
     private static final Map<String, TilesFileModel> tilesMap = new HashMap<>();
+    /**
+     * 不会再被加载的文件列表
+     */
+    private static final Set<String> blockedTiles = new HashSet<>();
 
 
     private static final Map<String, FileDataStore> shpDataStores = new HashMap<>();
@@ -88,25 +93,41 @@ public class MapServerDataCenter {
      * 初始化数据源
      *
      * @param className 驱动名称
-     * @param file      待链接的数据库文件
+     * @param mbtiles   待链接的数据库文件
      */
-    public static void initJdbcTemplate(String className, File file) {
-        if (!tilesMap.containsKey(file.getName())) {
-            logger.info("Try to load tile file: {}", file.getName());
-            TilesFileModel dbFileModel = new TilesFileModel(file, className);
-            if (dbFileModel.isMbtiles()) {
-                tilesMap.put(file.getName(), dbFileModel);
+    public static void initJdbcTemplate(String className, File mbtiles) {
+        if (!tilesMap.containsKey(mbtiles.getName())) {
+            logger.info("Try to load tile of mbtiles: {}", mbtiles.getName());
+            TilesFileModel dbFileModel = new TilesFileModel(mbtiles, className);
+            if (dbFileModel.isValid()) {
+                tilesMap.put(mbtiles.getName(), dbFileModel);
             }
         }
     }
 
+    /**
+     * 预加载tpk
+     *
+     * @param tpk tpk文件
+     */
+    public static void indexTpk(File tpk) {
+        if (!tilesMap.containsKey(tpk.getName()) && !blockedTiles.contains(tpk.getName())) {
+            logger.info("Try to load tile of tpk: {}", tpk.getName());
+            TilesFileModel dbFileModel = new TilesFileModel(tpk);
+            if (dbFileModel.isValid()) {
+                tilesMap.put(tpk.getName(), dbFileModel);
+            } else {
+                blockedTiles.add(tpk.getName());
+            }
+        }
+    }
 
     public static void initShapefile(File shapefile) {
         FileDataStore dataStore = null;
         try {
             dataStore = FileDataStoreFinder.getDataStore(shapefile);
         } catch (IOException e) {
-            logger.error("FileDataStoreFinder.getDataStore() failed: " + shapefile.getAbsolutePath());
+            logger.error("FileDataStoreFinder.getDataStore() failed: {}", shapefile.getAbsolutePath());
         }
         shpDataStores.put(shapefile.getName(), dataStore);
     }
@@ -160,7 +181,7 @@ public class MapServerDataCenter {
             features.close();
             packageModel();
         } catch (IOException e) {
-            logger.error("Read OSM file failed：" + boundary.getAbsolutePath());
+            logger.error("Read OSM file failed：{}", boundary.getAbsolutePath());
         }
     }
 
@@ -265,16 +286,27 @@ public class MapServerDataCenter {
     }
 
     public void releaseDataSource(String fileName) {
-        if (StringUtils.hasLength(fileName) && tilesMap.containsKey(fileName)) {
-            TilesFileModel remove = tilesMap.remove(fileName);
-            JdbcTemplate jdbcTemplate = remove.getJdbcTemplate();
-            //执行检查点操作，将所有WAL内容写入主数据库文件
-            jdbcTemplate.execute("PRAGMA wal_checkpoint(FULL)");
-            DataSource dataSource = jdbcTemplate.getDataSource();
-            if (dataSource instanceof HikariDataSource hikariDataSource) {
-                hikariDataSource.close();
+        if (fileName.endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES)) {
+            if (StringUtils.hasLength(fileName) && tilesMap.containsKey(fileName)) {
+                TilesFileModel remove = tilesMap.remove(fileName);
+                JdbcTemplate jdbcTemplate = remove.getJdbcTemplate();
+                //执行检查点操作，将所有WAL内容写入主数据库文件
+                jdbcTemplate.execute("PRAGMA wal_checkpoint(FULL)");
+                DataSource dataSource = jdbcTemplate.getDataSource();
+                if (dataSource instanceof HikariDataSource hikariDataSource) {
+                    hikariDataSource.close();
+                }
             }
         }
+
+        if (fileName.endsWith(AppConfig.FILE_EXTENSION_NAME_TPK)) {
+            if (StringUtils.hasLength(fileName) && tilesMap.containsKey(fileName)) {
+                TilesFileModel remove = tilesMap.remove(fileName);
+                remove.setTpkFile(null);
+                remove.setZoomLevelMap(null);
+            }
+        }
+
     }
 
     /**

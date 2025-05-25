@@ -42,7 +42,7 @@
         <td th:text="${file.getType()}"></td>
         <td th:text="${file.getFileSize()}" style="text-align:right"></td>
         <td></td>
-        <td th:if="${file.getType()=='.mbtiles'}" th:text="'/tilesets/' + ${file.getName()} + '/{z}/{x}/{y}.' + ${file.getMetaDataMap()==null?'':file.getMetaDataMap().get('format')}"></td>
+        <td th:text="'/tilesets/' + ${file.getName()} + '/{z}/{x}/{y}.' + ${file.getMetaDataMap()==null?'':file.getMetaDataMap().get('format')}"></td>
     </tr>
 </table>
 

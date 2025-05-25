@@ -19,6 +19,10 @@ package io.github.qmjy.mapserver.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.github.qmjy.mapserver.util.JdbcUtils;
 import lombok.Getter;
+import lombok.Setter;
+import org.geotools.api.geometry.Position;
+import org.geotools.tpk.TPKFile;
+import org.geotools.tpk.TPKZoomLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -30,40 +34,83 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Mbtiles瓦片数据文件模型
+ * 瓦片数据包文件模型
  *
  * @author liushaofeng
  */
 @Getter
 public class TilesFileModel {
+    /**
+     * 瓦片数据包文件格式: mbtiles
+     */
+    public static final int TILE_FILE_TYPE_OF_MBTILES = 1;
+    /**
+     * 瓦片数据包文件格式: tpk
+     */
+    public static final int TILE_FILE_TYPE_OF_TPK = 2;
+
+    /**
+     * 瓦片数据包文件格式: vtpk
+     */
+    public static final int TILE_FILE_TYPE_OF_VTPK = 3;
+
+    private final Map<String, Object> metaDataMap = new HashMap<>();
+    private final String name;
+    private long tilesCount = -1;
+    //maptiler的数据是gzip压缩；bbbike的未被压缩；
+    private boolean isCompressed = false;
+
     @JsonIgnore
     private final Logger logger = LoggerFactory.getLogger(TilesFileModel.class);
     @JsonIgnore
     private final String filePath;
-    private final String name;
-    private final Map<String, Object> metaDataMap = new HashMap<>();
     @JsonIgnore
     private JdbcTemplate jdbcTemplate;
-    private long tilesCount = -1;
+    @Setter
     @JsonIgnore
-    private boolean isMbtiles = false;
-    //maptiler的数据是gzip压缩；bbbike的未被压缩；
-    private boolean isCompressed = false;
+    private TPKFile tpkFile;
+    @Setter
+    @JsonIgnore
+    private Map<Long, TPKZoomLevel> zoomLevelMap;
+    //瓦片数据包文件格式。 0：未知；
+    @JsonIgnore
+    private int tileFileType = 0;
+    //文件是否支持，文件解析成功与否
+    @JsonIgnore
+    private boolean valid = false;
+
+    /**
+     * TPK解析
+     *
+     * @param tpk tpk数据包
+     */
+    public TilesFileModel(File tpk) {
+        this.filePath = tpk.getAbsolutePath();
+        this.name = tpk.getName();
+        boolean success = tryLoadMetaDataFromTpk();
+        if (success) {
+            this.tileFileType = 2;
+            valid = true;
+        }
+    }
 
     public TilesFileModel(File file, String className) {
+        this.tileFileType = 1;
         this.filePath = file.getAbsolutePath();
         this.name = file.getName();
-        
+
         initJdbc(className, file);
-        tryLoadMetaData();
-        if (isMbtiles) {
+        tryLoadMetaDataFromMbtiles();
+        if (tileFileType == 0) {
             countSize();
             this.isCompressed = compressed();
         }
+        valid = true;
     }
 
     public void countSize() {
@@ -76,13 +123,36 @@ public class TilesFileModel {
         this.jdbcTemplate = JdbcUtils.getInstance().getJdbcTemplate(className, file.getAbsolutePath());
     }
 
-    private void tryLoadMetaData() {
+    private boolean tryLoadMetaDataFromTpk() {
+        zoomLevelMap = new HashMap<>();
+        tpkFile = new TPKFile(new File(filePath), zoomLevelMap);
+
+        //TODO 混合模式以后再支持
+        if ("MIXED".equals(tpkFile.getImageFormat())) {
+            return false;
+        } else {
+            this.metaDataMap.put("format", tpkFile.getImageFormat().toLowerCase(Locale.getDefault()));
+            this.metaDataMap.put("minzoom", tpkFile.getMinZoomLevel());
+            this.metaDataMap.put("maxzoom", tpkFile.getMaxZoomLevel());
+
+            Position lowerCorner = tpkFile.getBounds().getLowerCorner();
+            Position upperCorner = tpkFile.getBounds().getUpperCorner();
+
+            //TODO 待验证顺序正确性,当前为左下+右上。
+            this.metaDataMap.put("bounds", lowerCorner.getCoordinate()[0] + ","
+                    + lowerCorner.getCoordinate()[1] + ","
+                    + upperCorner.getCoordinate()[0] + ","
+                    + upperCorner.getCoordinate()[1]);
+            return true;
+        }
+    }
+
+    private void tryLoadMetaDataFromMbtiles() {
         try {
             List<Map<String, Object>> mapList = jdbcTemplate.queryForList("SELECT * FROM metadata");
             for (Map<String, Object> map : mapList) {
                 metaDataMap.put(String.valueOf(map.get("name")), map.get("value"));
             }
-            isMbtiles = true;
         } catch (DataAccessException e) {
             logger.error("Load map meta data failed: {}", filePath);
         }

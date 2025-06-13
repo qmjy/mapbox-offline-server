@@ -16,9 +16,10 @@
 
 package io.github.qmjy.mapserver.util;
 
-import com.wdtinc.mapbox_vector_tile.adapt.jts.MvtReader;
-import com.wdtinc.mapbox_vector_tile.adapt.jts.TagKeyValueMapConverter;
-import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
+
+import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.MvtReader;
+import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.TagKeyValueMapConverter;
+import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.model.JtsMvt;
 import org.locationtech.jts.geom.GeometryFactory;
 
 import java.io.IOException;

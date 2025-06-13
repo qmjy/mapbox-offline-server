@@ -17,7 +17,8 @@
 
 package io.github.qmjy.mapserver.model.osm.pbf;
 
-import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsLayer;
+
+import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.model.JtsLayer;
 import lombok.Data;
 
 import java.util.HashMap;

@@ -17,7 +17,6 @@
 package io.github.qmjy.mapserver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.config.AppConfig;
 import io.github.qmjy.mapserver.model.*;
@@ -27,6 +26,7 @@ import io.github.qmjy.mapserver.util.IOUtils;
 import io.github.qmjy.mapserver.util.ResponseMapUtil;
 import io.github.qmjy.mapserver.util.SystemUtils;
 import io.github.qmjy.mapserver.util.VectorTileUtils;
+import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.model.JtsMvt;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,7 +34,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import org.geotools.tpk.TPKFile;
 import org.geotools.tpk.TPKTile;
 import org.geotools.tpk.TPKZoomLevel;
 import org.slf4j.Logger;

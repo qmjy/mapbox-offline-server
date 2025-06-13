@@ -18,8 +18,7 @@ package io.github.qmjy.mapserver.service;
 
 import com.graphhopper.GraphHopper;
 import com.graphhopper.config.Profile;
-import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsLayer;
-import com.wdtinc.mapbox_vector_tile.adapt.jts.model.JtsMvt;
+
 import eu.smartdatalake.athenarc.osmwrangle.tools.OsmPbfParser;
 import eu.smartdatalake.athenarc.osmwrangle.utils.Configuration;
 import io.github.qmjy.mapserver.MapServerDataCenter;
@@ -28,6 +27,8 @@ import io.github.qmjy.mapserver.model.*;
 import io.github.qmjy.mapserver.util.IOUtils;
 import io.github.qmjy.mapserver.util.JdbcUtils;
 import io.github.qmjy.mapserver.util.VectorTileUtils;
+import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.model.JtsLayer;
+import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.model.JtsMvt;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.jetbrains.annotations.NotNull;

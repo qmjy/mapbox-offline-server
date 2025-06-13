@@ -170,9 +170,9 @@ public class OsmPbfParser implements Sink {
             } catch (Exception e) {
                 LOGGER.error("Error in CRS transformation (reprojection) of geometries.");      //Execution terminated abnormally
             }
-        } else                                 //No transformation specified; determine the CRS of geometries...
+        } else {                            //No transformation specified; determine the CRS of geometries...
             this.targetSRID = 4326;          //... as the original OSM features assumed in WGS84 lon/lat coordinates
-
+        }
         //Other parameters
         if (myAssistant.isNullOrEmpty(currentConfig.defaultLang)) {
             currentConfig.defaultLang = "en";
@@ -240,24 +240,27 @@ public class OsmPbfParser implements Sink {
                 OSMRecord rec = recBuilder.createOSMRecord(r);
                 if (rec != null)                    //Incomplete relations are accepted in this second pass, consisting of their recognized parts
                 {
-                    if (keepUnnamed)
+                    if (keepUnnamed) {
                         myConverter.parse(rec, classification, reproject, targetSRID);
-                    else if (r.getTagKeyValue().containsKey("name")) {  //CAUTION: Only named entities will be transformed
+                    } else if (r.getTagKeyValue().containsKey("name")) {  //CAUTION: Only named entities will be transformed
                         myConverter.parse(rec, classification, reproject, targetSRID);
                         numNamedEntities++;
                     }
                     //Keep this relation geometry in the dictionary, just in case it might be referenced by other OSM relations
-                    if (recBuilder.relationIndex.containsKey(r.getID()))
+                    if (recBuilder.relationIndex.containsKey(r.getID())) {
                         recBuilder.relationIndex.put(r.getID(), rec.getGeometry());
+                    }
                     numRelations++;
                     iterator.remove();                                  //This OSM relation should not be examined again
 //	            		System.out.println("Done!");
-                } else
+                } else {
                     System.out.println(" Transformation failed!");
+                }
             }
 
-            if (inRelation)
+            if (inRelation) {
                 System.out.println("\nFinished parsing OSM relations.");
+            }
             recBuilder.nodeIndex.clear();                                            //Discard index over OSM nodes
             recBuilder.wayIndex.clear();                                            //Discard index over OSM ways
             recBuilder.relationIndex.clear();                                       //Discard index over OSM relations
@@ -330,17 +333,17 @@ public class OsmPbfParser implements Sink {
 
             //Convert entity
             if (keepIndexed) {
-                if (keepUnnamed)
+                if (keepUnnamed) {
                     myConverter.parse(recBuilder.createOSMRecord(nodeTmp), classification, reproject, targetSRID);
-                else if (nodeTmp.getTagKeyValue().containsKey("name")) {  //CAUTION! Only named entities will be transformed
+                } else if (nodeTmp.getTagKeyValue().containsKey("name")) {  //CAUTION! Only named entities will be transformed
                     myConverter.parse(recBuilder.createOSMRecord(nodeTmp), classification, reproject, targetSRID);
                     numNamedEntities++;
                 }
             }
 
-            if (recBuilder.nodeIndex.containsKey(nodeTmp.getID()))
+            if (recBuilder.nodeIndex.containsKey(nodeTmp.getID())) {
                 recBuilder.nodeIndex.put(nodeTmp.getID(), nodeTmp.getGeometry());         //Keep a dictionary of node geometries, only if referenced by OSM ways
-
+            }
             nodeTmp = null;
 
         } else if ((!scanRelations) && (entityContainer instanceof WayContainer)) {       //Create a new OSM way object and populate it with the appropriate values
@@ -363,9 +366,9 @@ public class OsmPbfParser implements Sink {
                 }
             } else {                      //Parsing of this OSM way
 
-                if (inNode)
+                if (inNode) {
                     System.out.println("\nFinished parsing OSM nodes.");
-
+                }
                 //Mark position of the parser
                 inNode = false;
                 inWay = true;
@@ -373,9 +376,9 @@ public class OsmPbfParser implements Sink {
                 numWays++;
 
                 //Skip parsing if this way is filtered out or not referenced by other relations
-                if ((!keepIndexed) && (!recBuilder.wayIndex.containsKey("" + myWay.getId())))
+                if ((!keepIndexed) && (!recBuilder.wayIndex.containsKey("" + myWay.getId()))) {
                     return;
-
+                }
                 wayTmp = new OSMWay();
                 wayTmp.setID("" + myWay.getId());
 
@@ -388,8 +391,9 @@ public class OsmPbfParser implements Sink {
                     if (recBuilder.nodeIndex.containsKey("" + entry.getNodeId())) {
                         Geometry geometry = recBuilder.nodeIndex.get("" + entry.getNodeId());     //get the geometry of the node with ID=entry
                         wayTmp.addNodeGeometry(geometry);                                         //add the node geometry in this way
-                    } else
+                    } else {
                         System.out.println("Missing node " + entry.getNodeId() + " in referencing way " + wayTmp.getID());
+                    }
                 }
                 Geometry geom = geometryFactory.buildGeometry(wayTmp.getNodeGeometries());
 
@@ -428,17 +432,17 @@ public class OsmPbfParser implements Sink {
 
                 //Convert this entity
                 if (keepIndexed) {
-                    if (keepUnnamed)
+                    if (keepUnnamed) {
                         myConverter.parse(recBuilder.createOSMRecord(wayTmp), classification, reproject, targetSRID);
-                    else if (wayTmp.getTagKeyValue().containsKey("name")) {  //CAUTION! Only named entities will be transformed
+                    } else if (wayTmp.getTagKeyValue().containsKey("name")) {  //CAUTION! Only named entities will be transformed
                         myConverter.parse(recBuilder.createOSMRecord(wayTmp), classification, reproject, targetSRID);
                         numNamedEntities++;
                     }
                 }
 
-                if (recBuilder.wayIndex.containsKey(wayTmp.getID()))
+                if (recBuilder.wayIndex.containsKey(wayTmp.getID())) {
                     recBuilder.wayIndex.put(wayTmp.getID(), wayTmp.getGeometry());          //Keep a dictionary of way geometries, only for those referenced by OSM relations
-
+                }
                 wayTmp = null;
             }
         } else if ((!scanWays) && (entityContainer instanceof RelationContainer)) {               //Create a new OSM relation object and populate it with the appropriate values
@@ -456,10 +460,12 @@ public class OsmPbfParser implements Sink {
                 //Either only filtered relations will be indexed or those referenced by other relations
                 if ((keepIndexed) || (recBuilder.relationIndex.containsKey("" + myRelation.getId()))) {
                     for (RelationMember m : myRelation.getMembers()) {
-                        if (m.getMemberType().name().equalsIgnoreCase("node"))
-                            recBuilder.nodeIndex.put("" + m.getMemberId(), null);          //This node is referenced by a relation; keep it in the index, and its geometry will be filled in when parsing the nodes
-                        else if (m.getMemberType().name().equalsIgnoreCase("way"))
-                            recBuilder.wayIndex.put("" + m.getMemberId(), null);                    //This way is referenced by a relation; keep it in the index, and its geometry will be filled in when parsing the ways
+                        if (m.getMemberType().name().equalsIgnoreCase("node")) {
+                            recBuilder.nodeIndex.put("" + m.getMemberId(), null);
+                        }      //This node is referenced by a relation; keep it in the index, and its geometry will be filled in when parsing the nodes
+                        else if (m.getMemberType().name().equalsIgnoreCase("way")) {
+                            recBuilder.wayIndex.put("" + m.getMemberId(), null);
+                        }           //This way is referenced by a relation; keep it in the index, and its geometry will be filled in when parsing the ways
                         else if (m.getMemberType().name().equalsIgnoreCase("relation")) {
                             recBuilder.relationIndex.put("" + m.getMemberId(), null);               //This relation is referenced by another relation; keep it in the index, and its geometry will be filled in when parsing the relations
                             rescanRelations = true;                                                 //Relations need to be scanned once more, as they reference other relations
@@ -468,9 +474,9 @@ public class OsmPbfParser implements Sink {
                 }
             } else {    //Parsing of this OSM relation
 
-                if (inWay)
+                if (inWay) {
                     System.out.println("\nFinished parsing OSM ways.");
-
+                }
                 //Mark position of the parser
                 inNode = false;
                 inWay = false;
@@ -478,8 +484,9 @@ public class OsmPbfParser implements Sink {
                 numRelations++;
 
                 //Skip parsing if this relation is filtered out or not referenced by others
-                if ((!keepIndexed) && (!recBuilder.relationIndex.containsKey("" + myRelation.getId())))
+                if ((!keepIndexed) && (!recBuilder.relationIndex.containsKey("" + myRelation.getId()))) {
                     return;
+                }
 
                 relationTmp = new OSMRelation();
                 relationTmp.setID("" + myRelation.getId());
@@ -491,24 +498,25 @@ public class OsmPbfParser implements Sink {
 
                 //Collect all members of this relation
 //					 System.out.println("Relation " + myRelation.getId() + " Number of members: " +  myRelation.getMembers().size());
-                for (RelationMember m : myRelation.getMembers())
+                for (RelationMember m : myRelation.getMembers()) {
                     relationTmp.addMemberReference("" + m.getMemberId(), m.getMemberType().name(), m.getMemberRole());
-
+                }
                 OSMRecord rec = recBuilder.createOSMRecord(relationTmp);
                 if (rec != null)                  //No records created for incomplete relations during the first pass
                 {
                     //Convert entity
                     if (keepIndexed) {
-                        if (keepUnnamed)
+                        if (keepUnnamed) {
                             myConverter.parse(rec, classification, reproject, targetSRID);
-                        else if (relationTmp.getTagKeyValue().containsKey("name")) {   //CAUTION! Only named entities will be transformed
+                        } else if (relationTmp.getTagKeyValue().containsKey("name")) {   //CAUTION! Only named entities will be transformed
                             myConverter.parse(rec, classification, reproject, targetSRID);
                             numNamedEntities++;
                         }
                     }
 
-                    if (recBuilder.relationIndex.containsKey(relationTmp.getID()))
+                    if (recBuilder.relationIndex.containsKey(relationTmp.getID())) {
                         recBuilder.relationIndex.put(relationTmp.getID(), rec.getGeometry());    //Keep a dictionary of relation geometries, only for those referenced by other OSM relations
+                    }
                 }
 
                 relationTmp = null;
@@ -545,11 +553,11 @@ public class OsmPbfParser implements Sink {
         try {
             if (currentConfig.mode.contains("STREAM")) {
                 //Mode STREAM: consume records and streamline them into a serialization file
-                if (currentConfig.serialization == null)   // Only CSV file will be emitted
+                if (currentConfig.serialization == null) {  // Only CSV file will be emitted
                     myConverter = new OsmCsvConverter(currentConfig, myAssistant, outputFile);
-                else  // Transformation will emit an RDF file with triples and a CSV file with records
+                } else { // Transformation will emit an RDF file with triples and a CSV file with records
                     myConverter = new OsmRdfCsvStreamConverter(currentConfig, myAssistant, outputFile);
-
+                }
                 //Parse each OSM entity and streamline the resulting triples (including geometric and non-spatial attributes)
                 parseDocument();
 
@@ -566,9 +574,10 @@ public class OsmPbfParser implements Sink {
         }
 
         System.out.println(myAssistant.getGMTime() + " Original OSM file contains: " + numNodes + " nodes, " + numWays + " ways, " + numRelations + " relations.");
-        if (!keepUnnamed)
+        if (!keepUnnamed) {
             System.out.println(" In total, " + numNamedEntities + " entities had a name and only those were given as input to transformation.");
-        else
+        } else {
             System.out.println();
+        }
     }
 }

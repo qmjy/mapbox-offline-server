@@ -23,8 +23,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.geometry.jts.GeometryBuilder;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -97,26 +99,36 @@ public class MapServerGeoController {
             List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(level);
             for (SimpleFeature simpleFeature : simpleFeatures) {
                 Object geometry = simpleFeature.getAttribute("geometry");
-                if (geometry instanceof MultiPolygon polygon) {
-                    String[] split = location.split(",");
-                    GeometryBuilder geometryBuilder = new GeometryBuilder();
-                    Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
-                    if (polygon.covers(point)) {
-                        String parentPath = getParentFullPath(simpleFeature, langType, splitter);
-
-                        HashMap<Object, Object> data = new HashMap<>();
-                        data.put("id", simpleFeature.getAttribute("osm_id"));
-                        data.put("name", langType == 0 ? simpleFeature.getAttribute("local_name") : simpleFeature.getAttribute("name_en"));
-                        data.put("adminLevel", simpleFeature.getAttribute("admin_level"));
-                        data.put("fullPath", parentPath + data.get("name"));
-
-                        Map<String, Object> ok = ResponseMapUtil.ok(data);
-                        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
+                if (geometry instanceof Polygon || geometry instanceof MultiPolygon) {
+                    Map<String, Object> result = wrapData(simpleFeature, location, (Geometry) geometry, langType, splitter);
+                    if (!result.isEmpty()) {
+                        return ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(result);
                     }
                 }
             }
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
+    }
+
+
+    private Map<String, Object> wrapData(SimpleFeature simpleFeature, String location, Geometry polygon, int langType, String splitter) {
+        String[] split = location.split(",");
+        GeometryBuilder geometryBuilder = new GeometryBuilder();
+        Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
+        if (polygon.covers(point)) {
+            String parentPath = getParentFullPath(simpleFeature, langType, splitter);
+
+            HashMap<Object, Object> data = new HashMap<>();
+            data.put("id", simpleFeature.getAttribute("osm_id"));
+            data.put("name", langType == 0 ? simpleFeature.getAttribute("local_name") : simpleFeature.getAttribute("name_en"));
+            data.put("adminLevel", simpleFeature.getAttribute("admin_level"));
+            data.put("fullPath", parentPath + data.get("name"));
+
+            return ResponseMapUtil.ok(data);
+        }
+        return new HashMap<>();
     }
 
     private String getParentFullPath(SimpleFeature simpleFeature, int langType, String splitter) {

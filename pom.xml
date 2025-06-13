@@ -192,15 +192,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.wdtinc</groupId>
-            <artifactId>mapbox-vector-tile</artifactId>
-            <version>3.1.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>io.github.sebasbaumh</groupId>
+            <artifactId>mapbox-vector-tile-java</artifactId>
+            <version>24.1.1</version>
         </dependency>
 
         <dependency>
@@ -214,12 +208,6 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <repositories>

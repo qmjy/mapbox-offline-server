@@ -92,6 +92,18 @@
             <version>3.43.0.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-main</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-metadata</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.geotools/gt-geojson-core -->
         <dependency>
             <groupId>org.geotools</groupId>
@@ -132,6 +144,13 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-render</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.geotools/gt-referencing -->
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-referencing</artifactId>
             <version>${geotools.version}</version>
         </dependency>
 
@@ -204,8 +223,8 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

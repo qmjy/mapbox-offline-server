@@ -99,18 +99,23 @@ public class TilesFileModel {
         }
     }
 
+    /**
+     * Mbtiles解析
+     *
+     * @param file      待解析的mbtiles文件
+     * @param className 驱动类名
+     */
     public TilesFileModel(File file, String className) {
-        this.tileFileType = 1;
         this.filePath = file.getAbsolutePath();
         this.name = file.getName();
 
         initJdbc(className, file);
         tryLoadMetaDataFromMbtiles();
-        if (tileFileType == 0) {
+        if (tileFileType == 1) {
             countSize();
             this.isCompressed = compressed();
+            valid = true;
         }
-        valid = true;
     }
 
     public void countSize() {
@@ -153,6 +158,7 @@ public class TilesFileModel {
             for (Map<String, Object> map : mapList) {
                 metaDataMap.put(String.valueOf(map.get("name")), map.get("value"));
             }
+            this.tileFileType = 1;
         } catch (DataAccessException e) {
             logger.error("Load map meta data failed: {}", filePath);
         }

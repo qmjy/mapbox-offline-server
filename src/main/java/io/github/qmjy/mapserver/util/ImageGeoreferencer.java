@@ -10,7 +10,9 @@ import org.geotools.referencing.operation.transform.ProjectiveTransform;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class ImageGeoreferencer {
@@ -194,10 +196,10 @@ public class ImageGeoreferencer {
      * @param imagePoints 图片坐标数组(像素)
      * @return 对应的地理坐标数组
      */
-    public List<Position2D> transformImageToGeo(List<Position2D> imagePoints) throws TransformException {
-        List<Position2D> results = new ArrayList<>(imagePoints.size());
+    public Map<String, Position2D> transformImageToGeo(List<Position2D> imagePoints) throws TransformException {
+        Map<String, Position2D> results = new HashMap<>(imagePoints.size());
         for (Position2D point : imagePoints) {
-            results.add(transformImageToGeo(point));
+            results.put(point.getX() + "" + point.getY(), transformImageToGeo(point));
         }
         return results;
     }
@@ -220,10 +222,10 @@ public class ImageGeoreferencer {
      * @param geoPoints 地理坐标数组
      * @return 对应的图片坐标数组(像素)
      */
-    public List<Point2D> transformGeoToImage(List<Position2D> geoPoints) throws TransformException {
-        List<Point2D> results = new ArrayList<>(geoPoints.size());
+    public Map<String, Point2D> transformGeoToImage(List<Position2D> geoPoints) throws TransformException {
+        Map<String, Point2D> results = new HashMap<>(geoPoints.size());
         for (Position2D point : geoPoints) {
-            results.add(transformGeoToImage(point));
+            results.put(point.getX() + "" + point.getY(), transformGeoToImage(point));
         }
         return results;
     }

@@ -1,0 +1,435 @@
+{
+    "event_id": "e53508f5-1a10-406f-9fb3-642d22c42d4f", 
+    "device_name": "NV1650-T4-10路-10.12.0.19-前89", 
+    "device_id": "d5bc9199-8f19-50e2-f903-2f261c996820", 
+    "task_name": "0506-12:02/密度估计示例", 
+    "task_id": "10296",
+    "app_name": "0506-12:02/密度估计示例",
+    "app_id": "110011121",
+    "src_name": "【算法套包】-人流统计-行人-密度估计-1920x1080.mp4", 
+    "src_id": "99428d52-2444-4f22-9933-216b70063539", 
+    "created": 1748244698, 
+    "details": [
+        {
+            "frame_id": 411, 
+            "metadata": null,
+            "model_id": "", 
+            "model_name": "", 
+            "model_thres": 0, 
+            "model_type": 0, 
+            "regions_with_label": {}, 
+            "image_width": 1920, 
+            "image_height": 1080, 
+            "targets": [
+                { 
+                    "angle": 0,
+                    "box": { 
+                        "left_top_x": 45, 
+                        "left_top_y": 292, 
+                        "right_bottom_x": 46, 
+                        "right_bottom_y": 293 
+                    },
+                    "color": [
+                        255, 
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1141,
+                    "label": "object", 
+                    "moving": false, 
+                    "ocr": "", 
+                    "prob": 0.9039,
+                    "region_label": "", 
+                    "reserved": "", 
+                    "roi_id": -1 
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 120,
+                        "left_top_y": 482,
+                        "right_bottom_x": 121,
+                        "right_bottom_y": 483
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1142,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.6141,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 935,
+                        "left_top_y": 677,
+                        "right_bottom_x": 936,
+                        "right_bottom_y": 678
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1143,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.9996,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1102,
+                        "left_top_y": 433,
+                        "right_bottom_x": 1103,
+                        "right_bottom_y": 434
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 416,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.8396,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1151,
+                        "left_top_y": 962,
+                        "right_bottom_x": 1152,
+                        "right_bottom_y": 963
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1144,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.9546,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1205,
+                        "left_top_y": 360,
+                        "right_bottom_x": 1206,
+                        "right_bottom_y": 361
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1145,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.7515,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1203,
+                        "left_top_y": 675,
+                        "right_bottom_x": 1204,
+                        "right_bottom_y": 676
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1146,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.7671,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1247,
+                        "left_top_y": 988,
+                        "right_bottom_x": 1248,
+                        "right_bottom_y": 989
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1147,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.6105,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1270,
+                        "left_top_y": 483,
+                        "right_bottom_x": 1271,
+                        "right_bottom_y": 484
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1148,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.9128,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1344,
+                        "left_top_y": 71,
+                        "right_bottom_x": 1345,
+                        "right_bottom_y": 72
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1149,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.94,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1414,
+                        "left_top_y": 243,
+                        "right_bottom_x": 1415,
+                        "right_bottom_y": 244
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1150,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.6622,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1417,
+                        "left_top_y": 889,
+                        "right_bottom_x": 1418,
+                        "right_bottom_y": 890
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1151,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.899,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1441,
+                        "left_top_y": 26,
+                        "right_bottom_x": 1442,
+                        "right_bottom_y": 27
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 758,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.7491,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1437,
+                        "left_top_y": 100,
+                        "right_bottom_x": 1438,
+                        "right_bottom_y": 101
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1152,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.7894,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1510,
+                        "left_top_y": 410,
+                        "right_bottom_x": 1511,
+                        "right_bottom_y": 411
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1153,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.7543,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1586,
+                        "left_top_y": 767,
+                        "right_bottom_x": 1587,
+                        "right_bottom_y": 768
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1154,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.9571,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                },
+                {
+                    "angle": 0,
+                    "box": {
+                        "left_top_x": 1803,
+                        "left_top_y": 313,
+                        "right_bottom_x": 1804,
+                        "right_bottom_y": 314
+                    },
+                    "color": [
+                        255,
+                        0,
+                        0,
+                        204
+                    ],
+                    "cross_label": "",
+                    "id": 1155,
+                    "label": "object",
+                    "moving": false,
+                    "ocr": "",
+                    "prob": 0.9593,
+                    "region_label": "",
+                    "reserved": "",
+                    "roi_id": -1
+                }
+            ]
+        }
+    ]
+}

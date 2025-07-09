@@ -18,6 +18,7 @@ package io.github.qmjy.mapserver.controller;
 
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.model.dto.GeoReferencerReqDTO;
+import io.github.qmjy.mapserver.model.dto.GeometryPointDTO;
 import io.github.qmjy.mapserver.util.ImageGeoreferencer;
 import io.github.qmjy.mapserver.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,9 +57,10 @@ public class MapServerGeoController {
      * @param referencerReqDTO 待配准的数据信息
      * @return 配准后的结果。
      */
+    @Operation(summary = "地理配准", description = "将一张图片的像素坐标配准成地理坐标。如果一次批量提交了多个像素坐标，获取结果时需要使用`(int)x + '-' + (int)y`格式的key从Map中获取结果。")
     @PostMapping("/georeferencer")
     @ResponseBody
-    public ResponseEntity<Map<String, Position2D>> georeferencer(@RequestBody GeoReferencerReqDTO referencerReqDTO) {
+    public ResponseEntity<Map<String, GeometryPointDTO>> georeferencer(@RequestBody GeoReferencerReqDTO referencerReqDTO) {
         Position2D[] array = null;
 
         String geometryPoints = referencerReqDTO.getGeometryPoints();
@@ -78,10 +80,8 @@ public class MapServerGeoController {
 
         ImageGeoreferencer imageGeoreferencer = new ImageGeoreferencer(referencerReqDTO.getWidth(), referencerReqDTO.getHeight(), array);
         try {
-            Map<String, Position2D> position2DS = imageGeoreferencer.transformImageToGeo(getPixels(referencerReqDTO.getPixelPoints()));
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(position2DS);
+            Map<String, GeometryPointDTO> points = imageGeoreferencer.transformImageToGeo(getPixels(referencerReqDTO.getPixelPoints()));
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(points);
         } catch (TransformException e) {
             logger.error("地理配准失败：{}", e.toString());
             return ResponseEntity.internalServerError().build();

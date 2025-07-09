@@ -1,5 +1,6 @@
 package io.github.qmjy.mapserver.util;
 
+import io.github.qmjy.mapserver.model.dto.GeometryPointDTO;
 import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.api.referencing.operation.Matrix;
 import org.geotools.api.referencing.operation.TransformException;
@@ -9,7 +10,6 @@ import org.geotools.referencing.operation.matrix.XMatrix;
 import org.geotools.referencing.operation.transform.ProjectiveTransform;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,10 +184,10 @@ public class ImageGeoreferencer {
      * @param imagePoint 图片坐标(像素)
      * @return 对应的地理坐标
      */
-    public Position2D transformImageToGeo(Position2D imagePoint) throws TransformException {
+    public GeometryPointDTO transformImageToGeo(Position2D imagePoint) throws TransformException {
         Position2D result = new Position2D();
         imageToGeoTransform.transform(imagePoint, result);
-        return result;
+        return new GeometryPointDTO(result);
     }
 
     /**
@@ -196,10 +196,10 @@ public class ImageGeoreferencer {
      * @param imagePoints 图片坐标数组(像素)
      * @return 对应的地理坐标数组
      */
-    public Map<String, Position2D> transformImageToGeo(List<Position2D> imagePoints) throws TransformException {
-        Map<String, Position2D> results = new HashMap<>(imagePoints.size());
+    public Map<String, GeometryPointDTO> transformImageToGeo(List<Position2D> imagePoints) throws TransformException {
+        Map<String, GeometryPointDTO> results = new HashMap<>(imagePoints.size());
         for (Position2D point : imagePoints) {
-            results.put(point.getX() + "" + point.getY(), transformImageToGeo(point));
+            results.put((int) point.getX() + "-" + (int) point.getY(), transformImageToGeo(point));
         }
         return results;
     }

@@ -67,6 +67,7 @@ public class MapServerDataCenter {
     /**
      * 字体文件模型
      */
+    @Getter
     private final Map<String, FontsFileModel> fontsMap = new HashMap<>();
 
     /**

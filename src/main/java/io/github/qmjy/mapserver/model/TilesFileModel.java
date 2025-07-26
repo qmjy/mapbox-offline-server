@@ -62,6 +62,7 @@ public class TilesFileModel {
     private final Map<String, Object> metaDataMap = new HashMap<>();
     private final String name;
     private long tilesCount = -1;
+    private long fileLength = 0L;
     //maptiler的数据是gzip压缩；bbbike的未被压缩；
     private boolean isCompressed = false;
 
@@ -91,6 +92,7 @@ public class TilesFileModel {
      */
     public TilesFileModel(File tpk) {
         this.filePath = tpk.getAbsolutePath();
+        this.fileLength = tpk.getAbsoluteFile().length();
         this.name = tpk.getName();
         boolean success = tryLoadMetaDataFromTpk();
         if (success) {
@@ -107,6 +109,7 @@ public class TilesFileModel {
      */
     public TilesFileModel(File file, String className) {
         this.filePath = file.getAbsolutePath();
+        this.fileLength = file.getAbsoluteFile().length();
         this.name = file.getName();
 
         initJdbc(className, file);
@@ -130,25 +133,30 @@ public class TilesFileModel {
 
     private boolean tryLoadMetaDataFromTpk() {
         zoomLevelMap = new HashMap<>();
-        tpkFile = new TPKFile(new File(filePath), zoomLevelMap);
+        try {
+            tpkFile = new TPKFile(new File(filePath), zoomLevelMap);
 
-        //TODO 混合模式以后再支持
-        if ("MIXED".equals(tpkFile.getImageFormat())) {
+            //TODO 混合模式以后再支持
+            if ("MIXED".equals(tpkFile.getImageFormat())) {
+                return false;
+            } else {
+                this.metaDataMap.put("format", tpkFile.getImageFormat().toLowerCase(Locale.getDefault()));
+                this.metaDataMap.put("minzoom", tpkFile.getMinZoomLevel());
+                this.metaDataMap.put("maxzoom", tpkFile.getMaxZoomLevel());
+
+                Position lowerCorner = tpkFile.getBounds().getLowerCorner();
+                Position upperCorner = tpkFile.getBounds().getUpperCorner();
+
+                //TODO 待验证顺序正确性,当前为左下+右上。
+                this.metaDataMap.put("bounds", lowerCorner.getCoordinate()[0] + ","
+                        + lowerCorner.getCoordinate()[1] + ","
+                        + upperCorner.getCoordinate()[0] + ","
+                        + upperCorner.getCoordinate()[1]);
+                return true;
+            }
+        } catch (RuntimeException e) {
+            logger.error("Read tpk failed: {}", e.getMessage());
             return false;
-        } else {
-            this.metaDataMap.put("format", tpkFile.getImageFormat().toLowerCase(Locale.getDefault()));
-            this.metaDataMap.put("minzoom", tpkFile.getMinZoomLevel());
-            this.metaDataMap.put("maxzoom", tpkFile.getMaxZoomLevel());
-
-            Position lowerCorner = tpkFile.getBounds().getLowerCorner();
-            Position upperCorner = tpkFile.getBounds().getUpperCorner();
-
-            //TODO 待验证顺序正确性,当前为左下+右上。
-            this.metaDataMap.put("bounds", lowerCorner.getCoordinate()[0] + ","
-                    + lowerCorner.getCoordinate()[1] + ","
-                    + upperCorner.getCoordinate()[0] + ","
-                    + upperCorner.getCoordinate()[1]);
-            return true;
         }
     }
 

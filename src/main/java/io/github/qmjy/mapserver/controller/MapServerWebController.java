@@ -66,6 +66,12 @@ public class MapServerWebController extends BaseController {
         return "index";
     }
 
+
+    @GetMapping("/fonts.html")
+    public String fonts() {
+        return "fonts";
+    }
+
     @GetMapping("/tools.html")
     public String tools(Model model, HttpServletRequest request) {
         model.addAttribute("basePath", super.getBasePath(request));
@@ -84,13 +90,10 @@ public class MapServerWebController extends BaseController {
     /**
      * 获取支持的瓦片数据库列表
      *
-     * @param model 前端页面数据模型
      * @return 瓦片数据库列表
      */
     @GetMapping("/tilesets.html")
-    public String listTilesets(Model model) {
-        File[] files = mapServerDataCenter.getTilesMap().values().stream().map(item -> new File(item.getFilePath())).toArray(File[]::new);
-        model.addAttribute("tileFiles", files.length > 0 ? wrapThymeleafModel(files) : new ArrayList<>());
+    public String listTilesets() {
         return "tilesets";
     }
 

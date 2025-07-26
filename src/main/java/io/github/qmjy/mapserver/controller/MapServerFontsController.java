@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 支持的字体访问API。
@@ -49,6 +50,16 @@ public class MapServerFontsController {
         this.mapServerDataCenter = MapServerDataCenter.getInstance();
     }
 
+    /**
+     * 获取字体文件列表
+     * @return 字体名称列表
+     */
+    @GetMapping(value = "", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Object> listFonts() {
+        Set<String> strings = mapServerDataCenter.getFontsMap().keySet();
+        return ResponseEntity.ok(strings);
+    }
 
     /**
      * 返回字体文件二进制流

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-Hans-CN">
 <head>
     <meta charset="UTF-8">
-    <title><th:block th:text="${tilesetName}" /> Mapbox预览</title>
+    <title>Mapbox预览</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="/static/assets/maplibre-gl-js/v5.0.1/maplibre-gl.css" rel="stylesheet">
     <script src="/static/assets/maplibre-gl-js/v5.0.1/maplibre-gl.js"></script>
@@ -23,149 +23,176 @@
 
 <body>
 <div id="map"></div>
-<script th:inline="javascript">
-    const metaData = [[${metaData}]];
-    const basePath = [[${basePath}]];
-    const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{y}." + metaData.format;
+<script>
+    function showMap(tileName, result, style) {
+        const hostUrl = `${window.location.protocol}//${window.location.host}`
+        const map = new maplibregl.Map({
+            container: 'map',
+            attributionControl: false,
+            style: {
+                "version": 8,
+                "name": "Mapbox",
+                "sprite": `${hostUrl}/static/sprites/${style}/sprite`,
+                "glyphs": `${hostUrl}/api/fonts/{fontstack}/{range}.pbf`,
+                "sources": {
+                    "osm-tiles": {
+                        "scheme": "tms",
+                        "type": "vector",
+                        "tiles": [`${hostUrl}/api/tilesets/${tileName}/{z}/{x}/{y}.${result.format}`],
+                        "bounds": result.bounds.split(",").map(Number),
+                        "minzoom": parseInt(result.minzoom),
+                        "maxzoom": parseInt(result.maxzoom),
+                        "attribution":
+                            "<a href='https://github.com/qmjy/mapbox-offline-server'>github</a> | &copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                    }
+                },
+                "layers": []
+            },
+            center: [110, 30],
+            zoom: 3,
+            hash: true
+        });
 
-    const map = new maplibregl.Map({
-        container: 'map',
-        attributionControl: false,
-        style: {
-            "version": 8,
-            "name": "Mapbox",
-            "sprite": basePath + (metaData.name === "Shortbread" ? "/static/sprites/versatiles/sprites" : "/static/sprites/streets/sprite"),
-            "glyphs": basePath + "/api/fonts/{fontstack}/{range}.pbf",
-            "sources": {
-                "osm-tiles": {
-                    "scheme": "tms",
-                    "type": "vector",
-                    "tiles": [tiles],
-                    "bounds": metaData.bounds.split(",").map(Number),
-                    "minzoom": parseInt(metaData.minzoom),
-                    "maxzoom": parseInt(metaData.maxzoom),
-                    "attribution":
-                        "<a href='https://github.com/qmjy/mapbox-offline-server'>github</a> | &copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+        function addAdminBoundary(color) {
+            map.addSource('China', {
+                type: 'geojson',
+                data: '/static/ChinaProvince.geojson'
+            });
+
+            map.addLayer({
+                id: 'blur-line',
+                type: 'line',
+                source: 'China',
+                paint: {
+                    "line-color": color,
+                    "line-width": 10,
+                    "line-blur": 6  //模糊效果
+                },
+            });
+
+            map.addLayer({
+                id: 'white-line',
+                type: 'line',
+                source: 'China',
+                paint: {
+                    "line-color": "white",
+                    "line-width": 2
+                },
+            });
+
+            map.addLayer({
+                id: 'Province',
+                type: 'symbol',
+                source: 'China',
+                layout: {
+                    'text-field': ['get', 'name'],
+                    'text-size': 12,
+                    "text-allow-overlap": false,
+                    "text-offset": [0, 0],
+                    "text-anchor": "center",
+                    "text-justify": "center",
+                    'text-font': ['Arial Unicode MS Regular'],
+                },
+                paint: {
+                    "text-halo-color": "#444444",
+                    "text-halo-width": 1,
+                    "text-color": '#FFFFFF'
+                },
+                visibility: 'visible'
+            });
+        }
+
+        function addLayers() {
+            //https://versatiles.org/overview.html
+            if (result.name === "Shortbread") {
+                const request = new XMLHttpRequest();
+                request.open("get", "/static/styles/VersaTiles.json");
+                request.send(null);
+                request.onload = function () {
+                    if (request.status === 200) {
+                        const layers = JSON.parse(request.responseText);
+                        layers.forEach(function (layer) {
+                            map.addLayer(layer);
+                        })
+                    }
+                    addAdminBoundary("#00263D")
                 }
-            },
-            "layers": []
-        },
-        center: [110, 30],
-        zoom: 3,
-        hash: true
-    });
+            } else {
+                const request = new XMLHttpRequest();
+                request.open("get", "/static/styles/blue.json");
+                request.send(null);
+                request.onload = function () {
+                    if (request.status === 200) {
+                        const layers = JSON.parse(request.responseText);
+                        layers.forEach(function (layer) {
+                            map.addLayer(layer);
+                        })
+                    }
+                    addAdminBoundary("#70CBFF")
+                }
+            }
+        }
 
-    function addAdminBoundary(color) {
-        map.addSource('China', {
-            type: 'geojson',
-            data: '/static/ChinaProvince.geojson'
+        map.on('load', async () => {
+            let image = await map.loadImage('/static/images/window.png');
+            map.addImage('window', image.data);
+
+            addLayers()
+
+            if (result.center) {
+                setTimeout(function () {
+                    const center = JSON.parse(result.center);
+                    map.flyTo({
+                        center: [center[0], center[1]],
+                        zoom: center[2],
+                        essential: true
+                    });
+                }, 2000)
+            } else {
+                console.log("no center set!")
+            }
         });
 
-        map.addLayer({
-            id: 'blur-line',
-            type: 'line',
-            source: 'China',
-            paint: {
-                "line-color": color,
-                "line-width": 10,
-                "line-blur": 6  //模糊效果
-            },
+        map.on('zoom', function () {
+            if (map.getZoom() > 10) {
+                map.setLayoutProperty('Province', 'visibility', 'none');
+            } else {
+                map.setLayoutProperty('Province', 'visibility', 'visible');
+            }
         });
 
-        map.addLayer({
-            id: 'white-line',
-            type: 'line',
-            source: 'China',
-            paint: {
-                "line-color": "white",
-                "line-width": 2
-            },
-        });
-
-        map.addLayer({
-            id: 'Province',
-            type: 'symbol',
-            source: 'China',
-            layout: {
-                'text-field': ['get', 'name'],
-                'text-size': 12,
-                "text-allow-overlap": false,
-                "text-offset": [0, 0],
-                "text-anchor": "center",
-                "text-justify": "center",
-                'text-font': ['Arial Unicode MS Regular'],
-            },
-            paint: {
-                "text-halo-color": "#444444",
-                "text-halo-width": 1,
-                "text-color": '#FFFFFF'
-            },
-            visibility: 'visible'
-        });
+        map.addControl(new maplibregl.NavigationControl())
+        map.addControl(new maplibregl.FullscreenControl())
+        map.addControl(new maplibregl.ScaleControl())
     }
 
-    function addLayers() {
-        //https://versatiles.org/overview.html
-        if (metaData.name === "Shortbread") {
-            const request = new XMLHttpRequest();
-            request.open("get", "/static/styles/VersaTiles.json");
-            request.send(null);
-            request.onload = function () {
-                if (request.status === 200) {
-                    const layers = JSON.parse(request.responseText);
-                    layers.forEach(function (layer) {
-                        map.addLayer(layer);
-                    })
-                }
-                addAdminBoundary("#00263D")
-            }
-        } else {
-            const request = new XMLHttpRequest();
-            request.open("get", "/static/styles/blue.json");
-            request.send(null);
-            request.onload = function () {
-                if (request.status === 200) {
-                    const layers = JSON.parse(request.responseText);
-                    layers.forEach(function (layer) {
-                        map.addLayer(layer);
-                    })
-                }
-                addAdminBoundary("#70CBFF")
-            }
+
+    function getTilesetName() {
+        let url = window.location.href
+        if (url.indexOf("#") > 0) {
+            url = url.split("#")[0];
         }
+        let strings = url.split("/");
+        return strings[strings.length - 1]
     }
 
-    map.on('load', async () => {
-        let image = await map.loadImage('/static/images/window.png');
-        map.addImage('window', image.data);
-
-        addLayers()
-
-        if (metaData.center) {
-            setTimeout(function () {
-                const center = metaData.center.split(",");
-                map.flyTo({
-                    center: [center[0], center[1]],
-                    zoom: center[2],
-                    essential: true
-                });
-            }, 2000)
-        } else {
-            console.log("no center set!")
-        }
+    window.addEventListener("load", function () {
+        const tilesetName = getTilesetName();
+        document.title = `Mapbox矢量预览-${tilesetName}`;
+        fetch(`/api/tilesets/${tilesetName}/tiles.json`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                showMap(tilesetName, data, data.name === "Shortbread" ? "versatiles" : "streets");
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     });
-
-    map.on('zoom', function () {
-        if (map.getZoom() > 10) {
-            map.setLayoutProperty('Province', 'visibility', 'none');
-        } else {
-            map.setLayoutProperty('Province', 'visibility', 'visible');
-        }
-    });
-
-    map.addControl(new maplibregl.NavigationControl())
-    map.addControl(new maplibregl.FullscreenControl())
-    map.addControl(new maplibregl.ScaleControl())
 </script>
 </body>
 </html>

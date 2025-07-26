@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-Hans-CN">
 <head>
     <meta charset="UTF-8">
-    <title><th:block th:text="${tilesetName}" /> Openlayers预览</title>
+    <title>Openlayers栅格预览</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="/static/assets/openlayers/v9.2.4/ol.css" rel="stylesheet">
     <script src="/static/assets/openlayers/v9.2.4/ol.js"></script>
@@ -22,26 +22,28 @@
 
 <body>
 <div id="map"></div>
-<script th:inline="javascript">
-    const metaData = [[${metaData}]];
-    const basePath = [[${basePath}]];
-    const tiles = basePath + "/api/tilesets/" + [[${tilesetName}]] + "/{z}/{x}/{-y}." + metaData.format;
+<script>
 
-    const map = new ol.Map({
-        layers: [
-            new ol.layer.Tile({
-                source: new ol.source.XYZ({
-                    url: tiles
+    function showMap(tileName, result) {
+        const hostUrl = `${window.location.protocol}//${window.location.host}`
+        const center = JSON.parse(result.center);
+
+        const map = new ol.Map({
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.XYZ({
+                        url: `${hostUrl}/api/tilesets/${tileName}/{z}/{x}/{-y}.${result.format}`
+                    })
                 })
-            })
-        ],
-        view: new ol.View({
-            center: ol.proj.fromLonLat([104.330139, 30.734559]),
-            zoom: 2,
-            projection: 'EPSG:3857'
-        }),
-        target: 'map'
-    });
+            ],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([center[0], center[1]]),
+                zoom: center[2],
+                projection: 'EPSG:3857'
+            }),
+            target: 'map'
+        });
+    }
 
     // var styleFunction = function(feature) {
     //     return new ol.style.Style({
@@ -78,6 +80,33 @@
     //     style: styleFunction
     // })
     // map.addLayer(lineLayer);
+
+    function getTilesetName() {
+        let url = window.location.href
+        if (url.indexOf("#") > 0) {
+            url = url.split("#")[0];
+        }
+        let strings = url.split("/");
+        return strings[strings.length - 1]
+    }
+
+    window.addEventListener("load", function () {
+        const tilesetName = getTilesetName();
+        document.title = `Openlayers栅格预览-${tilesetName}`;
+        fetch(`/api/tilesets/${tilesetName}/tiles.json`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                showMap(tilesetName, data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
 </script>
 </body>
 

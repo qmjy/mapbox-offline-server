@@ -15,38 +15,109 @@
   -->
 
 <!DOCTYPE html>
-<html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-Hans-CN">
 <head>
     <meta charset="UTF-8">
     <title>瓦片数据库列表</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/static/css/style.css}">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
 </head>
 <body>
 <h1>瓦片数据库列表</h1>
 <hr>
 
-<table th:if="${tileFiles}" style="border-spacing:10px">
+<table style="border-spacing:10px" id="tilesetsTable">
+    <thead>
     <tr>
         <th>名称</th>
         <th>mapbox</th>
-        <th>openlayer</th>
-        <th>文件格式</th>
+        <th>openlayers</th>
+        <th>瓦片数</th>
         <th>文件大小</th>
         <th>元数据</th>
         <th>瓦片地址</th>
     </tr>
-    <tr th:each="file : ${tileFiles}">
-        <td th:text="${file.getName()}"></td>
-        <td><a th:href="@{'/mapbox/'+${file.getName()}}">预览</a></td>
-        <td><a th:href="@{'/openlayers/'+${file.getName()}}">预览</a></td>
-        <td th:text="${file.getType()}"></td>
-        <td th:text="${file.getFileSize()}" style="text-align:right"></td>
-        <td></td>
-        <td th:text="'/tilesets/' + ${file.getName()} + '/{z}/{x}/{y}.' + ${file.getMetaDataMap()==null?'':file.getMetaDataMap().get('format')}"></td>
-    </tr>
+    </thead>
+    <tbody id="tilesets"></tbody>
 </table>
 
 <!--/* tileFiles为空时显示 */-->
-<div th:unless="${tileFiles}">未检测到瓦片数据库文件</div>
+<div id="noTilesets">未检测到瓦片数据库文件</div>
+
+<script>
+    function showTileSets(result) {
+        if (result.data) {
+            const table = document.getElementById('tilesets');
+            for (const key in result.data) {
+                const tr = document.createElement('tr');
+
+                const td1 = document.createElement('td');
+                td1.textContent = key
+                tr.appendChild(td1);
+
+                const td2 = document.createElement('td');
+                const mapboxPreview = document.createElement("a")
+                mapboxPreview.href = `/mapbox/${key}`;
+                mapboxPreview.textContent = `预览`;
+                td2.appendChild(mapboxPreview);
+                tr.appendChild(td2);
+
+                const td3 = document.createElement('td');
+                const olPreview = document.createElement("a")
+                olPreview.href = `/openlayers/${key}`;
+                olPreview.textContent = `预览`;
+                td3.appendChild(olPreview);
+                tr.appendChild(td3);
+
+                const td4 = document.createElement('td');
+                td4.textContent = `${result.data[key].tilesCount<=0 ? "未知" : result.data[key].tilesCount}`;
+                tr.appendChild(td4);
+
+                const td5 = document.createElement('td');
+                td5.textContent = `${(result.data[key].fileLength / 1024 / 1024).toFixed(2)} Mb`;
+                tr.appendChild(td5);
+
+                const td6 = document.createElement('td');
+                const meta = document.createElement("a")
+                meta.href = `/api/tilesets/${key}/tiles.json`;
+                meta.textContent = `元数据`;
+                td6.appendChild(meta);
+                tr.appendChild(td6);
+
+                const td7 = document.createElement('td');
+                td7.textContent = `/tilesets/${key}/{z}/{x}/{y}.` + (result.data[key] == null ? "" : result.data[key].metaDataMap['format'])
+                tr.appendChild(td7);
+
+                table.appendChild(tr);
+            }
+
+            const div = document.getElementById('noTilesets');
+            div.style.display = 'none';
+            const tableContainer = document.getElementById('tilesetsTable');
+            tableContainer.style.display = 'block';
+        } else {
+            const div = document.getElementById('noTilesets');
+            div.style.display = 'block';
+            const tableContainer = document.getElementById('tilesetsTable');
+            tableContainer.style.display = 'none';
+        }
+    }
+
+    window.addEventListener("load", function () {
+        fetch('/api/tilesets')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                showTileSets(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
+</script>
+
 </body>
 </html>

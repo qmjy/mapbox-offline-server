@@ -115,7 +115,7 @@ public class MapServerTilesetsRestController {
         }
 
         Map<String, Object> metaDataMap = tilesFileModel.getMetaDataMap();
-        HashMap<Object, Object> data = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         data.put("tilejson", "3.0.0");
         data.put("tiles", new String[0]);
         if (metaDataMap.get("json") != null) {
@@ -135,7 +135,7 @@ public class MapServerTilesetsRestController {
         data.put("version", metaDataMap.get("version"));
         data.put("description", metaDataMap.get("description"));
         data.put("format", metaDataMap.get("format"));
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(data));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(data);
     }
 
     private List<VectorLayers> getJsonObj(Object json) {

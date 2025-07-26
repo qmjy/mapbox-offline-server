@@ -15,30 +15,28 @@
   -->
 
 <!DOCTYPE html>
-<html lang="zh-Hans-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-Hans-CN">
 <head>
     <meta charset="UTF-8">
     <title>字体文件列表</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/static/css/style.css}">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
 </head>
 <body>
 <h1>字体文件列表</h1>
 <hr>
 
-<table th:if="${fonts}" cellspacing="10">
-    <tr>
-        <th>名称</th>
-    </tr>
-    <tr th:each="font:${fonts}">
-        <td><a th:href="@{'/api/fonts/'+${font.name}}" th:text="${font.name}"></a></td>
-    </tr>
+<table id="fontTable" cellspacing="10" style="display:none">
+    <thead>
+        <tr>
+            <th>名称</th>
+            <th>调用URL</th>
+        </tr>
+    </thead>
+    <tbody id="fonts">
+    </tbody>
 </table>
 
-<!--/* tileFiles为空时显示 */-->
-<div th:unless="${fonts}">未检测到字体文件目录</div>
-
-<hr>
-<div class="notice">未检测到样式文件目录，则请检查服务器启动参数：“--dataPath=xxx”,且文件结构如下:
+<div id="error" style="display:none" class="notice">未检测到样式文件目录，则请检查服务器启动参数：“--dataPath=xxx”,且文件结构如下:
     <pre>
     data
     │
@@ -64,4 +62,52 @@
 </pre>
 </div>
 </body>
+<script>
+    function showFonts(result){
+        if(result.length > 0 ){
+            const element = document.getElementById('error');
+            element.style.display = 'none';
+
+            const fontTable = document.getElementById('fontTable');
+            fontTable.style.display = 'block';
+
+            const table = document.getElementById('fonts');
+            for (let key in result) {
+                const tr = document.createElement('tr');
+
+                const td1 = document.createElement('td');
+                td1.textContent = result[key]
+                tr.appendChild(td1);
+
+                const td2 = document.createElement('td');
+                td2.textContent = "/api/fonts/"+ result[key] + "/{range}.pbf";
+                tr.appendChild(td2);
+
+                table.appendChild(tr);
+            }
+        }else{
+            const element = document.getElementById('error');
+            element.style.display = 'block';
+
+            const fontTable = document.getElementById('fontTable');
+            fontTable.style.display = 'none';
+        }
+    }
+
+    window.addEventListener("load", function () {
+        fetch('/api/fonts')
+            .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+            .then(data => {
+            showFonts(data);
+        })
+            .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+</script>
 </html>

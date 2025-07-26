@@ -23,6 +23,7 @@ import io.github.qmjy.mapserver.model.AdministrativeDivisionTmp;
 import io.github.qmjy.mapserver.model.FontsFileModel;
 import io.github.qmjy.mapserver.model.TilesFileModel;
 import lombok.Getter;
+import lombok.Setter;
 import org.geotools.api.data.FileDataStore;
 import org.geotools.api.data.FileDataStoreFinder;
 import org.geotools.api.feature.simple.SimpleFeature;
@@ -45,49 +46,68 @@ import java.util.*;
  */
 @Component
 public class MapServerDataCenter {
+
     private static final Logger logger = LoggerFactory.getLogger(MapServerDataCenter.class);
+
+    private static final MapServerDataCenter INSTANCE = new MapServerDataCenter();
 
     /**
      * 瓦片数据库文件模型
      */
     @Getter
-    private static final Map<String, TilesFileModel> tilesMap = new HashMap<>();
+    private final Map<String, TilesFileModel> tilesMap = new HashMap<>();
     /**
      * 不会再被加载的文件列表
      */
-    private static final Set<String> blockedTiles = new HashSet<>();
+    private final Set<String> blockedTiles = new HashSet<>();
 
 
-    private static final Map<String, FileDataStore> shpDataStores = new HashMap<>();
+    private final Map<String, FileDataStore> shpDataStores = new HashMap<>();
 
     /**
      * 字体文件模型
      */
-    private static final Map<String, FontsFileModel> fontsMap = new HashMap<>();
+    private final Map<String, FontsFileModel> fontsMap = new HashMap<>();
 
     /**
      * 行政区划数据。key:行政级别、value:区划对象列表
      */
     @Getter
-    private static final Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = new HashMap<>();
+    private final Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = new HashMap<>();
 
     /**
      * 行政区划数据。key:区划ID、value:区划对象
      */
     @Getter
-    private static final Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
+    private final Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
 
     @Getter
-    private static final Map<String, GraphHopper> hopperMap = new HashMap<>();
+    private final Map<String, GraphHopper> hopperMap = new HashMap<>();
 
     /**
      * 行政区划层级树
      */
     @Getter
-    private static AdministrativeDivisionTmp simpleAdminDivision;
+    private AdministrativeDivisionTmp simpleAdminDivision;
 
     @Getter
-    private static boolean mapnikReady = false;
+    @Setter
+    private boolean mapnikReady = false;
+
+    /**
+     * 初始化完成后再启动扫描
+     */
+    @Getter
+    @Setter
+    private boolean initialized = false;
+
+
+    private MapServerDataCenter() {
+    }
+
+    public static MapServerDataCenter getInstance() {
+        return INSTANCE;
+    }
 
     /**
      * 初始化数据源
@@ -95,7 +115,7 @@ public class MapServerDataCenter {
      * @param className 驱动名称
      * @param mbtiles   待链接的数据库文件
      */
-    public static void initJdbcTemplate(String className, File mbtiles) {
+    public void initJdbcTemplate(String className, File mbtiles) {
         if (!tilesMap.containsKey(mbtiles.getName())) {
             logger.info("Try to load tile of mbtiles: {}", mbtiles.getName());
             TilesFileModel dbFileModel = new TilesFileModel(mbtiles, className);
@@ -110,7 +130,7 @@ public class MapServerDataCenter {
      *
      * @param tpk tpk文件
      */
-    public static void indexTpk(File tpk) {
+    public void indexTpk(File tpk) {
         if (!tilesMap.containsKey(tpk.getName()) && !blockedTiles.contains(tpk.getName())) {
             logger.info("Try to load tile of tpk: {}", tpk.getName());
             TilesFileModel dbFileModel = new TilesFileModel(tpk);
@@ -122,7 +142,7 @@ public class MapServerDataCenter {
         }
     }
 
-    public static void initShapefile(File shapefile) {
+    public void initShapefile(File shapefile) {
         FileDataStore dataStore = null;
         try {
             dataStore = FileDataStoreFinder.getDataStore(shapefile);
@@ -132,16 +152,16 @@ public class MapServerDataCenter {
         shpDataStores.put(shapefile.getName(), dataStore);
     }
 
-    public static FileDataStore getShpDataStores(String shapefile) {
+    public FileDataStore getShpDataStores(String shapefile) {
         return shpDataStores.get(shapefile);
     }
 
-    public static void initHopper(String fileName, GraphHopper hopper) {
+    public void initHopper(String fileName, GraphHopper hopper) {
         hopperMap.put(fileName, hopper);
     }
 
-    public static void initMapnik(boolean ready) {
-        MapServerDataCenter.mapnikReady = ready;
+    public void initMapnik(boolean ready) {
+        MapServerDataCenter.getInstance().setMapnikReady(ready);
     }
 
 
@@ -150,7 +170,7 @@ public class MapServerDataCenter {
      *
      * @param fontFolder 字体文件目录
      */
-    public static void initFontsFile(File fontFolder) {
+    public void initFontsFile(File fontFolder) {
         fontsMap.put(fontFolder.getName(), new FontsFileModel(fontFolder));
     }
 
@@ -159,7 +179,7 @@ public class MapServerDataCenter {
      *
      * @param boundary 行政区划边界
      */
-    public static void initBoundaryFile(File boundary) {
+    public void initBoundaryFile(File boundary) {
         try {
             GeoJSONReader reader = new GeoJSONReader(new FileInputStream(boundary));
             SimpleFeatureIterator features = reader.getFeatures().features();
@@ -185,7 +205,7 @@ public class MapServerDataCenter {
         }
     }
 
-    private static void packageModel() {
+    private void packageModel() {
         administrativeDivision.values().forEach(feature -> {
             if (simpleAdminDivision == null) {
                 simpleAdminDivision = initRootNode(feature);
@@ -217,7 +237,7 @@ public class MapServerDataCenter {
         });
     }
 
-    private static boolean contains(AdministrativeDivisionTmp child, int parentId) {
+    private boolean contains(AdministrativeDivisionTmp child, int parentId) {
         for (AdministrativeDivisionTmp item : child.getChildren()) {
             if (item.getId() == parentId) {
                 return true;
@@ -227,7 +247,7 @@ public class MapServerDataCenter {
     }
 
 
-    private static AdministrativeDivisionTmp initRootNode(SimpleFeature feature) {
+    private AdministrativeDivisionTmp initRootNode(SimpleFeature feature) {
         Object parents = feature.getAttribute("parents");
         if (parents == null) {
             return new AdministrativeDivisionTmp(feature, -1);
@@ -251,7 +271,7 @@ public class MapServerDataCenter {
         }
     }
 
-    private static Optional<AdministrativeDivisionTmp> findNode(AdministrativeDivisionTmp tmp, int parentId) {
+    private Optional<AdministrativeDivisionTmp> findNode(AdministrativeDivisionTmp tmp, int parentId) {
         if (tmp.getId() == parentId) {
             return Optional.of(tmp);
         }

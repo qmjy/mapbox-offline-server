@@ -34,8 +34,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 系统主页
@@ -47,9 +49,9 @@ public class MapServerWebController extends BaseController {
     private final MapServerDataCenter mapServerDataCenter;
     private final AppConfig appConfig;
 
-    public MapServerWebController(AppConfig appConfig, MapServerDataCenter mapServerDataCenter) {
+    public MapServerWebController(AppConfig appConfig) {
         this.appConfig = appConfig;
-        this.mapServerDataCenter = mapServerDataCenter;
+        this.mapServerDataCenter = MapServerDataCenter.getInstance();
     }
 
 
@@ -67,7 +69,7 @@ public class MapServerWebController extends BaseController {
     @GetMapping("/tools.html")
     public String tools(Model model, HttpServletRequest request) {
         model.addAttribute("basePath", super.getBasePath(request));
-        File[] tilesets = (File[]) MapServerDataCenter.getTilesMap().values().stream().map(item -> new File(item.getFilePath())).toArray(File[]::new);
+        File[] tilesets = (File[]) mapServerDataCenter.getTilesMap().values().stream().map(item -> new File(item.getFilePath())).toArray(File[]::new);
         String selectTileset = "";
         if (tilesets.length > 0) {
             List<File> list = Arrays.stream(tilesets).filter(tileset -> tileset.getName().toLowerCase().contains("china")).toList();
@@ -87,7 +89,7 @@ public class MapServerWebController extends BaseController {
      */
     @GetMapping("/tilesets.html")
     public String listTilesets(Model model) {
-        File[] files = MapServerDataCenter.getTilesMap().values().stream().map(item -> new File(item.getFilePath())).toArray(File[]::new);
+        File[] files = mapServerDataCenter.getTilesMap().values().stream().map(item -> new File(item.getFilePath())).toArray(File[]::new);
         model.addAttribute("tileFiles", files.length > 0 ? wrapThymeleafModel(files) : new ArrayList<>());
         return "tilesets";
     }
@@ -241,7 +243,7 @@ public class MapServerWebController extends BaseController {
             return dataList;
         }
         for (File file : files) {
-            TilesFileModel tilesFileModel = MapServerDataCenter.getTilesMap().get(file.getName());
+            TilesFileModel tilesFileModel = mapServerDataCenter.getTilesMap().get(file.getName());
             if (tilesFileModel != null) {
                 // 大mbtiles文件可能加载还未就绪
                 dataList.add(new TilesViewModel(file, tilesFileModel.getMetaDataMap()));

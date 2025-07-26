@@ -52,6 +52,7 @@ import java.util.*;
 public class MapServerOsmBController {
     private static final Logger logger = LoggerFactory.getLogger(MapServerOsmBController.class);
     private final Map<String, AdministrativeDivision> cacheMap = new HashMap<>();
+    private final MapServerDataCenter mapServerDataCenter = MapServerDataCenter.getInstance();
 
     /**
      * 获取行政区划数据，为空则从根节点开始
@@ -67,7 +68,7 @@ public class MapServerOsmBController {
     public ResponseEntity<Map<String, Object>> loadAdministrativeDivision(@Parameter(description = "行政区划的根节点") @RequestParam(value = "nodeId", required = false, defaultValue = "0") int nodeId,
                                                                           @Parameter(description = "支持本地语言(0: default)和英语(1)。") @RequestParam(value = "lang", required = false, defaultValue = "0") int lang,
                                                                           @Parameter(description = "是否递归包含子节点。不递归：0(default)和递归(1)。") @RequestParam(value = "recursion", required = false, defaultValue = "0") int recursion) {
-        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
+        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = mapServerDataCenter.getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
@@ -82,10 +83,10 @@ public class MapServerOsmBController {
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(cacheMap.get(key)));
             }
 
-            AdministrativeDivisionTmp root = MapServerDataCenter.getSimpleAdminDivision();
+            AdministrativeDivisionTmp root = mapServerDataCenter.getSimpleAdminDivision();
             if (nodeId != 0) {
-                if (MapServerDataCenter.getAdministrativeDivision().containsKey(nodeId)) {
-                    Optional<AdministrativeDivisionTmp> rootOpt = getRoot(MapServerDataCenter.getSimpleAdminDivision(), nodeId);
+                if (mapServerDataCenter.getAdministrativeDivision().containsKey(nodeId)) {
+                    Optional<AdministrativeDivisionTmp> rootOpt = getRoot(mapServerDataCenter.getSimpleAdminDivision(), nodeId);
                     if (rootOpt.isPresent()) {
                         root = rootOpt.get();
                     }
@@ -128,14 +129,14 @@ public class MapServerOsmBController {
     @Operation(summary = "获取省市区划节点ID列表", description = "查询行政区划节点ID列表。")
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)))
     public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNodes(@Parameter(description = "行政区划的根节点") @RequestParam(value = "nodeId", required = false, defaultValue = "0") int nodeId) {
-        if (MapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
+        if (mapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         }
-        AdministrativeDivisionTmp root = MapServerDataCenter.getSimpleAdminDivision();
+        AdministrativeDivisionTmp root = mapServerDataCenter.getSimpleAdminDivision();
         if (nodeId != 0) {
-            Optional<AdministrativeDivisionTmp> rootOpt = getRoot(MapServerDataCenter.getSimpleAdminDivision(), nodeId);
+            Optional<AdministrativeDivisionTmp> rootOpt = getRoot(mapServerDataCenter.getSimpleAdminDivision(), nodeId);
             if (rootOpt.isPresent()) {
                 root = rootOpt.get();
             }
@@ -168,13 +169,13 @@ public class MapServerOsmBController {
     public ResponseEntity<Map<String, Object>> loadAdministrativeDivisionNode(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId,
                                                                               @Parameter(description = "返回的边界数据格式。0：WKT；1:geojson") @RequestParam(value = "type", required = false, defaultValue = "0") int type
     ) {
-        if (MapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
+        if (mapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         }
         if (nodeId != null) {
-            Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
+            Map<Integer, SimpleFeature> administrativeDivision = mapServerDataCenter.getAdministrativeDivision();
             if (administrativeDivision.containsKey(nodeId)) {
                 SimpleFeature simpleFeature = administrativeDivision.get(nodeId);
 
@@ -226,13 +227,13 @@ public class MapServerOsmBController {
     @ApiResponse(responseCode = "200", description = "成功响应", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)))
     @Operation(summary = "判断经纬度坐标是否在某个行政区划范围内", description = "判断经纬度坐标是否在某个行政区划范围内。")
     public ResponseEntity<Map<String, Object>> contains(@Parameter(description = "行政区划节点ID，例如：-2110264。") @PathVariable Integer nodeId, @Parameter(description = "待判断的经纬度坐标，多个参数用“;”分割。例如：104.071883,30.671974;104.071823,30.671374") @RequestParam(value = "locations") String locations) {
-        if (MapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
+        if (mapServerDataCenter.getAdministrativeDivisionLevel().isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         }
         if (nodeId != null) {
-            Map<Integer, SimpleFeature> administrativeDivision = MapServerDataCenter.getAdministrativeDivision();
+            Map<Integer, SimpleFeature> administrativeDivision = mapServerDataCenter.getAdministrativeDivision();
             if (administrativeDivision.containsKey(nodeId)) {
                 SimpleFeature simpleFeature = administrativeDivision.get(nodeId);
                 Object geometry = simpleFeature.getAttribute("geometry");

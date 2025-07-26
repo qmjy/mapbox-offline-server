@@ -2,10 +2,10 @@ package io.github.qmjy.mapserver.async;
 
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.config.AppConfig;
-import io.github.qmjy.mapserver.service.AsyncService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -21,8 +21,13 @@ public class AsyncTask {
     /**
      * 每10秒执行一次
      */
+    @Async
     @Scheduled(cron = "0/10 * * * * ?")
     public void tasks() {
+        if (!MapServerDataCenter.getInstance().isInitialized()) {
+            return;
+        }
+
         if (StringUtils.hasLength(appConfig.getDataPath())) {
             File dataFolder = new File(appConfig.getDataPath());
             if (dataFolder.isDirectory() && dataFolder.exists()) {
@@ -30,14 +35,14 @@ public class AsyncTask {
                 File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES));
                 if (files != null) {
                     for (File dbFile : files) {
-                        MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
+                        MapServerDataCenter.getInstance().initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
                     }
                 }
 
                 File[] tpks = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_TPK));
                 if (tpks != null) {
                     for (File tpk : tpks) {
-                        MapServerDataCenter.indexTpk(tpk);
+                        MapServerDataCenter.getInstance().indexTpk(tpk);
                     }
                 }
             }

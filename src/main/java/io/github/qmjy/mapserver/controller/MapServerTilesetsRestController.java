@@ -77,9 +77,9 @@ public class MapServerTilesetsRestController {
     private final MapServerDataCenter mapServerDataCenter;
     private final AppConfig appConfig;
 
-    public MapServerTilesetsRestController(AsyncService asyncService, MapServerDataCenter mapServerDataCenter, AppConfig appConfig) {
+    public MapServerTilesetsRestController(AsyncService asyncService, AppConfig appConfig) {
         this.asyncService = asyncService;
-        this.mapServerDataCenter = mapServerDataCenter;
+        this.mapServerDataCenter = MapServerDataCenter.getInstance();
         this.appConfig = appConfig;
     }
 
@@ -92,7 +92,7 @@ public class MapServerTilesetsRestController {
     @ResponseBody
     @Operation(summary = "瓦片集", description = "当前已经被加载到的有效瓦片集数据")
     public ResponseEntity<Map<String, Object>> getTilesList() {
-        Map<String, TilesFileModel> tilesMap = MapServerDataCenter.getTilesMap();
+        Map<String, TilesFileModel> tilesMap = mapServerDataCenter.getTilesMap();
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(tilesMap));
     }
 
@@ -517,7 +517,7 @@ public class MapServerTilesetsRestController {
     }
 
     private Optional<byte[]> getBytesFromTpk(String tileset, int zoom, int x, int y, MediaType defaultMediaType) {
-        TilesFileModel tilesFileModel = MapServerDataCenter.getTilesMap().get(tileset);
+        TilesFileModel tilesFileModel = mapServerDataCenter.getTilesMap().get(tileset);
         TPKZoomLevel tpkZoomLevel = tilesFileModel.getZoomLevelMap().get((long) zoom);
         if (tpkZoomLevel == null) {
             return Optional.empty();
@@ -534,7 +534,7 @@ public class MapServerTilesetsRestController {
     }
 
     private Optional<byte[]> getBytesFromSqlite(String tileset, int z, int x, int y, MediaType defaultMediaType) {
-        boolean compressed = MapServerDataCenter.getTilesMap().get(tileset).isCompressed();
+        boolean compressed = mapServerDataCenter.getTilesMap().get(tileset).isCompressed();
         Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
         if (jdbcTemplateOpt.isPresent()) {
             JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();

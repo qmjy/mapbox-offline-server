@@ -45,8 +45,8 @@ public class MapServerFontsController {
     private final Logger logger = LoggerFactory.getLogger(MapServerFontsController.class);
     private final MapServerDataCenter mapServerDataCenter;
 
-    public MapServerFontsController(MapServerDataCenter mapServerDataCenter) {
-        this.mapServerDataCenter = mapServerDataCenter;
+    public MapServerFontsController() {
+        this.mapServerDataCenter = MapServerDataCenter.getInstance();
     }
 
 

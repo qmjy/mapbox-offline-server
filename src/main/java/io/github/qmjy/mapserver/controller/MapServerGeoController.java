@@ -113,7 +113,7 @@ public class MapServerGeoController {
     public ResponseEntity<Map<String, Object>> regeo(@Parameter(description = "待查询的经纬度坐标，例如：104.071883,30.671974") @RequestParam(value = "location") String location,
                                                      @Parameter(description = "返回的数据语言。0：本地语言（default）；1：英语") @RequestParam(value = "langType", required = false, defaultValue = "0") int langType,
                                                      @Parameter(description = "各行政区划节点之间的分割符。默认本地语言无分隔符，英文为空格。") @RequestParam(value = "splitter", required = false, defaultValue = "") String splitter) {
-        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getAdministrativeDivisionLevel();
+        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getInstance().getAdministrativeDivisionLevel();
         if (administrativeDivisionLevel.isEmpty()) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
@@ -168,7 +168,7 @@ public class MapServerGeoController {
         String[] parents = parentsString.split(",");
         StringBuilder sb = new StringBuilder();
         for (int j = parents.length - 1; j >= 0; j--) {
-            SimpleFeature feature = MapServerDataCenter.getAdministrativeDivision().get(Integer.parseInt(parents[j]));
+            SimpleFeature feature = MapServerDataCenter.getInstance().getAdministrativeDivision().get(Integer.parseInt(parents[j]));
             if (splitter == null || splitter.trim().isEmpty()) {
                 sb.append(langType == 0 ? feature.getAttribute("local_name") : feature.getAttribute("name_en") + " ");
             } else {

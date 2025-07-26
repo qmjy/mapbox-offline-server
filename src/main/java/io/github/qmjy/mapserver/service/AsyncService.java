@@ -88,7 +88,7 @@ public class AsyncService {
 
         hopper.setProfiles(new Profile("car").setVehicle("car").setTurnCosts(false), new Profile("bike").setVehicle("bike").setTurnCosts(false), new Profile("foot").setVehicle("foot").setTurnCosts(false));
         hopper.importOrLoad();
-        MapServerDataCenter.initHopper(osmPbfFile.getName(), hopper);
+        MapServerDataCenter.getInstance().initHopper(osmPbfFile.getName(), hopper);
     }
 
     /**

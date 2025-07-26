@@ -86,6 +86,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         searchMbtiles(tilesetsFolder);
         searchTpk(tilesetsFolder);
         searchShapefile(tilesetsFolder);
+        MapServerDataCenter.getInstance().setInitialized(true);
     }
 
     private void searchShapefile(File tilesetsFolder) {
@@ -93,7 +94,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         if (files != null) {
             for (File shapefile : files) {
                 logger.info("Load shapefile: {}", shapefile.getName());
-                MapServerDataCenter.initShapefile(shapefile);
+                MapServerDataCenter.getInstance().initShapefile(shapefile);
             }
         }
     }
@@ -104,7 +105,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_TPK));
         if (files != null) {
             for (File tpk : files) {
-                MapServerDataCenter.indexTpk(tpk);
+                MapServerDataCenter.getInstance().indexTpk(tpk);
             }
         }
     }
@@ -113,7 +114,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         File[] files = tilesetsFolder.listFiles(pathname -> pathname.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_MBTILES));
         if (files != null) {
             for (File dbFile : files) {
-                MapServerDataCenter.initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
+                MapServerDataCenter.getInstance().initJdbcTemplate(appConfig.getDriverClassName(), dbFile);
                 if (appConfig.isEnablePoiExtractMvt()) {
                     asyncService.asyncMbtilesToPOI(dbFile);
                 }
@@ -133,7 +134,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
             for (File boundary : files) {
                 if (!boundary.isDirectory() && boundary.getName().endsWith(AppConfig.FILE_EXTENSION_NAME_GEOJSON)) {
                     logger.info("Load boundary file: {}", boundary.getName());
-                    MapServerDataCenter.initBoundaryFile(boundary);
+                    MapServerDataCenter.getInstance().initBoundaryFile(boundary);
                 }
             }
         }
@@ -145,7 +146,7 @@ public class DataSourceApplicationRunner implements ApplicationRunner {
         if (files != null) {
             for (File fontFolder : files) {
                 if (fontFolder.isDirectory()) {
-                    MapServerDataCenter.initFontsFile(fontFolder);
+                    MapServerDataCenter.getInstance().initFontsFile(fontFolder);
                 }
             }
         }

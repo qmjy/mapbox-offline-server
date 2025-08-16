@@ -1,6 +1,6 @@
 # map-offline-server
 
-![map offline server logo](./logo_320x320.png)
+![map offline server logo](./logo.png)
 
 Map offline server with java(JDK 21).  
 本项目旨在提供离线地图服务，为私有化地图部署提供解决方案。  
@@ -20,7 +20,7 @@ Map offline server with java(JDK 21).
 
 1. 支持瓦片离线服务，主要用于Map服务器离线场景，也支持mvt（pbf）瓦片数据的元数据查看；
 2. 支持全球行政区划级联数据查询，也支持对应行政区划边界数据查询，查询时支持国际化，支持简易地理逆编码；
-3. 支持离线POI搜索能力（数据获取请访问[pio](https://github.com/qmjy/poi)）；
+3. 支持离线POI搜索能力（数据获取请访问[POI](https://github.com/qmjy/poi)）；
 4. 支持静态资源HTTP服务器能力；
 5. 支持工具能力：shapefile转geojson，支持mbtiles合并；
 6. 新增地图工具：获取中心点坐标，瓦片网格等；

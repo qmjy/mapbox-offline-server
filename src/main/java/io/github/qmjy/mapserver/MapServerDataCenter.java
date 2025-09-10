@@ -19,7 +19,7 @@ package io.github.qmjy.mapserver;
 import com.graphhopper.GraphHopper;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.qmjy.mapserver.config.AppConfig;
-import io.github.qmjy.mapserver.model.AdministrativeDivisionTmp;
+import io.github.qmjy.mapserver.model.AdministrativeDivisionNode;
 import io.github.qmjy.mapserver.model.FontsFileModel;
 import io.github.qmjy.mapserver.model.TilesFileModel;
 import lombok.Getter;
@@ -29,6 +29,9 @@ import org.geotools.api.data.FileDataStoreFinder;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,10 +39,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 /**
  * 地图数据库服务工具
@@ -81,15 +86,14 @@ public class MapServerDataCenter {
      */
     @Getter
     private final Map<Integer, SimpleFeature> administrativeDivision = new HashMap<>();
-
-    @Getter
-    private final Map<String, GraphHopper> hopperMap = new HashMap<>();
-
     /**
      * 行政区划层级树
      */
     @Getter
-    private AdministrativeDivisionTmp simpleAdminDivision;
+    private AdministrativeDivisionNode simpleAdminDivision;
+
+    @Getter
+    private final Map<String, GraphHopper> hopperMap = new HashMap<>();
 
     @Getter
     @Setter
@@ -207,39 +211,96 @@ public class MapServerDataCenter {
     }
 
     private void packageModel() {
-        administrativeDivision.values().forEach(feature -> {
-            if (simpleAdminDivision == null) {
-                simpleAdminDivision = initRootNode(feature);
-            } else {
-                Object parentsObj = feature.getAttribute("parents");
-                if (parentsObj != null) {
-                    String[] parents = parentsObj.toString().split(",");
-
-                    AdministrativeDivisionTmp tempNode = new AdministrativeDivisionTmp(feature, Integer.parseInt(parents[0]));
-
-                    for (int i = 0; i < parents.length; i++) {
-                        int parentId = Integer.parseInt(parents[i]);
-                        Optional<AdministrativeDivisionTmp> nodeOpt = findNode(simpleAdminDivision, parentId);
-                        if (nodeOpt.isPresent()) {
-                            AdministrativeDivisionTmp child = nodeOpt.get();
-                            //如果父节点已经在早期全路径时构造过了，则不需要再追加此单节点。
-                            if (!contains(child, (int) feature.getAttribute("osm_id"))) {
-                                child.getChildren().add(tempNode);
-                            }
-                            break;
-                        } else {
-                            AdministrativeDivisionTmp tmp = new AdministrativeDivisionTmp(administrativeDivision.get(parentId), Integer.parseInt(parents[i + 1]));
-                            tmp.getChildren().add(tempNode);
-                            tempNode = tmp;
-                        }
+        if (isOldVersion()) {
+            administrativeDivision.values().forEach(feature -> {
+                if (simpleAdminDivision == null) {
+                    simpleAdminDivision = initRootNode(feature);
+                } else {
+                    Object parentsObj = feature.getAttribute("parents");
+                    if (parentsObj != null) {
+                        packageAdminTreeByParents(feature, parentsObj);
+                    }
+                }
+            });
+        } else {
+            List<Integer> levelList = administrativeDivisionLevel.keySet().stream().sorted().toList();
+            for (int i = 0; i < levelList.size(); i++) {
+                Integer currentLevel = levelList.get(i);
+                if (i == 0) {
+                    //TODO 假设根节点只有一个
+                    SimpleFeature first = administrativeDivisionLevel.get(currentLevel).getFirst();
+                    simpleAdminDivision = new AdministrativeDivisionNode(first, -1);
+                } else {
+                    Integer upperLevel = levelList.get(i - 1);
+                    List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(upperLevel);
+                    for (SimpleFeature node : simpleFeatures) {
+                        addAdminLevelNode(administrativeDivisionLevel.get(upperLevel), node);
                     }
                 }
             }
-        });
+        }
     }
 
-    private boolean contains(AdministrativeDivisionTmp child, int parentId) {
-        for (AdministrativeDivisionTmp item : child.getChildren()) {
+    private void addAdminLevelNode(List<SimpleFeature> upperLevelFeatures, SimpleFeature node) {
+        for (SimpleFeature upperLevelFeature : upperLevelFeatures) {
+            Object geometry = upperLevelFeature.getAttribute("geometry");
+            if (geometry instanceof Polygon || geometry instanceof MultiPolygon) {
+                Geometry g = (Geometry) geometry;
+                if (g.covers((Geometry) node.getAttribute("geometry"))) {
+                    add2Parents(simpleAdminDivision, upperLevelFeature, node);
+                }
+            }
+        }
+    }
+
+    private void add2Parents(AdministrativeDivisionNode root, SimpleFeature upperLevelFeature, SimpleFeature node) {
+        if (root.getId() == (int) upperLevelFeature.getAttribute("osm_id")) {
+            root.getChildren().add(new AdministrativeDivisionNode(node, root.getId()));
+        } else {
+            if (root.getChildren().isEmpty()) {
+                return;
+            }
+            for (AdministrativeDivisionNode child : root.getChildren()) {
+                add2Parents(child, upperLevelFeature, node);
+            }
+        }
+    }
+
+    /**
+     * 抽取一个判断数据是否为老版本，老版本数据才有parents属性
+     *
+     * @return 是否为老版本数据
+     */
+    private boolean isOldVersion() {
+        Map.Entry<Integer, SimpleFeature> next = administrativeDivision.entrySet().iterator().next();
+        return next.getValue().getAttribute("parents") != null;
+    }
+
+    private void packageAdminTreeByParents(SimpleFeature feature, Object parentsObj) {
+        String[] parents = parentsObj.toString().split(",");
+
+        AdministrativeDivisionNode tempNode = new AdministrativeDivisionNode(feature, Integer.parseInt(parents[0]));
+
+        for (int i = 0; i < parents.length; i++) {
+            int parentId = Integer.parseInt(parents[i]);
+            Optional<AdministrativeDivisionNode> nodeOpt = findNode(simpleAdminDivision, parentId);
+            if (nodeOpt.isPresent()) {
+                AdministrativeDivisionNode child = nodeOpt.get();
+                //如果父节点已经在早期全路径时构造过了，则不需要再追加此单节点。
+                if (!contains(child, (int) feature.getAttribute("osm_id"))) {
+                    child.getChildren().add(tempNode);
+                }
+                break;
+            } else {
+                AdministrativeDivisionNode tmp = new AdministrativeDivisionNode(administrativeDivision.get(parentId), Integer.parseInt(parents[i + 1]));
+                tmp.getChildren().add(tempNode);
+                tempNode = tmp;
+            }
+        }
+    }
+
+    private boolean contains(AdministrativeDivisionNode child, int parentId) {
+        for (AdministrativeDivisionNode item : child.getChildren()) {
             if (item.getId() == parentId) {
                 return true;
             }
@@ -248,21 +309,21 @@ public class MapServerDataCenter {
     }
 
 
-    private AdministrativeDivisionTmp initRootNode(SimpleFeature feature) {
+    private AdministrativeDivisionNode initRootNode(SimpleFeature feature) {
         Object parents = feature.getAttribute("parents");
         if (parents == null) {
-            return new AdministrativeDivisionTmp(feature, -1);
+            return new AdministrativeDivisionNode(feature, -1);
         } else {
             String[] split = parents.toString().split(",");
-            List<AdministrativeDivisionTmp> children = new ArrayList<>();
-            AdministrativeDivisionTmp tmp = null;
+            List<AdministrativeDivisionNode> children = new ArrayList<>();
+            AdministrativeDivisionNode tmp = null;
             for (int i = 0; i < split.length; i++) {
                 int osmId = Integer.parseInt(split[i]);
                 if (i + 1 > split.length - 1) {
-                    tmp = new AdministrativeDivisionTmp(administrativeDivision.get(osmId), -1);
+                    tmp = new AdministrativeDivisionNode(administrativeDivision.get(osmId), -1);
                     tmp.setChildren(children);
                 } else {
-                    tmp = new AdministrativeDivisionTmp(administrativeDivision.get(osmId), Integer.parseInt(split[i + 1]));
+                    tmp = new AdministrativeDivisionNode(administrativeDivision.get(osmId), Integer.parseInt(split[i + 1]));
                     tmp.setChildren(children);
                     children = new ArrayList<>();
                     children.add(tmp);
@@ -272,16 +333,16 @@ public class MapServerDataCenter {
         }
     }
 
-    private Optional<AdministrativeDivisionTmp> findNode(AdministrativeDivisionTmp tmp, int parentId) {
+    private Optional<AdministrativeDivisionNode> findNode(AdministrativeDivisionNode tmp, int parentId) {
         if (tmp.getId() == parentId) {
             return Optional.of(tmp);
         }
-        List<AdministrativeDivisionTmp> children = tmp.getChildren();
-        for (AdministrativeDivisionTmp item : children) {
+        List<AdministrativeDivisionNode> children = tmp.getChildren();
+        for (AdministrativeDivisionNode item : children) {
             if (item.getId() == parentId) {
                 return Optional.of(item);
             } else {
-                Optional<AdministrativeDivisionTmp> childOpt = findNode(item, parentId);
+                Optional<AdministrativeDivisionNode> childOpt = findNode(item, parentId);
                 if (childOpt.isPresent()) {
                     return childOpt;
                 }

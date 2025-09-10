@@ -19,6 +19,7 @@ package io.github.qmjy.mapserver.model;
 import lombok.Getter;
 import lombok.Setter;
 import org.geotools.api.feature.simple.SimpleFeature;
+import org.locationtech.jts.geom.Geometry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,14 +30,15 @@ import java.util.List;
  * @author liushaofeng
  */
 @Getter
-public class AdministrativeDivisionTmp implements Cloneable {
+public class AdministrativeDivisionNode implements Cloneable {
     private final int id;
     private final int parentId;
     private final String name;
     private final String nameEn;
     private final int adminLevel;
+    private final Geometry geometry;
     @Setter
-    private List<AdministrativeDivisionTmp> children = new ArrayList<>();
+    private List<AdministrativeDivisionNode> children = new ArrayList<>();
 
     /**
      * 构造方法
@@ -44,11 +46,12 @@ public class AdministrativeDivisionTmp implements Cloneable {
      * @param simpleFeature 特性
      * @param parentId      父ID
      */
-    public AdministrativeDivisionTmp(SimpleFeature simpleFeature, int parentId) {
+    public AdministrativeDivisionNode(SimpleFeature simpleFeature, int parentId) {
         this.id = (int) simpleFeature.getAttribute("osm_id");
-        this.name = (String) simpleFeature.getAttribute("local_name");
+        this.name = (String) (simpleFeature.getAttribute("local_name") == null ? simpleFeature.getAttribute("name") : simpleFeature.getAttribute("local_name"));
         Object nameEnObj = simpleFeature.getAttribute("name_en");
         this.nameEn = nameEnObj == null ? "" : String.valueOf(nameEnObj);
+        this.geometry = (Geometry) simpleFeature.getAttribute("geometry");
         this.parentId = parentId;
         this.adminLevel = simpleFeature.getAttribute("admin_level") == null ? -1 : (int) simpleFeature.getAttribute("admin_level");
     }
@@ -61,13 +64,15 @@ public class AdministrativeDivisionTmp implements Cloneable {
      * @param name       行政区划节点名称
      * @param nameEn     行政区划节点英文名称
      * @param adminLevel 行政区划级别
+     * @param geometry   行政区划地理边界
      */
-    public AdministrativeDivisionTmp(int id, int parentId, String name, String nameEn, int adminLevel) {
+    public AdministrativeDivisionNode(int id, int parentId, String name, String nameEn, int adminLevel, Geometry geometry) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
         this.nameEn = nameEn;
         this.adminLevel = adminLevel;
+        this.geometry = geometry;
     }
 
     /**
@@ -76,14 +81,14 @@ public class AdministrativeDivisionTmp implements Cloneable {
      * @return clone后的对象
      */
     @Override
-    public AdministrativeDivisionTmp clone() {
+    public AdministrativeDivisionNode clone() {
         try {
-            AdministrativeDivisionTmp clone = (AdministrativeDivisionTmp) super.clone();
-            ArrayList<AdministrativeDivisionTmp> newChildren = new ArrayList<>();
+            AdministrativeDivisionNode clone = (AdministrativeDivisionNode) super.clone();
+            ArrayList<AdministrativeDivisionNode> newChildren = new ArrayList<>();
 
-            List<AdministrativeDivisionTmp> oldChildren = this.getChildren();
-            for (AdministrativeDivisionTmp tmp : oldChildren) {
-                newChildren.add(new AdministrativeDivisionTmp(tmp.getId(), tmp.getParentId(), tmp.getName(), tmp.getNameEn(), tmp.getAdminLevel()));
+            List<AdministrativeDivisionNode> oldChildren = this.getChildren();
+            for (AdministrativeDivisionNode tmp : oldChildren) {
+                newChildren.add(new AdministrativeDivisionNode(tmp.getId(), tmp.getParentId(), tmp.getName(), tmp.getNameEn(), tmp.getAdminLevel(), tmp.getGeometry()));
             }
 
             clone.setChildren(newChildren);

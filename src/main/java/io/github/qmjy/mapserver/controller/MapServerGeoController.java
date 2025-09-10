@@ -17,6 +17,7 @@
 package io.github.qmjy.mapserver.controller;
 
 import io.github.qmjy.mapserver.MapServerDataCenter;
+import io.github.qmjy.mapserver.model.AdministrativeDivisionNode;
 import io.github.qmjy.mapserver.model.dto.GeoReferencerReqDTO;
 import io.github.qmjy.mapserver.model.dto.GeometryPointDTO;
 import io.github.qmjy.mapserver.util.ImageGeoreferencer;
@@ -24,21 +25,20 @@ import io.github.qmjy.mapserver.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.referencing.operation.TransformException;
 import org.geotools.geometry.Position2D;
 import org.geotools.geometry.jts.GeometryBuilder;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 地理编码与逆编码接口
@@ -101,7 +101,8 @@ public class MapServerGeoController {
     }
 
     /**
-     * 地理逆编码
+     * 简易地理逆编码
+     * 该方法用于通过经纬度坐标获取对应的行政区划信息
      *
      * @param location 经度在前，纬度在后，经纬度间以“,”分割，经纬度小数点后不要超过 6 位。
      * @param langType 可选参数，支持本地语言(0:default)和英语(1)。
@@ -113,8 +114,8 @@ public class MapServerGeoController {
     public ResponseEntity<Map<String, Object>> regeo(@Parameter(description = "待查询的经纬度坐标，例如：104.071883,30.671974") @RequestParam(value = "location") String location,
                                                      @Parameter(description = "返回的数据语言。0：本地语言（default）；1：英语") @RequestParam(value = "langType", required = false, defaultValue = "0") int langType,
                                                      @Parameter(description = "各行政区划节点之间的分割符。默认本地语言无分隔符，英文为空格。") @RequestParam(value = "splitter", required = false, defaultValue = "") String splitter) {
-        Map<Integer, List<SimpleFeature>> administrativeDivisionLevel = MapServerDataCenter.getInstance().getAdministrativeDivisionLevel();
-        if (administrativeDivisionLevel.isEmpty()) {
+        AdministrativeDivisionNode simpleAdminDivision = MapServerDataCenter.getInstance().getSimpleAdminDivision();
+        if (simpleAdminDivision == null) {
             String msg = "Can't find any geojson file for boundary search!";
             logger.error(msg);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
@@ -124,57 +125,40 @@ public class MapServerGeoController {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound("参数不合法，请检查参数！"));
         }
 
-        Integer[] array = administrativeDivisionLevel.keySet().toArray(new Integer[0]);
-        Arrays.sort(array);
-        for (int i = array.length - 1; i >= 0; i--) {
-            Integer level = array[i];
-            List<SimpleFeature> simpleFeatures = administrativeDivisionLevel.get(level);
-            for (SimpleFeature simpleFeature : simpleFeatures) {
-                Object geometry = simpleFeature.getAttribute("geometry");
-                if (geometry instanceof Polygon || geometry instanceof MultiPolygon) {
-                    Map<String, Object> result = wrapData(simpleFeature, location, (Geometry) geometry, langType, splitter);
-                    if (!result.isEmpty()) {
-                        return ResponseEntity.ok()
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .body(result);
-                    }
-                }
-            }
-        }
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound());
-    }
-
-
-    private Map<String, Object> wrapData(SimpleFeature simpleFeature, String location, Geometry polygon, int langType, String splitter) {
         String[] split = location.split(",");
         GeometryBuilder geometryBuilder = new GeometryBuilder();
         Point point = geometryBuilder.point(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
-        if (polygon.covers(point)) {
-            String parentPath = getParentFullPath(simpleFeature, langType, splitter);
 
-            HashMap<Object, Object> data = new HashMap<>();
-            data.put("id", simpleFeature.getAttribute("osm_id"));
-            data.put("name", langType == 0 ? simpleFeature.getAttribute("local_name") : simpleFeature.getAttribute("name_en"));
-            data.put("adminLevel", simpleFeature.getAttribute("admin_level"));
-            data.put("fullPath", parentPath + data.get("name"));
+        StringBuilder sb = new StringBuilder();
+        AdministrativeDivisionNode leaf = getFullPath2Leaf(simpleAdminDivision, point, sb, langType, splitter);
 
-            return ResponseMapUtil.ok(data);
-        }
-        return new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", leaf.getId());
+        result.put("name", langType == 0 ? leaf.getName() : leaf.getNameEn());
+        result.put("adminLevel", leaf.getAdminLevel());
+        result.put("fullPath", sb.toString());
+
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
 
-    private String getParentFullPath(SimpleFeature simpleFeature, int langType, String splitter) {
-        String parentsString = (String) simpleFeature.getAttribute("parents");
-        String[] parents = parentsString.split(",");
-        StringBuilder sb = new StringBuilder();
-        for (int j = parents.length - 1; j >= 0; j--) {
-            SimpleFeature feature = MapServerDataCenter.getInstance().getAdministrativeDivision().get(Integer.parseInt(parents[j]));
-            if (splitter == null || splitter.trim().isEmpty()) {
-                sb.append(langType == 0 ? feature.getAttribute("local_name") : feature.getAttribute("name_en") + " ");
+    private AdministrativeDivisionNode getFullPath2Leaf(AdministrativeDivisionNode simpleAdminDivision, Point point, StringBuilder sb, int langType, String splitter) {
+        AdministrativeDivisionNode leaf = null;
+        if (simpleAdminDivision.getGeometry().covers(point)) {
+            if (!sb.isEmpty()) {
+                sb.append(splitter);
+            }
+            sb.append(langType == 0 ? simpleAdminDivision.getName() : simpleAdminDivision.getNameEn() + " ");
+            if (!simpleAdminDivision.getChildren().isEmpty()) {
+                for (AdministrativeDivisionNode child : simpleAdminDivision.getChildren()) {
+                    AdministrativeDivisionNode childResult = getFullPath2Leaf(child, point, sb, langType, splitter);
+                    if (childResult != null) {
+                        leaf = childResult;
+                    }
+                }
             } else {
-                sb.append(langType == 0 ? feature.getAttribute("local_name") : feature.getAttribute("name_en")).append(splitter);
+                leaf = simpleAdminDivision;
             }
         }
-        return sb.toString();
+        return leaf;
     }
 }

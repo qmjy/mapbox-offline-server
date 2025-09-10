@@ -44,7 +44,7 @@ public class AdministrativeDivision {
      * @param adminDivision 行政区划数据全集
      * @param langType      可选参数，支持本地语言(0:default)和英语(1)。
      */
-    public AdministrativeDivision(AdministrativeDivisionTmp adminDivision, int langType) {
+    public AdministrativeDivision(AdministrativeDivisionNode adminDivision, int langType) {
         this.id = adminDivision.getId();
         this.parentId = adminDivision.getParentId();
         this.name = langType == 0 ? adminDivision.getName() : adminDivision.getNameEn();
@@ -52,7 +52,7 @@ public class AdministrativeDivision {
         this.children = wrap(adminDivision.getChildren(), langType);
     }
 
-    private List<AdministrativeDivision> wrap(List<AdministrativeDivisionTmp> children, int langType) {
+    private List<AdministrativeDivision> wrap(List<AdministrativeDivisionNode> children, int langType) {
         List<AdministrativeDivision> list = new ArrayList<>();
         children.forEach(item -> {
             list.add(new AdministrativeDivision(item, langType));

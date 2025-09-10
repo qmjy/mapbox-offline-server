@@ -4,7 +4,7 @@
 
 Map offline server with java(JDK 21).  
 本项目旨在提供离线地图服务，为私有化地图部署提供解决方案。  
-项目主要支持mbtiles格式的地图数据，其他支持的数据格式如下所示，其他的需要转换成mbtiles后使用。  
+项目主要支持mbtiles、tpk格式的地图数据，其他支持的数据格式如下所示，其他的需要转换成mbtiles后使用。  
 项目启动后可以通过 http://localhost:10101/ 查看系统页面。
 
 ## 特性列表
@@ -18,7 +18,7 @@ Map offline server with java(JDK 21).
 |   静态地图    |     :running:      |                    |                    |                    |                           |
 | 行政区划（含边界） |                    |                    |                    | :white_check_mark: |                           |
 
-1. 支持瓦片离线服务，主要用于Map服务器离线场景，也支持mvt（pbf）瓦片数据的元数据查看；
+1. 支持离线瓦片服务，主要用于Map服务器离线场景，也支持mvt（pbf）瓦片数据的元数据查看；
 2. 支持全球行政区划级联数据查询，也支持对应行政区划边界数据查询，查询时支持国际化，支持简易地理逆编码；
 3. 支持离线POI搜索能力（数据获取请访问[POI](https://github.com/qmjy/poi)）；
 4. 支持静态资源HTTP服务器能力；

@@ -19,7 +19,7 @@ package io.github.qmjy.mapserver.controller;
 import io.github.qmjy.mapserver.MapServerDataCenter;
 import io.github.qmjy.mapserver.model.AdministrativeDivision;
 import io.github.qmjy.mapserver.model.AdministrativeDivisionOrigin;
-import io.github.qmjy.mapserver.model.AdministrativeDivisionTmp;
+import io.github.qmjy.mapserver.model.AdministrativeDivisionNode;
 import io.github.qmjy.mapserver.util.ResponseMapUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -83,10 +83,10 @@ public class MapServerOsmBController {
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(cacheMap.get(key)));
             }
 
-            AdministrativeDivisionTmp root = mapServerDataCenter.getSimpleAdminDivision();
+            AdministrativeDivisionNode root = mapServerDataCenter.getSimpleAdminDivision();
             if (nodeId != 0) {
                 if (mapServerDataCenter.getAdministrativeDivision().containsKey(nodeId)) {
-                    Optional<AdministrativeDivisionTmp> rootOpt = getRoot(mapServerDataCenter.getSimpleAdminDivision(), nodeId);
+                    Optional<AdministrativeDivisionNode> rootOpt = getRoot(mapServerDataCenter.getSimpleAdminDivision(), nodeId);
                     if (rootOpt.isPresent()) {
                         root = rootOpt.get();
                     }
@@ -102,13 +102,13 @@ public class MapServerOsmBController {
     }
 
 
-    private Optional<AdministrativeDivisionTmp> getRoot(AdministrativeDivisionTmp simpleAdminDivision, int nodeId) {
+    private Optional<AdministrativeDivisionNode> getRoot(AdministrativeDivisionNode simpleAdminDivision, int nodeId) {
         if (simpleAdminDivision.getId() == nodeId) {
             return Optional.of(simpleAdminDivision);
         } else {
-            List<AdministrativeDivisionTmp> children = simpleAdminDivision.getChildren();
-            for (AdministrativeDivisionTmp child : children) {
-                Optional<AdministrativeDivisionTmp> rootOpt = getRoot(child, nodeId);
+            List<AdministrativeDivisionNode> children = simpleAdminDivision.getChildren();
+            for (AdministrativeDivisionNode child : children) {
+                Optional<AdministrativeDivisionNode> rootOpt = getRoot(child, nodeId);
                 if (rootOpt.isPresent()) {
                     return rootOpt;
                 }
@@ -134,9 +134,9 @@ public class MapServerOsmBController {
             logger.error(msg);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.notFound(msg));
         }
-        AdministrativeDivisionTmp root = mapServerDataCenter.getSimpleAdminDivision();
+        AdministrativeDivisionNode root = mapServerDataCenter.getSimpleAdminDivision();
         if (nodeId != 0) {
-            Optional<AdministrativeDivisionTmp> rootOpt = getRoot(mapServerDataCenter.getSimpleAdminDivision(), nodeId);
+            Optional<AdministrativeDivisionNode> rootOpt = getRoot(mapServerDataCenter.getSimpleAdminDivision(), nodeId);
             if (rootOpt.isPresent()) {
                 root = rootOpt.get();
             }
@@ -147,7 +147,7 @@ public class MapServerOsmBController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
     }
 
-    private void reWrap2List(AdministrativeDivisionTmp root, Map<Integer, String> resultMap) {
+    private void reWrap2List(AdministrativeDivisionNode root, Map<Integer, String> resultMap) {
         resultMap.put(root.getId(), root.getName());
         root.getChildren().forEach(item -> {
             reWrap2List(item, resultMap);

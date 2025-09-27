@@ -108,7 +108,7 @@ public class MapServerToolsController {
     }
 
     private List<String> checkAndPrepare(MultipartFile shapeFileSetOfZip) {
-        if (shapeFileSetOfZip.getOriginalFilename().endsWith(".zip")) {
+        if (shapeFileSetOfZip.getOriginalFilename() != null && shapeFileSetOfZip.getOriginalFilename().endsWith(".zip")) {
             List<String> shapefiles = new ArrayList<>();
 
             try (ZipInputStream zipInputStream = new ZipInputStream(shapeFileSetOfZip.getInputStream())) {

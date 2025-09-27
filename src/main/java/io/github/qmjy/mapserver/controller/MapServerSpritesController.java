@@ -19,8 +19,8 @@ package io.github.qmjy.mapserver.controller;
 import io.github.qmjy.mapserver.config.AppConfig;
 import io.github.qmjy.mapserver.util.SystemUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,9 +37,10 @@ import java.nio.file.Files;
 
 @RestController
 @RequestMapping("/api/sprites")
+@AllArgsConstructor
 @Tag(name = "Mapbox雪碧图服务管理", description = "Mapbox离线服务接口能力")
 public class MapServerSpritesController {
-    @Autowired
+
     private AppConfig appConfig;
 
 
@@ -55,8 +56,9 @@ public class MapServerSpritesController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        if (StringUtils.hasLength(appConfig.getDataPath())) {
-            StringBuilder sb = new StringBuilder(appConfig.getDataPath());
+        String configDataPath = appConfig.getDataPath();
+        if (StringUtils.hasLength(configDataPath)) {
+            StringBuilder sb = new StringBuilder(configDataPath);
             sb.append(File.separator).append("sprites").append(File.separator).append(spriteName).append(File.separator).append(fileName).append(AppConfig.FILE_EXTENSION_NAME_JSON);
             try {
                 String styleJson = FileCopyUtils.copyToString(new FileReader(sb.toString()));

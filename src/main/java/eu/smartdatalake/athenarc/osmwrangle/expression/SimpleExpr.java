@@ -36,19 +36,17 @@ import java.util.Map;
 public class SimpleExpr implements Expr {
 	
     private final String identifier, literal;
-    private Token op;
     private TokenType comp;
 
     /**
      * Constructor of the class.
      * @param stream  Input stream of tokens
-     * @throws ParseException
      */
     public SimpleExpr(TokenStream stream) throws ParseException {
     	
         Token token = stream.consumeIf(TokenType.IDENTIFIER);
 
-        op = null;
+        Token op;
         comp = null;                  //The identified comparison operator. Must be one among: =, <>, LIKE, <, <=, >, >=.
         if (token != null) 
         {
@@ -96,7 +94,6 @@ public class SimpleExpr implements Expr {
         else 
         {	//Handles the case when literal is placed before the identifier; LIMITATION: In this case, only = is allowed as comparison operator.
             this.literal = stream.consume(TokenType.LITERAL).data;
-            op = stream.consumeIf(TokenType.EQUALS);
             this.identifier = stream.consume(TokenType.IDENTIFIER).data;
         }
     }
@@ -117,9 +114,9 @@ public class SimpleExpr implements Expr {
     		return like(data.get(identifier), literal);
     	else                                                //Evaluate any other comparison operator involving inequality
     	{
-    		if (NumberUtils.isNumber(literal))              //Check inequality for numeric values only
+    		if (NumberUtils.isCreatable(literal))              //Check inequality for numeric values only
     		{
-    			Double val = Double.parseDouble(literal);
+    			double val = Double.parseDouble(literal);
     			if (comp.equals(TokenType.LESS_THAN))    				// operator is <
     				return (Double.parseDouble(data.get(identifier)) < val);
     			else if (comp.equals(TokenType.LESS_THAN_OR_EQUAL))    	// operator is <=

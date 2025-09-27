@@ -1,4 +1,5 @@
 target/
+output/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -38,4 +39,4 @@ build/
 .DS_Store
 .idea
 /deploy.bat
-/src/main/java/com/example/
+/src/main/java/com/example/old/

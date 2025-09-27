@@ -13,7 +13,7 @@
 
     <groupId>io.github.qmjy</groupId>
     <artifactId>map-offline-server</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
     <description>Mapbox GL offline server with java.</description>
@@ -165,6 +165,12 @@
             <groupId>org.openstreetmap.osmosis</groupId>
             <artifactId>osmosis-pbf</artifactId>
             <version>0.48.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!--        <dependency>-->
@@ -178,6 +184,12 @@
             <groupId>org.openstreetmap.osmosis</groupId>
             <artifactId>osmosis-osm-binary</artifactId>
             <version>0.48.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Support for transliteration of string from several languages / alphabets to Latin -->
@@ -212,7 +224,7 @@
         <dependency>
             <groupId>io.github.sebasbaumh</groupId>
             <artifactId>mapbox-vector-tile-java</artifactId>
-            <version>24.1.1</version>
+            <version>25.1.0</version>
         </dependency>
 
         <dependency>

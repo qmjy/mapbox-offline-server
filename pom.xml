@@ -13,7 +13,7 @@
 
     <groupId>io.github.qmjy</groupId>
     <artifactId>map-offline-server</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
     <description>Mapbox GL offline server with java.</description>

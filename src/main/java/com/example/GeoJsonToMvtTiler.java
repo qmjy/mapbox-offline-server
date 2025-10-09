@@ -5,6 +5,7 @@ import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.JtsAdapter;
 import io.github.sebasbaumh.mapbox.vectortile.build.MvtLayerParams;
 import io.github.sebasbaumh.mapbox.vectortile.build.MvtLayerProps;
 import io.github.sebasbaumh.mapbox.vectortile.util.MvtUtil;
+import org.geotools.api.feature.Property;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.referencing.operation.MathTransform;
@@ -29,6 +30,7 @@ import java.util.*;
  */
 public class GeoJsonToMvtTiler {
 
+    private static final int CRS_VALUE_WGS84 = 4326;
     private static final String CRS_WGS84 = "EPSG:4326";
     private static final String CRS_MERCATOR_WEB = "EPSG:3857";
 
@@ -50,6 +52,12 @@ public class GeoJsonToMvtTiler {
     private static Envelope bounds;
 
 
+    /**
+     * 仅接受WGS84坐标系的数据接收
+     *
+     * @param geojsonPath json文件位置
+     * @return 解析后的Geometry对象列表
+     */
     private static List<Geometry> readGeoJson(String geojsonPath) {
         List<Geometry> geometries = new ArrayList<>();
         try {
@@ -57,20 +65,15 @@ public class GeoJsonToMvtTiler {
             SimpleFeatureIterator features = reader.getFeatures().features();
             while (features.hasNext()) {
                 SimpleFeature feature = features.next();
-                Object geometry = feature.getAttribute("geometry");
 
-                Geometry g = null;
-                switch (geometry) {
-                    case Point point -> g = point;
-                    case MultiPoint multiPoint -> g = multiPoint;
-                    case LineString lineString -> g = lineString;
-                    case MultiLineString multiLineString -> g = multiLineString;
-                    case Polygon polygon -> g = polygon;
-                    case MultiPolygon multiPolygon -> g = multiPolygon;
-                    default -> System.err.println("Unsupported geometry type: " + geometry);
+                Optional<Geometry> geometry = getGeometry(feature);
+                if (geometry.isPresent()) {
+                    Geometry g = geometry.get();
+                    g.setUserData(getGeometryUserData(feature));
+                    g.setSRID(CRS_VALUE_WGS84);
+                    updateBounds(g);
+                    geometries.add(g);
                 }
-                updateBounds(g);
-                geometries.add(g);
             }
             features.close();
         } catch (IOException e) {
@@ -78,6 +81,29 @@ public class GeoJsonToMvtTiler {
         }
 
         return geometries;
+    }
+
+    private static Map<String, String> getGeometryUserData(SimpleFeature feature) {
+        HashMap<String, String> objectObjectHashMap = new HashMap<>();
+        for (Property next : feature.getProperties()) {
+            objectObjectHashMap.put(next.getName().toString(), next.getValue().toString());
+        }
+        return objectObjectHashMap;
+    }
+
+    private static Optional<Geometry> getGeometry(SimpleFeature feature) {
+        Object geometry = feature.getAttribute("geometry");
+        Geometry g = null;
+        switch (geometry) {
+            case Point point -> g = point;
+            case MultiPoint multiPoint -> g = multiPoint;
+            case LineString lineString -> g = lineString;
+            case MultiLineString multiLineString -> g = multiLineString;
+            case Polygon polygon -> g = polygon;
+            case MultiPolygon multiPolygon -> g = multiPolygon;
+            default -> System.err.println("Unsupported geometry type: " + geometry);
+        }
+        return g == null ? Optional.empty() : Optional.of(g);
     }
 
     private static void updateBounds(Geometry g) {
@@ -108,38 +134,40 @@ public class GeoJsonToMvtTiler {
         Files.createDirectories(zoomPath);
 
         // 计算该缩放级别下的瓦片数量
-        int tileCount = (int) Math.pow(2, zoom);
+//        int tileCount = (int) Math.pow(2, zoom);
 
-        Map<String, Integer> tileInfoMap = calculateTileRange(bounds, TILE_COORDINATE_DIRECTION_ORIGIN_LEFT_TOP, zoom);
-        for (int x = tileInfoMap.get("minTileX"); x <= tileInfoMap.get("maxTileX"); x++) {
-            for (int y = tileInfoMap.get("minTileY"); y <= tileInfoMap.get("maxTileY"); y++) {
-                // 获取当前瓦片的地理范围
-                Envelope tileEnvelope = calculateTileEnvelope(x, y, zoom);
+        if (geometries.getFirst().getSRID() == CRS_VALUE_WGS84) {
+            Map<String, Integer> tileInfoMap = calculateTileRange(bounds, TILE_COORDINATE_DIRECTION_ORIGIN_LEFT_TOP, zoom);
+            for (int x = tileInfoMap.get("minTileX"); x <= tileInfoMap.get("maxTileX"); x++) {
+                for (int y = tileInfoMap.get("minTileY"); y <= tileInfoMap.get("maxTileY"); y++) {
+                    // 获取当前瓦片的地理范围
+                    Envelope tileEnvelope = calculateTileEnvelope(x, y, zoom);
 
-                // 筛选出在当前瓦片范围内的几何对象
-                List<Geometry> tileGeometries = new ArrayList<>();
-                for (Geometry geometry : geometries) {
-                    System.out.println("Generate tile:" + zoom + "/" + x + "/" + y);
-                    if (tileEnvelope.intersects(getMercatorBounds(geometry))) {
-                        // 裁剪几何对象到瓦片范围
-                        Geometry clippedGeometry = clipGeometryToTile(transformWGS84ToWebMercator(geometry), tileEnvelope);
-                        if (clippedGeometry != null && !clippedGeometry.isEmpty()) {
-                            tileGeometries.add(clippedGeometry);
+                    // 筛选出在当前瓦片范围内的几何对象
+                    List<Geometry> tileGeometries = new ArrayList<>();
+                    for (Geometry geometry : geometries) {
+                        System.out.println("Generate tile:" + zoom + "/" + x + "/" + y);
+                        if (tileEnvelope.intersects(getMercatorBounds(geometry))) {
+                            // 裁剪几何对象到瓦片范围
+                            Geometry clippedGeometry = clipGeometryToTile(transformProjections(geometry, CRS_WGS84, CRS_MERCATOR_WEB), tileEnvelope);
+                            if (clippedGeometry != null && !clippedGeometry.isEmpty()) {
+                                tileGeometries.add(clippedGeometry);
+                            }
                         }
                     }
-                }
 
-                if (!tileGeometries.isEmpty()) {
-                    // 创建坐标目录：x
-                    Path xPath = zoomPath.resolve(String.valueOf(x));
-                    Files.createDirectories(xPath);
+                    if (!tileGeometries.isEmpty()) {
+                        // 创建坐标目录：x
+                        Path xPath = zoomPath.resolve(String.valueOf(x));
+                        Files.createDirectories(xPath);
 
-                    // 创建瓦片文件：y
-                    byte[] mvtData = createMvt(tileGeometries, tileEnvelope, zoom + "/" + x + "/" + y);
-                    Path tilePath = xPath.resolve(y + ".mvt");
+                        // 创建瓦片文件：y
+                        byte[] mvtData = createMvt(tileGeometries, tileEnvelope, zoom + "/" + x + "/" + y);
+                        Path tilePath = xPath.resolve(y + ".mvt");
 
-                    try (FileOutputStream fos = new FileOutputStream(tilePath.toFile())) {
-                        fos.write(mvtData);
+                        try (FileOutputStream fos = new FileOutputStream(tilePath.toFile())) {
+                            fos.write(mvtData);
+                        }
                     }
                 }
             }
@@ -177,10 +205,10 @@ public class GeoJsonToMvtTiler {
         double minMercatorY = maxMercatorY - tileSizeInMeters;
 
         // 5. 将墨卡托投影坐标转换为经纬度坐标
-        double minLon = mercatorXToLon(minMercatorX);
-        double minLat = mercatorYToLat(minMercatorY);
-        double maxLon = mercatorXToLon(maxMercatorX);
-        double maxLat = mercatorYToLat(maxMercatorY);
+//        double minLon = mercatorXToLon(minMercatorX);
+//        double minLat = mercatorYToLat(minMercatorY);
+//        double maxLon = mercatorXToLon(maxMercatorX);
+//        double maxLat = mercatorYToLat(maxMercatorY);
 
         return new Envelope(minMercatorX, maxMercatorX, minMercatorY, maxMercatorY);
     }
@@ -223,21 +251,23 @@ public class GeoJsonToMvtTiler {
     /**
      * 将WGS84坐标系转换为Web墨卡托坐标系
      *
-     * @param wgs84Geometry WGS84坐标系下的几何对象
+     * @param geometry      几何对象
+     * @param sourceCRSCode 原坐标系
+     * @param targetCRSCode 目标坐标系
      * @return Web墨卡托坐标系下的几何对象
      * @throws Exception 如果转换过程中出现错误
      */
-    private static Geometry transformWGS84ToWebMercator(Geometry wgs84Geometry) throws Exception {
+    private static Geometry transformProjections(Geometry geometry, String sourceCRSCode, String targetCRSCode) throws Exception {
         // 1. 定义源和目标坐标系
         // 注意坐标顺序：经度在前（X），纬度在后（Y），强制指定为经度、纬度顺序，避免潜在问题。 true 表示强制 (longitude, latitude) 顺序
-        CoordinateReferenceSystem sourceCRS = CRS.decode(CRS_WGS84, true);
-        CoordinateReferenceSystem targetCRS = CRS.decode(CRS_MERCATOR_WEB);
+        CoordinateReferenceSystem sourceCRS = CRS.decode(sourceCRSCode, true);
+        CoordinateReferenceSystem targetCRS = CRS.decode(targetCRSCode);
 
         // 2. 创建坐标转换器
         MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS);
 
         // 3. 执行转换
-        return JTS.transform(wgs84Geometry, transform);
+        return JTS.transform(geometry, transform);
     }
 
     private static Envelope getMercatorBounds(Geometry geometry) {
@@ -354,7 +384,7 @@ public class GeoJsonToMvtTiler {
 
 
     /**
-     * 裁剪几何对象到瓦片范围
+     * 使用瓦片范围裁剪几何对象
      *
      * @param geometry     要裁剪的几何对象
      * @param tileEnvelope 瓦片范围
@@ -365,7 +395,13 @@ public class GeoJsonToMvtTiler {
         Geometry tileGeometry = geometryFactory.toGeometry(tileEnvelope);
 
         try {
-            return geometry.intersection(tileGeometry);
+            Geometry intersection = geometry.intersection(tileGeometry);
+
+            //复制对象属性
+            intersection.setUserData(geometry.getUserData());
+            intersection.setSRID(geometry.getSRID());
+
+            return intersection;
         } catch (Exception e) {
             return null;
         }

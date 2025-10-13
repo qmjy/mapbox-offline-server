@@ -51,7 +51,7 @@ public class AdministrativeDivisionOrigin {
     @Schema(description = "行政区划标签描述", example = "一些有用的数据")
     private final Map<String, Object> tags = new HashMap<>();
 
-    public AdministrativeDivisionOrigin(int osmId, String parents, int adminLevel, String name, String nameEn, String[] geometry, String tagsData) {
+    public AdministrativeDivisionOrigin(int osmId, String parents, int adminLevel, String name, String nameEn, String[] geometry, Object tagsData) {
         this.id = osmId;
         this.parentsId = parents;
         this.adminLevel = adminLevel;
@@ -61,6 +61,8 @@ public class AdministrativeDivisionOrigin {
         this.center = geometry[1];
         this.bounds = geometry[2];
         JsonParser jsonParser = JsonParserFactory.getJsonParser();
-        tags.putAll(jsonParser.parseMap(tagsData));
+        if (tagsData != null) {
+            tags.putAll(jsonParser.parseMap(tagsData.toString()));
+        }
     }
 }

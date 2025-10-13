@@ -188,7 +188,7 @@ public class MapServerOsmBController {
                 int adminLevel = (int) simpleFeature.getAttribute("admin_level");
 
                 AdministrativeDivisionOrigin data = new AdministrativeDivisionOrigin(osmId, parents, adminLevel, name,
-                        nameEn, getGeometryStrs(geometry, type), String.valueOf(tags));
+                        nameEn, getGeometryStrs(geometry, type), tags);
                 Map<String, Object> ok = ResponseMapUtil.ok(data);
                 return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ok);
             }

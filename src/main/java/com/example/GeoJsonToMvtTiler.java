@@ -2,19 +2,23 @@ package com.example;
 
 import io.github.sebasbaumh.mapbox.vectortile.VectorTile;
 import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.JtsAdapter;
+import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.UserDataKeyValueMapConverter;
 import io.github.sebasbaumh.mapbox.vectortile.build.MvtLayerParams;
 import io.github.sebasbaumh.mapbox.vectortile.build.MvtLayerProps;
 import io.github.sebasbaumh.mapbox.vectortile.util.MvtUtil;
 import org.geotools.api.feature.Property;
 import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.referencing.FactoryException;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.*;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,7 +51,7 @@ public class GeoJsonToMvtTiler {
     private static final int TILE_COORDINATE_DIRECTION_ORIGIN_LEFT_BOTTOM = 1;
 
     /**
-     * 要切片的地理数据边界范围
+     * 当前要切片的地理数据边界范围
      */
     private static Envelope bounds;
 
@@ -56,10 +60,11 @@ public class GeoJsonToMvtTiler {
      * 仅接受WGS84坐标系的数据接收
      *
      * @param geojsonPath json文件位置
+     * @param mapKey      图层名称的字段
      * @return 解析后的Geometry对象列表
      */
-    private static List<Geometry> readGeoJson(String geojsonPath) {
-        List<Geometry> geometries = new ArrayList<>();
+    private static Map<String, List<Geometry>> readGeoJson(String geojsonPath, String mapKey) {
+        Map<String, List<Geometry>> geometryMap = new HashMap<>();
         try {
             GeoJSONReader reader = new GeoJSONReader(new FileInputStream(geojsonPath));
             SimpleFeatureIterator features = reader.getFeatures().features();
@@ -71,8 +76,14 @@ public class GeoJsonToMvtTiler {
                     Geometry g = geometry.get();
                     g.setUserData(getGeometryUserData(feature));
                     g.setSRID(CRS_VALUE_WGS84);
+
+                    if (mapKey != null && feature.getAttribute(mapKey) != null) {
+                        geometryMap.computeIfAbsent(feature.getAttribute(mapKey).toString(), k -> new ArrayList<>()).add(g);
+                    } else {
+                        geometryMap.computeIfAbsent("default", k -> new ArrayList<>()).add(g);
+                    }
+
                     updateBounds(g);
-                    geometries.add(g);
                 }
             }
             features.close();
@@ -80,8 +91,9 @@ public class GeoJsonToMvtTiler {
             e.printStackTrace();
         }
 
-        return geometries;
+        return geometryMap;
     }
+
 
     private static Map<String, String> getGeometryUserData(SimpleFeature feature) {
         HashMap<String, String> objectObjectHashMap = new HashMap<>();
@@ -128,7 +140,7 @@ public class GeoJsonToMvtTiler {
      * @param zoom       缩放级别
      * @throws IOException 如果写入文件失败
      */
-    private static void generateTilesForZoom(List<Geometry> geometries, String outputDir, int zoom) throws Exception {
+    private static void generateTilesForZoom(Map<String, List<Geometry>> geometries, String outputDir, int zoom) throws Exception {
         // 创建输出目录
         Path zoomPath = Paths.get(outputDir, String.valueOf(zoom));
         Files.createDirectories(zoomPath);
@@ -136,42 +148,59 @@ public class GeoJsonToMvtTiler {
         // 计算该缩放级别下的瓦片数量
 //        int tileCount = (int) Math.pow(2, zoom);
 
-        if (geometries.getFirst().getSRID() == CRS_VALUE_WGS84) {
+        if (geometries.values().iterator().next().getFirst().getSRID() == CRS_VALUE_WGS84) {
             Map<String, Integer> tileInfoMap = calculateTileRange(bounds, TILE_COORDINATE_DIRECTION_ORIGIN_LEFT_TOP, zoom);
             for (int x = tileInfoMap.get("minTileX"); x <= tileInfoMap.get("maxTileX"); x++) {
                 for (int y = tileInfoMap.get("minTileY"); y <= tileInfoMap.get("maxTileY"); y++) {
-                    // 获取当前瓦片的地理范围
-                    Envelope tileEnvelope = calculateTileEnvelope(x, y, zoom);
-
-                    // 筛选出在当前瓦片范围内的几何对象
-                    List<Geometry> tileGeometries = new ArrayList<>();
-                    for (Geometry geometry : geometries) {
-                        System.out.println("Generate tile:" + zoom + "/" + x + "/" + y);
-                        if (tileEnvelope.intersects(getMercatorBounds(geometry))) {
-                            // 裁剪几何对象到瓦片范围
-                            Geometry clippedGeometry = clipGeometryToTile(transformProjections(geometry, CRS_WGS84, CRS_MERCATOR_WEB), tileEnvelope);
-                            if (clippedGeometry != null && !clippedGeometry.isEmpty()) {
-                                tileGeometries.add(clippedGeometry);
-                            }
-                        }
-                    }
-
-                    if (!tileGeometries.isEmpty()) {
-                        // 创建坐标目录：x
-                        Path xPath = zoomPath.resolve(String.valueOf(x));
-                        Files.createDirectories(xPath);
-
-                        // 创建瓦片文件：y
-                        byte[] mvtData = createMvt(tileGeometries, tileEnvelope, zoom + "/" + x + "/" + y);
-                        Path tilePath = xPath.resolve(y + ".mvt");
-
-                        try (FileOutputStream fos = new FileOutputStream(tilePath.toFile())) {
-                            fos.write(mvtData);
-                        }
-                    }
+                    createTile(geometries, zoom, x, y, zoomPath);
                 }
             }
         }
+    }
+
+    private static void createTile(Map<String, List<Geometry>> geometries, int zoom, int x, int y, Path zoomPath) {
+        // 获取当前瓦片的地理范围
+        Envelope tileEnvelope = calculateTileEnvelope(x, y, zoom);
+
+        // 筛选出在当前瓦片范围内的几何对象
+        List<Geometry> tileGeometries = new ArrayList<>();
+
+        geometries.forEach((key, value) -> {
+            for (Geometry geometry : value) {
+                System.out.println("Generate tile:" + zoom + "/" + x + "/" + y);
+                if (tileEnvelope.intersects(getMercatorBounds(geometry))) {
+                    // 裁剪几何对象到瓦片范围
+                    Optional<Geometry> geometryOpt = transformProjections(geometry, CRS_WGS84, CRS_MERCATOR_WEB);
+                    if (geometryOpt.isPresent()) {
+                        Geometry clippedGeometry = clipGeometryToTile(geometryOpt.get(), tileEnvelope);
+                        if (clippedGeometry != null && !clippedGeometry.isEmpty()) {
+                            tileGeometries.add(clippedGeometry);
+                        }
+                    }
+                }
+
+                //TODO 如果是完全包含关系，切片完成以后则可以在此层级移除此要素
+            }
+
+            if (!tileGeometries.isEmpty()) {
+                // 创建坐标目录：x
+                Path xPath = zoomPath.resolve(String.valueOf(x));
+                try {
+                    Files.createDirectories(xPath);
+
+                    // 创建瓦片文件：y
+                    byte[] mvtData = createMvt(tileGeometries, tileEnvelope, key);
+                    Path tilePath = xPath.resolve(y + ".mvt");
+
+                    try (FileOutputStream fos = new FileOutputStream(tilePath.toFile())) {
+                        fos.write(mvtData);
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
     }
 
 
@@ -255,19 +284,25 @@ public class GeoJsonToMvtTiler {
      * @param sourceCRSCode 原坐标系
      * @param targetCRSCode 目标坐标系
      * @return Web墨卡托坐标系下的几何对象
-     * @throws Exception 如果转换过程中出现错误
      */
-    private static Geometry transformProjections(Geometry geometry, String sourceCRSCode, String targetCRSCode) throws Exception {
-        // 1. 定义源和目标坐标系
-        // 注意坐标顺序：经度在前（X），纬度在后（Y），强制指定为经度、纬度顺序，避免潜在问题。 true 表示强制 (longitude, latitude) 顺序
-        CoordinateReferenceSystem sourceCRS = CRS.decode(sourceCRSCode, true);
-        CoordinateReferenceSystem targetCRS = CRS.decode(targetCRSCode);
+    private static Optional<Geometry> transformProjections(Geometry geometry, String sourceCRSCode, String targetCRSCode) {
+        try {
+            // 1. 定义源和目标坐标系
+            // 注意坐标顺序：经度在前（X），纬度在后（Y），强制指定为经度、纬度顺序，避免潜在问题。 true 表示强制 (longitude, latitude) 顺序
+            CoordinateReferenceSystem sourceCRS = CRS.decode(sourceCRSCode, true);
+            CoordinateReferenceSystem targetCRS = CRS.decode(targetCRSCode);
 
-        // 2. 创建坐标转换器
-        MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS);
+            // 2. 创建坐标转换器
+            MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS);
 
-        // 3. 执行转换
-        return JTS.transform(geometry, transform);
+            // 3. 执行转换
+            return Optional.of(JTS.transform(geometry, transform));
+        } catch (FactoryException e) {
+            e.printStackTrace();
+        } catch (TransformException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
     }
 
     private static Envelope getMercatorBounds(Geometry geometry) {
@@ -431,7 +466,7 @@ public class GeoJsonToMvtTiler {
 
         // add it to the layer builder
         if (!geometryList.isEmpty()) {
-            JtsAdapter.addFeatures(mvtLayerBuilder, geometryList, mvtLayerProps, null);
+            JtsAdapter.addFeatures(mvtLayerBuilder, geometryList, mvtLayerProps, new UserDataKeyValueMapConverter());
 
             // finish writing of features
             MvtUtil.writeProps(mvtLayerBuilder, mvtLayerProps);
@@ -478,12 +513,12 @@ public class GeoJsonToMvtTiler {
 
         try {
             System.out.println("Reading GeoJSON file: " + geojsonPath);
-            List<Geometry> geometries = readGeoJson(geojsonPath);
-            System.out.println("Read " + geometries.size() + " geometries");
+            Map<String, List<Geometry>> geometryMap = readGeoJson(geojsonPath, "type");
+            System.out.println("Read layers of " + geometryMap.size());
 
             for (int zoom : zoomLevels) {
                 System.out.println("Generating tiles for zoom level: " + zoom);
-                generateTilesForZoom(geometries, outputDir, zoom);
+                generateTilesForZoom(geometryMap, outputDir, zoom);
             }
 
             System.out.println("Tile generation completed successfully!");

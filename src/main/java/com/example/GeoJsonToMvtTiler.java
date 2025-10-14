@@ -18,7 +18,6 @@ import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.*;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -98,7 +97,9 @@ public class GeoJsonToMvtTiler {
     private static Map<String, String> getGeometryUserData(SimpleFeature feature) {
         HashMap<String, String> objectObjectHashMap = new HashMap<>();
         for (Property next : feature.getProperties()) {
-            objectObjectHashMap.put(next.getName().toString(), next.getValue().toString());
+            if (next.getName() != null && next.getValue() != null) {
+                objectObjectHashMap.put(next.getName().toString(), next.getValue().toString());
+            }
         }
         return objectObjectHashMap;
     }
@@ -135,24 +136,25 @@ public class GeoJsonToMvtTiler {
     /**
      * 为指定缩放级别生成所有瓦片
      *
-     * @param geometries 几何对象列表
-     * @param outputDir  输出目录
-     * @param zoom       缩放级别
+     * @param geometryMap 几何对象列表
+     * @param outputDir   输出目录
+     * @param zoom        缩放级别
      * @throws IOException 如果写入文件失败
      */
-    private static void generateTilesForZoom(Map<String, List<Geometry>> geometries, String outputDir, int zoom) throws Exception {
+    private static void generateTilesForZoom(Map<String, List<Geometry>> geometryMap, String outputDir, int zoom) throws Exception {
         // 创建输出目录
         Path zoomPath = Paths.get(outputDir, String.valueOf(zoom));
         Files.createDirectories(zoomPath);
 
         // 计算该缩放级别下的瓦片数量
 //        int tileCount = (int) Math.pow(2, zoom);
-
-        if (geometries.values().iterator().next().getFirst().getSRID() == CRS_VALUE_WGS84) {
-            Map<String, Integer> tileInfoMap = calculateTileRange(bounds, TILE_COORDINATE_DIRECTION_ORIGIN_LEFT_TOP, zoom);
-            for (int x = tileInfoMap.get("minTileX"); x <= tileInfoMap.get("maxTileX"); x++) {
-                for (int y = tileInfoMap.get("minTileY"); y <= tileInfoMap.get("maxTileY"); y++) {
-                    createTile(geometries, zoom, x, y, zoomPath);
+        if (!geometryMap.isEmpty()) {
+            if (geometryMap.values().iterator().next().getFirst().getSRID() == CRS_VALUE_WGS84) {
+                Map<String, Integer> tileInfoMap = calculateTileRange(bounds, TILE_COORDINATE_DIRECTION_ORIGIN_LEFT_TOP, zoom);
+                for (int x = tileInfoMap.get("minTileX"); x <= tileInfoMap.get("maxTileX"); x++) {
+                    for (int y = tileInfoMap.get("minTileY"); y <= tileInfoMap.get("maxTileY"); y++) {
+                        createTile(geometryMap, zoom, x, y, zoomPath);
+                    }
                 }
             }
         }
@@ -207,7 +209,6 @@ public class GeoJsonToMvtTiler {
                 }
             }
         });
-
     }
 
 

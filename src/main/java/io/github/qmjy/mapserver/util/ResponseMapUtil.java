@@ -48,6 +48,12 @@ public class ResponseMapUtil {
      * 相应结果：资源已存在
      */
     public static final int STATUS_RESOURCE_ALREADY_EXISTS = 4;
+
+
+    /**
+     * 相应结果：超出范围
+     */
+    public static final int STATUS_RESOURCE_OUT_OF_RANGE = 5;
     /**
      * 响应结果：其他
      */

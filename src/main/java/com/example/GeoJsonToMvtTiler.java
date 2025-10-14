@@ -166,9 +166,13 @@ public class GeoJsonToMvtTiler {
         List<Geometry> tileGeometries = new ArrayList<>();
 
         geometries.forEach((key, value) -> {
-            for (Geometry geometry : value) {
+            Iterator<Geometry> iterator = value.iterator();
+            while (iterator.hasNext()) {
+                Geometry geometry = iterator.next();
+
                 System.out.println("Generate tile:" + zoom + "/" + x + "/" + y);
-                if (tileEnvelope.intersects(getMercatorBounds(geometry))) {
+                Envelope mercatorBounds = getMercatorBounds(geometry);
+                if (tileEnvelope.intersects(mercatorBounds)) {
                     // 裁剪几何对象到瓦片范围
                     Optional<Geometry> geometryOpt = transformProjections(geometry, CRS_WGS84, CRS_MERCATOR_WEB);
                     if (geometryOpt.isPresent()) {
@@ -180,6 +184,9 @@ public class GeoJsonToMvtTiler {
                 }
 
                 //TODO 如果是完全包含关系，切片完成以后则可以在此层级移除此要素
+                if (tileEnvelope.contains(mercatorBounds)) {
+                    iterator.remove();
+                }
             }
 
             if (!tileGeometries.isEmpty()) {

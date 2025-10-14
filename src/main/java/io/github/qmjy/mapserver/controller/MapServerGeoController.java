@@ -111,9 +111,7 @@ public class MapServerGeoController {
      */
     @Operation(summary = "地理逆编码查询", description = "通过经纬度查询行政区划概要信息，通过区划ID可获取行政区划详细信息。")
     @GetMapping("/geocode/regeo")
-    public ResponseEntity<Map<String, Object>> regeo(@Parameter(description = "待查询的经纬度坐标，例如：104.071883,30.671974") @RequestParam(value = "location") String location,
-                                                     @Parameter(description = "返回的数据语言。0：本地语言（default）；1：英语") @RequestParam(value = "langType", required = false, defaultValue = "0") int langType,
-                                                     @Parameter(description = "各行政区划节点之间的分割符。默认本地语言无分隔符，英文为空格。") @RequestParam(value = "splitter", required = false, defaultValue = "") String splitter) {
+    public ResponseEntity<Map<String, Object>> regeo(@Parameter(description = "待查询的经纬度坐标，例如：104.071883,30.671974") @RequestParam(value = "location") String location, @Parameter(description = "返回的数据语言。0：本地语言（default）；1：英语") @RequestParam(value = "langType", required = false, defaultValue = "0") int langType, @Parameter(description = "各行政区划节点之间的分割符。默认本地语言无分隔符，英文为空格。") @RequestParam(value = "splitter", required = false, defaultValue = "") String splitter) {
         AdministrativeDivisionNode simpleAdminDivision = MapServerDataCenter.getInstance().getSimpleAdminDivision();
         if (simpleAdminDivision == null) {
             String msg = "Can't find any geojson file for boundary search!";
@@ -132,13 +130,17 @@ public class MapServerGeoController {
         StringBuilder sb = new StringBuilder();
         AdministrativeDivisionNode leaf = getFullPath2Leaf(simpleAdminDivision, point, sb, langType, splitter);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", leaf.getId());
-        result.put("name", langType == 0 ? leaf.getName() : leaf.getNameEn());
-        result.put("adminLevel", leaf.getAdminLevel());
-        result.put("fullPath", sb.toString());
+        if (leaf == null) {
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.nok(ResponseMapUtil.STATUS_RESOURCE_OUT_OF_RANGE, "经纬度坐标超出范围！"));
+        } else {
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", leaf.getId());
+            result.put("name", langType == 0 ? leaf.getName() : leaf.getNameEn());
+            result.put("adminLevel", leaf.getAdminLevel());
+            result.put("fullPath", sb.toString());
 
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(ResponseMapUtil.ok(result));
+        }
     }
 
     private AdministrativeDivisionNode getFullPath2Leaf(AdministrativeDivisionNode simpleAdminDivision, Point point, StringBuilder sb, int langType, String splitter) {

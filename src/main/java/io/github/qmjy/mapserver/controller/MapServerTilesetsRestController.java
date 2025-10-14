@@ -534,14 +534,18 @@ public class MapServerTilesetsRestController {
     }
 
     private Optional<byte[]> getBytesFromSqlite(String tileset, int z, int x, int y, MediaType defaultMediaType) {
-        boolean compressed = mapServerDataCenter.getTilesMap().get(tileset).isCompressed();
+        TilesFileModel tilesFileModel = mapServerDataCenter.getTilesMap().get(tileset);
+        if (tilesFileModel == null) {
+            return Optional.empty();
+        }
+
         Optional<JdbcTemplate> jdbcTemplateOpt = mapServerDataCenter.getDataSource(tileset);
         if (jdbcTemplateOpt.isPresent()) {
             JdbcTemplate jdbcTemplate = jdbcTemplateOpt.get();
             String sql = "SELECT tile_data FROM tiles WHERE zoom_level = " + z + " AND tile_column = " + x + " AND tile_row = " + y;
             try {
                 byte[] value = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getBytes(1));
-                return value == null ? getDefaultTile(z, x, y, defaultMediaType) : Optional.of(compressed ? IOUtils.decompress(value) : value);
+                return value == null ? getDefaultTile(z, x, y, defaultMediaType) : Optional.of(tilesFileModel.isCompressed() ? IOUtils.decompress(value) : value);
             } catch (EmptyResultDataAccessException e) {
                 return getDefaultTile(z, x, y, defaultMediaType);
             }
